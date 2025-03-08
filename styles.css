@@ -1,0 +1,250 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Libre Baskerville', serif;
+}
+
+body {
+    overflow: hidden;
+}
+
+/* Add keyframes for the flag-waving animation */
+@keyframes waveFlag {
+    0% {
+        transform: perspective(500px) rotateY(0deg);
+    }
+    25% {
+        transform: perspective(500px) rotateY(10deg);
+    }
+    50% {
+        transform: perspective(500px) rotateY(0deg);
+    }
+    75% {
+        transform: perspective(500px) rotateY(-10deg);
+    }
+    100% {
+        transform: perspective(500px) rotateY(0deg);
+    }
+}
+
+.desktop {
+    width: 100vw;
+    height: 100vh;
+    background-color: #f0ece4; /* Light beige/off-white color from the image */
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    /* Add grid pattern to mimic notebook */
+    background-image: 
+        linear-gradient(#ccc 1px, transparent 1px),
+        linear-gradient(90deg, #ccc 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* Add Stalogy yellow band at the bottom */
+.desktop::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background-color: #f9e04c; /* Bright yellow color */
+    z-index: 1;
+}
+
+/* Add yellow margins on the left and right bottom */
+.desktop::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0px; /* Changed from 20px to 0px to remove the left yellow border */
+    height: 100px;
+    background-color: #f9e04c; /* Bright yellow color */
+    z-index: 1;
+}
+
+.desktop-right-margin {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 100px;
+    background-color: #f9e04c; /* Bright yellow color */
+    z-index: 1;
+}
+
+/* Month and day header styling */
+.month-day-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 20px;
+    font-size: 10px;
+    color: #666;
+    z-index: 2;
+}
+
+.month-header, .day-header {
+    display: flex;
+    justify-content: space-between;
+    width: 45%;
+}
+
+.month-item, .day-item {
+    text-transform: uppercase;
+    font-size: 8px;
+    letter-spacing: 1px;
+}
+
+.active-date {
+    font-weight: bold;
+    color: #333;
+}
+
+.welcome-window {
+    background-color: rgba(240, 236, 228, 0.8); /* Slightly transparent version of the background */
+    border-radius: 0; /* Stalogy has sharp corners */
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2);
+    width: 500px;
+    padding: 30px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    border: 1px solid #ff9a9e; /* Pale pink border */
+}
+
+.windows-logo-img {
+    width: 80px;
+    height: auto;
+    display: block;
+    margin: 0 auto 20px;
+    /* Apply the flag-waving animation */
+    animation: waveFlag 3s ease-in-out infinite;
+    transform-origin: left center;
+    /* Ensure the image background is transparent */
+    background: transparent;
+    /* Improve blending with background */
+    mix-blend-mode: normal;
+    /* Remove any potential border */
+    border: none;
+    /* Remove any outline */
+    outline: none;
+    /* Ensure smooth edges */
+    image-rendering: auto;
+    /* Add a filter to remove any potential white background */
+    filter: brightness(0.9);
+    /* Remove any box-shadow */
+    box-shadow: none;
+}
+
+.welcome-text h1 {
+    font-size: 28px;
+    color: #F7C9C3; /* Pink color from the landing page */
+    margin-bottom: 20px;
+    text-transform: lowercase;
+    font-family: 'Libre Baskerville', serif;
+    letter-spacing: 1px;
+}
+
+.name {
+    font-weight: bold;
+}
+
+.enter-button {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.enter-button a {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #f0e68c; /* Stalogy yellow */
+    border: none;
+    color: #000;
+    text-decoration: none;
+    font-size: 16px;
+    font-family: 'Libre Baskerville', serif;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.enter-button a:hover {
+    background-color: #ffffff;
+}
+
+.enter-button a:active {
+    transform: scale(0.98);
+}
+
+/* Stalogy notebook elements */
+.stalogy-label {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    z-index: 2;
+}
+
+.stalogy-title {
+    display: inline-block;
+    background-color: #f0e68c; /* Stalogy yellow */
+    padding: 8px 15px;
+    font-family: 'Libre Baskerville', serif;
+    font-size: 14px;
+    font-weight: bold;
+    color: #000;
+}
+
+.stalogy-logo {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: #f0e68c; /* Stalogy yellow */
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+}
+
+.stalogy-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 2;
+    padding: 0 20px;
+}
+
+.info-point {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Libre Baskerville', serif;
+    font-size: 10px;
+    color: #000;
+}
+
+.point-number {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.point-title {
+    font-size: 9px;
+} 

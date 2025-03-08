@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maya's desktop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'MS Sans Serif', monospace;
+        }
+        
+        body {
+            overflow: hidden;
+            background-color: #f5f0e0; /* Beige background for notebook paper */
+            background-image: 
+                linear-gradient(#d9d2c0 1px, transparent 1px),
+                linear-gradient(90deg, #d9d2c0 1px, transparent 1px);
+            background-size: 20px 20px; /* Grid size */
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+        
+        /* Add a subtle paper texture overlay */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(245, 240, 224, 0.5), rgba(245, 240, 224, 0.5)),
+                              url('data:image/png;base64,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');
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* Desktop icons */
+        .desktop-icons {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .filled-dot {
+            font-size: 24px;
+            text-align: center;
+            margin: 0 auto;
+            display: block;
+            line-height: 1;
+        }
+        
+        .icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 70px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .icon img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 5px;
+        }
+        
+        .icon-label {
+            color: #333333;
+            font-size: 12px;
+            text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.9);
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        /* Windows */
+        .window {
+            position: absolute;
+            background-color: #c0c0c0;
+            border: 2px solid;
+            border-color: #ffffff #F7C9C3 #F7C9C3 #ffffff;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            min-width: 300px;
+            min-height: 200px;
+            display: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+        
+        .about-window {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 450px;
+        }
+        
+        .winamp-window {
+            top: 50px;
+            right: 50px;
+            width: 275px;
+            height: 400px;
+        }
+        
+        .title-bar {
+            background-color: #F7C9C3; /* Pale pink color */
+            padding: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            color: #333; /* Dark text for better contrast */
+            font-weight: bold;
+            font-family: monospace;
+        }
+        
+        .title-bar-text {
+            font-size: 14px;
+            font-family: monospace;
+        }
+        
+        .title-bar-controls {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .title-bar-controls button {
+            width: 16px;
+            height: 14px;
+            background-color: #c0c0c0;
+            border: 1px solid;
+            border-color: #ffffff #808080 #808080 #ffffff;
+            font-size: 9px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: black;
+        }
+        
+        .window-content {
+            padding: 10px;
+            height: calc(100% - 22px);
+            overflow: auto;
+            background-color: white;
+        }
+        
+        .about-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 10px;
+        }
+        
+        .about-header {
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        
+        .about-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .profile-section {
+            width: 100%;
+            max-width: 350px;
+            border: none;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .profile-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .profile-label {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .profile-icon {
+            width: 60px;
+            height: 60px;
+            background-color: #f0f0f0;
+            border: 1px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #000;
+            font-size: 24px;
+        }
+        
+        .profile-image {
+            width: 100%;
+            max-width: 350px;
+            height: auto;
+            object-fit: contain;
+            border: none;
+            background-color: transparent;
+        }
+        
+        .content-section {
+            width: 100%;
+        }
+        
+        .intro-text {
+            margin-bottom: 15px;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        
+        .section-heading {
+            font-weight: bold;
+            margin: 10px 0 5px;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+        
+        .highlights-list {
+            margin-left: 0;
+            list-style-type: none;
+        }
+        
+        .highlights-list li {
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.4;
+            position: relative;
+            padding-left: 15px;
+        }
+        
+        .highlights-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        
+        .highlights-list li strong {
+            font-size: 16px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .highlights-list a {
+            color: blue;
+            text-decoration: underline;
+        }
+        
+        /* Winamp styling */
+        .winamp-player {
+            width: 100%;
+            height: 100%;
+            background-color: #f5f2e8; /* Pale beige background */
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .winamp-header {
+            background-color: #f5f2e8; /* Pale beige background */
+            padding: 5px;
+            color: #333; /* Darker text for contrast */
+        }
+        
+        .winamp-controls {
+            display: flex;
+            background-color: #ebe6d9; /* Slightly darker beige for controls */
+            padding: 5px;
+        }
+        
+        .winamp-controls button {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            background-color: #e0daca; /* Button background */
+            border: 1px solid #ccc;
+            color: #333; /* Darker text for contrast */
+            font-size: 10px;
+        }
+        
+        .winamp-playlist {
+            flex: 1;
+            background-color: #f5f2e8; /* Pale beige background */
+            color: #333; /* Darker text for contrast */
+            font-size: 10px;
+            padding: 5px;
+            overflow-y: auto;
+        }
+        
+        .playlist-item {
+            padding: 2px 5px;
+            border-bottom: 1px solid #e0daca;
+        }
+        
+        .playlist-item.active {
+            background-color: #F7C9C3; /* Pale pink for active item to match title bar */
+            color: #333;
+        }
+        
+        .winamp-equalizer {
+            height: 100px;
+            background-color: #ebe6d9; /* Slightly darker beige for equalizer */
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .eq-slider {
+            width: 15px;
+            height: 80px;
+            background-color: #e0daca;
+            position: relative;
+            border: 1px solid #ccc8b8;
+        }
+        
+        .eq-slider::before {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 5px;
+            background-color: #F7C9C3;
+            bottom: 40px;
+        }
+        
+        /* Chat Window Styling */
+        .chat-window {
+            top: 100px;
+            left: 100px;
+            width: 400px;
+            height: 350px;
+        }
+        
+        .chat-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            max-width: 80%;
+            word-wrap: break-word;
+            position: relative;
+        }
+        
+        .user-message {
+            background-color: #e6f7ff;
+            align-self: flex-end;
+            margin-left: auto;
+            border: 1px solid #b3e0ff;
+        }
+        
+        .maya-message {
+            background-color: #f0f0f0;
+            align-self: flex-start;
+            border: 1px solid #d9d9d9;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            padding: 8px;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+            align-self: flex-start;
+            margin-bottom: 10px;
+            border: 1px solid #d9d9d9;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #999;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+        
+        .chat-input-container {
+            display: flex;
+            padding: 5px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+        
+        .chat-send-btn {
+            padding: 8px 15px;
+            background-color: #d4d0c8;
+            border: 2px solid;
+            border-color: #ffffff #808080 #808080 #ffffff;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .chat-send-btn:active {
+            border-color: #808080 #ffffff #ffffff #808080;
+        }
+        
+        /* Resize handles */
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: transparent;
+            z-index: 20;
+        }
+        
+        .resize-handle.se {
+            bottom: 0;
+            right: 0;
+            cursor: nwse-resize;
+        }
+        
+        .resize-handle.sw {
+            bottom: 0;
+            left: 0;
+            cursor: nesw-resize;
+        }
+        
+        .resize-handle.ne {
+            top: 0;
+            right: 0;
+            cursor: nesw-resize;
+        }
+        
+        .resize-handle.nw {
+            top: 0;
+            left: 0;
+            cursor: nwse-resize;
+        }
+    </style>
+</head>
+<body>
+    <!-- Desktop Icons -->
+    <div class="desktop-icons">
+        <div class="icon" onclick="toggleWindow('about-window')">
+            <div class="filled-dot">🫖</div>
+            <div class="icon-label">welcome</div>
+        </div>
+        <div class="icon" onclick="window.location.href='mailto:mayabakir38@gmail.com'">
+            <div class="filled-dot">🫖</div>
+            <div class="icon-label">say hi</div>
+        </div>
+        <div class="icon" onclick="window.open('https://mayascorner.notion.site/hi-i-m-maya-1a22bb286ed980bba588d6da0f922a3b?pvs=74', '_blank')">
+            <div class="filled-dot">🫖</div>
+            <div class="icon-label">working<br>on</div>
+        </div>
+        <div class="icon" onclick="toggleWindow('winamp-window')">
+            <div class="filled-dot">🫖</div>
+            <div class="icon-label">maya's<br>earbuds</div>
+        </div>
+        <div class="icon" onclick="window.open('https://www.cosmos.so/babka/elements', '_blank')">
+            <div class="filled-dot">🫖</div>
+            <div class="icon-label">what i'm<br>saving</div>
+        </div>
+    </div>
+    
+    <!-- About Window -->
+    <div id="about-window" class="window about-window">
+        <div class="title-bar">
+            <div class="title-bar-text">C://welcome</div>
+            <div class="title-bar-controls">
+                <button>_</button>
+                <button>□</button>
+                <button onclick="toggleWindow('about-window')">×</button>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="about-content">
+                <h1 class="about-header"></h1>
+                <div class="about-main">
+                    <div class="profile-section">
+                        <div class="profile-box">
+                            <img src="c'est moi!.png" alt="Profile Picture" class="profile-image">
+                        </div>
+                    </div>
+                    <div class="content-section">
+                        <p class="intro-text">Hi I'm Maya.<br><br>I'm bringing Notion to our next generation ✨</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="resize-handle se"></div>
+        <div class="resize-handle sw"></div>
+        <div class="resize-handle ne"></div>
+        <div class="resize-handle nw"></div>
+    </div>
+    
+    <!-- Chat Window -->
+    <div id="chat-window" class="window chat-window">
+        <div class="title-bar">
+            <div class="title-bar-text">C://chat_with_maya</div>
+            <div class="title-bar-controls">
+                <button>_</button>
+                <button>□</button>
+                <button onclick="toggleWindow('chat-window')">×</button>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="chat-content">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="message maya-message">
+                        Hiya! I'm Maya's virtual assistant! Ask me anything and I'll respond in a totally casual and silly way! *does a little dance* 🎉
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" class="chat-input" placeholder="Type your message here..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                    <button class="chat-send-btn" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+        <div class="resize-handle se"></div>
+        <div class="resize-handle sw"></div>
+        <div class="resize-handle ne"></div>
+        <div class="resize-handle nw"></div>
+    </div>
+    
+    <!-- Winamp Window -->
+    <div id="winamp-window" class="window winamp-window">
+        <div class="title-bar">
+            <div class="title-bar-text">maya's earbuds</div>
+            <div class="title-bar-controls">
+                <button>_</button>
+                <button>□</button>
+                <button onclick="toggleWindow('winamp-window')">×</button>
+            </div>
+        </div>
+        <div class="window-content" style="padding: 0;">
+            <div class="winamp-player">
+                <div class="winamp-header">
+                    maya's earbuds
+                </div>
+                <div class="winamp-controls">
+                    <button>⏮</button>
+                    <button>▶</button>
+                    <button>⏹</button>
+                    <button>⏭</button>
+                </div>
+                <div class="winamp-playlist">
+                    <div class="playlist-item active">1. Careless Whisper - George Michael.mp3</div>
+                    <div class="playlist-item">2. Final Credits - Midland.mp3</div>
+                    <div class="playlist-item">3. Get It Together - Drake, Black Coffee, Jorja Smith.mp3</div>
+                    <div class="playlist-item">4. Opal - Four Tet Remix - BICEP, Four Tet.mp3</div>
+                    <div class="playlist-item">5. Thousand Finger Man - Candido.mp3</div>
+                </div>
+                <div class="winamp-equalizer">
+                    <div class="eq-slider"></div>
+                    <div class="eq-slider"></div>
+                    <div class="eq-slider"></div>
+                    <div class="eq-slider"></div>
+                    <div class="eq-slider"></div>
+                    <div class="eq-slider"></div>
+                    <div class="eq-slider"></div>
+                    <div class="eq-slider"></div>
+                    <div class="eq-slider"></div>
+                    <div class="eq-slider"></div>
+                </div>
+            </div>
+        </div>
+        <div class="resize-handle se"></div>
+        <div class="resize-handle sw"></div>
+        <div class="resize-handle ne"></div>
+        <div class="resize-handle nw"></div>
+    </div>
+    
+    <script>
+        // Function to toggle window visibility
+        function toggleWindow(windowId) {
+            const window = document.getElementById(windowId);
+            if (window.style.display === 'none') {
+                window.style.display = 'block';
+            } else {
+                window.style.display = 'none';
+            }
+        }
+        
+        // Show windows by default to match the image
+        document.getElementById('about-window').style.display = 'block';
+        document.getElementById('winamp-window').style.display = 'block';
+        document.getElementById('chat-window').style.display = 'none';
+        
+        // Make windows draggable
+        function makeWindowDraggable(windowId) {
+            const windowElement = document.getElementById(windowId);
+            const titleBar = windowElement.querySelector('.title-bar');
+            
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            
+            titleBar.onmousedown = dragMouseDown;
+            
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // Get the mouse cursor position at startup
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                // Call a function whenever the cursor moves
+                document.onmousemove = elementDrag;
+                
+                // Bring window to front
+                const windows = document.querySelectorAll('.window');
+                windows.forEach(win => {
+                    win.style.zIndex = "1";
+                });
+                windowElement.style.zIndex = "10";
+            }
+            
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // Calculate the new cursor position
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                // Set the element's new position
+                windowElement.style.top = (windowElement.offsetTop - pos2) + "px";
+                windowElement.style.left = (windowElement.offsetLeft - pos1) + "px";
+            }
+            
+            function closeDragElement() {
+                // Stop moving when mouse button is released
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+        
+        // Make windows resizable
+        function makeWindowResizable(windowId) {
+            const windowElement = document.getElementById(windowId);
+            const resizeHandles = windowElement.querySelectorAll('.resize-handle');
+            
+            resizeHandles.forEach(handle => {
+                handle.addEventListener('mousedown', initResize);
+            });
+            
+            function initResize(e) {
+                e.preventDefault();
+                
+                const direction = e.target.classList[1]; // se, sw, ne, nw
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startWidth = windowElement.offsetWidth;
+                const startHeight = windowElement.offsetHeight;
+                const startTop = windowElement.offsetTop;
+                const startLeft = windowElement.offsetLeft;
+                
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+                
+                function resize(e) {
+                    if (direction === 'se') {
+                        const width = startWidth + (e.clientX - startX);
+                        const height = startHeight + (e.clientY - startY);
+                        if (width > 200) windowElement.style.width = width + 'px';
+                        if (height > 100) windowElement.style.height = height + 'px';
+                    } else if (direction === 'sw') {
+                        const width = startWidth - (e.clientX - startX);
+                        const height = startHeight + (e.clientY - startY);
+                        const left = startLeft + (e.clientX - startX);
+                        if (width > 200) {
+                            windowElement.style.width = width + 'px';
+                            windowElement.style.left = left + 'px';
+                        }
+                        if (height > 100) windowElement.style.height = height + 'px';
+                    } else if (direction === 'ne') {
+                        const width = startWidth + (e.clientX - startX);
+                        const height = startHeight - (e.clientY - startY);
+                        const top = startTop + (e.clientY - startY);
+                        if (width > 200) windowElement.style.width = width + 'px';
+                        if (height > 100) {
+                            windowElement.style.height = height + 'px';
+                            windowElement.style.top = top + 'px';
+                        }
+                    } else if (direction === 'nw') {
+                        const width = startWidth - (e.clientX - startX);
+                        const height = startHeight - (e.clientY - startY);
+                        const top = startTop + (e.clientY - startY);
+                        const left = startLeft + (e.clientX - startX);
+                        if (width > 200) {
+                            windowElement.style.width = width + 'px';
+                            windowElement.style.left = left + 'px';
+                        }
+                        if (height > 100) {
+                            windowElement.style.height = height + 'px';
+                            windowElement.style.top = top + 'px';
+                        }
+                    }
+                }
+                
+                function stopResize() {
+                    document.removeEventListener('mousemove', resize);
+                    document.removeEventListener('mouseup', stopResize);
+                }
+            }
+        }
+        
+        // Initialize draggable windows
+        makeWindowDraggable('about-window');
+        makeWindowDraggable('winamp-window');
+        makeWindowDraggable('chat-window');
+        
+        // Initialize resizable windows
+        makeWindowResizable('about-window');
+        makeWindowResizable('winamp-window');
+        makeWindowResizable('chat-window');
+        
+        // Chat functionality
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                // Add user message
+                addMessage(message, 'user');
+                
+                // Clear input
+                input.value = '';
+                
+                // Show typing indicator
+                showTypingIndicator();
+                
+                // Generate response after a short delay
+                setTimeout(() => {
+                    // Hide typing indicator
+                    hideTypingIndicator();
+                    
+                    // Add Maya's response
+                    const response = generateSillyResponse(message);
+                    addMessage(response, 'maya');
+                }, 1500);
+            }
+        }
+        
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chat-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = '<span></span><span></span><span></span>';
+            messagesContainer.appendChild(typingDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+        
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender === 'user' ? 'user-message' : 'maya-message');
+            
+            // Add emoji to the beginning of Maya's messages
+            if (sender === 'maya') {
+                const emojis = ['😊', '🎉', '✨', '💁‍♀️', '🌈', '🤩', '😎', '🤗', '💫', '🔮'];
+                const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                text = randomEmoji + ' ' + text;
+            }
+            
+            messageDiv.textContent = text;
+            
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function generateSillyResponse(message) {
+            // Convert message to lowercase for easier matching
+            const lowerMessage = message.toLowerCase();
+            
+            // Check for specific keywords and provide tailored responses
+            if (lowerMessage.includes('name') || lowerMessage.includes('who are you')) {
+                return "I'm Maya's super silly digital mini-me! Not the REAL Maya (she's way cooler), but I try my best to channel her vibes! *strikes a pose* ✨";
+            }
+            else if (lowerMessage.includes('notion') || lowerMessage.includes('work')) {
+                return "OMG, Notion is like Maya's JAM! 🎵 She's bringing it to students EVERYWHERE! *does excited dance* She's scaled to over 10M students globally and is basically a Notion wizard! 🧙‍♀️";
+            }
+            else if (lowerMessage.includes('music') || lowerMessage.includes('song') || lowerMessage.includes('playlist')) {
+                return "Have you checked out Maya's earbuds?! *points dramatically* That's where the GOOD stuff is! Maya's got the BEST taste in music! From George Michael to Drake, she's all about those vibes! 🎧";
+            }
+            else if (lowerMessage.includes('hobby') || lowerMessage.includes('interest') || lowerMessage.includes('like')) {
+                return "Ooooh, you wanna know what Maya's into? *wiggles eyebrows* Check out that 'what i'm saving' icon! It's like a treasure trove of Maya-ness! So many cool things in there! 🌈";
+            }
+            else if (lowerMessage.includes('contact') || lowerMessage.includes('email') || lowerMessage.includes('reach')) {
+                return "Wanna chat with the REAL Maya? *whispers dramatically* Just click around and explore! This whole playspace is like a portal to Maya's world! ✉️";
+            }
+            else if (lowerMessage.includes('education') || lowerMessage.includes('student') || lowerMessage.includes('school')) {
+                return "Education is Maya's THING! 📚 She's scaled Notion to over 10M students and grew their student org program from zero to 13K+ orgs across 4K universities! Talk about IMPACT! *mind blown gesture* 🤯";
+            }
+            else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+                return "Hiiiiiiiii there! *waves frantically* Welcome to Maya's digital playground! What can I help you with today? I'm SO excited you're here! 🎉";
+            }
+            else if (lowerMessage.includes('thank') || lowerMessage.includes('thanks')) {
+                return "No problemo! *finger guns* That's what I'm here for! Anything else you wanna know about the amazing Maya? I've got ALL the silly answers! 😎";
+            }
+            
+            // Array of generic silly responses for when no keywords match
+            const sillyResponses = [
+                "OMG, that's like, totally a great question! *twirls hair* Let me think... 🤔",
+                "Wowzers! I was JUST thinking about that! Cosmic connection much?? ✨",
+                "Hehe, that's a fun one! *does jazz hands* Let me tell ya...",
+                "Well, well, well... look who's asking the REAL questions! You're too smart for your own good! 🧠",
+                "*drops everything dramatically* Did you just ask me THAT?! I'm obsessed with this topic!",
+                "Ooooh, spicy question! *virtual high five* Maya would say...",
+                "That's such a Maya thing to ask about! She's rubbing off on you! 🌟",
+                "*virtual confetti toss* Congratulations on asking the BEST question of the day!",
+                "Hmm, let me channel my inner Maya wisdom... *makes meditation sounds* Ommm...",
+                "If I had a cookie for every time someone asked me that... I'd have exactly ONE cookie! You're unique! 🍪",
+                "PLOT TWIST! I was hoping someone would ask that! *dramatic gasp* Let me enlighten you...",
+                "That question is giving me LIFE right now! *dances around* Maya would be so proud of you for asking!",
+                "Hold onto your socks, 'cause this answer might just blow them off! *takes deep breath*",
+                "Oooh, getting all curious on me, are we? I LOVE IT! *virtual shoulder shimmy*",
+                "That's the kind of question that makes my digital brain go all sparkly! ✨ Let me ponder..."
+            ];
+            
+            // Pick a random response
+            const randomResponse = sillyResponses[Math.floor(Math.random() * sillyResponses.length)];
+            
+            return randomResponse;
+        }
+        
+        // Music player functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const playlistItems = document.querySelectorAll('.playlist-item');
+            const playButton = document.querySelector('.winamp-controls button:nth-child(2)');
+            const stopButton = document.querySelector('.winamp-controls button:nth-child(3)');
+            const prevButton = document.querySelector('.winamp-controls button:nth-child(1)');
+            const nextButton = document.querySelector('.winamp-controls button:nth-child(4)');
+            
+            let currentTrack = 0;
+            let isPlaying = false;
+            let audio = new Audio();
+            
+            const musicFiles = [
+                'music/SpotiDown.App - Careless Whisper - George Michael.mp3',
+                'music/SpotiDown.App - Final Credits - Midland.mp3',
+                'music/SpotiDown.App - Get It Together - Drake, Black Coffee, Jorja Smith.mp3',
+                'music/SpotiDown.App - Opal - Four Tet Remix - BICEP, Four Tet.mp3',
+                'music/SpotiDown.App - Thousand Finger Man - Candido.mp3'
+            ];
+            
+            function loadTrack(trackIndex) {
+                audio.src = musicFiles[trackIndex];
+                audio.load();
+                
+                // Update active class
+                playlistItems.forEach(item => item.classList.remove('active'));
+                playlistItems[trackIndex].classList.add('active');
+                
+                currentTrack = trackIndex;
+            }
+            
+            function playTrack() {
+                audio.play();
+                isPlaying = true;
+                playButton.innerHTML = '⏸';
+            }
+            
+            function pauseTrack() {
+                audio.pause();
+                isPlaying = false;
+                playButton.innerHTML = '▶';
+            }
+            
+            function stopTrack() {
+                audio.pause();
+                audio.currentTime = 0;
+                isPlaying = false;
+                playButton.innerHTML = '▶';
+            }
+            
+            function nextTrack() {
+                let next = currentTrack + 1;
+                if (next >= musicFiles.length) next = 0;
+                loadTrack(next);
+                if (isPlaying) playTrack();
+            }
+            
+            function prevTrack() {
+                let prev = currentTrack - 1;
+                if (prev < 0) prev = musicFiles.length - 1;
+                loadTrack(prev);
+                if (isPlaying) playTrack();
+            }
+            
+            // Initialize first track
+            loadTrack(0);
+            
+            // Event listeners
+            playButton.addEventListener('click', function() {
+                if (isPlaying) {
+                    pauseTrack();
+                } else {
+                    playTrack();
+                }
+            });
+            
+            stopButton.addEventListener('click', stopTrack);
+            nextButton.addEventListener('click', nextTrack);
+            prevButton.addEventListener('click', prevTrack);
+            
+            // Playlist item click
+            playlistItems.forEach((item, index) => {
+                item.addEventListener('click', function() {
+                    loadTrack(index);
+                    playTrack();
+                });
+            });
+            
+            // When track ends, play next
+            audio.addEventListener('ended', nextTrack);
+        });
+    </script>
+</body>
+</html> 
