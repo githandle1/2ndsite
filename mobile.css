@@ -278,23 +278,23 @@
     .date-header {
         top: 5px;
         right: 5px;
-        font-size: 6px;
-        padding: 3px 6px;
+        font-size: 8px;
+        padding: 4px 8px;
     }
     
     .month-row {
-        font-size: 5px;
+        font-size: 6px;
         gap: 1px;
     }
     
     .day-row {
-        width: 250px;
-        grid-template-columns: repeat(31, 6px);
+        width: 313px;
+        grid-template-columns: repeat(31, 8px);
     }
     
     .day {
-        width: 6px;
-        font-size: 5px;
+        width: 8px;
+        font-size: 6px;
     }
     
     /* Adjust content for mobile */
