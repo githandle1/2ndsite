@@ -8,43 +8,49 @@
         background-size: 15px 15px; /* Smaller grid for mobile */
     }
     
-    /* Ensure yellow bar is visible on homepage */
+    /* Remove yellow bar for mobile */
     .desktop::after {
-        content: '';
-        position: fixed; /* Change to fixed to ensure it stays at the bottom */
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 100px; /* Increased height to raise it higher above the text */
-        background-color: #f9e04c; /* Bright yellow color */
-        z-index: 5; /* Increase z-index to ensure visibility */
+        display: none; /* Hide the yellow bar on mobile */
     }
     
     /* Adjust stalogy info for mobile */
     .stalogy-info {
         height: auto;
-        padding: 10px 5px 5px; /* Increased top padding to move text down from top of yellow bar */
-        position: fixed; /* Change to fixed to match the yellow bar */
+        padding: 10px 5px 5px; /* Increased top padding to move text down */
+        position: fixed; /* Keep fixed position */
         bottom: 0;
         left: 0;
         width: 100%;
-        z-index: 6; /* Higher than the yellow bar */
-        background-color: transparent; /* Ensure text is visible on yellow background */
+        z-index: 6; 
+        background-color: #f0ece4; /* Match the background color instead of transparent */
         display: flex;
         flex-wrap: wrap;
         justify-content: space-around;
     }
     
-    /* Make info points more visible on yellow background */
+    /* Style the info points */
     .info-point {
         margin: 5px 0;
         width: 50%; /* Two columns layout */
-        color: #000 !important; /* Ensure text is readable on yellow background */
         text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
-        font-weight: bold; /* Make text more visible */
+    }
+    
+    /* Style the point numbers (date, bopping around, etc.) */
+    .point-number {
+        font-weight: bold; /* Keep these bold */
+        color: #000; /* Black color */
+        font-size: 12px;
+        margin-bottom: 3px;
+    }
+    
+    /* Style the point titles (the values) */
+    .point-title {
+        font-weight: normal; /* Remove bold from these */
+        color: #666; /* Same grey as the date in stalogy dates */
+        font-size: 12px;
     }
     
     /* Ensure first row (date and bopping around) are aligned */
@@ -57,17 +63,6 @@
     .info-point:nth-child(3),
     .info-point:nth-child(4) {
         margin-top: 0;
-    }
-    
-    /* Style the point number and title for better visibility */
-    .point-number {
-        font-weight: bold;
-        font-size: 12px;
-        margin-bottom: 3px;
-    }
-    
-    .point-title {
-        font-size: 12px;
     }
     
     /* Hide desktop elements */
