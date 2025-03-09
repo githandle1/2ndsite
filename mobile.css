@@ -1,0 +1,347 @@
+/* Mobile Styles for Maya's Website */
+
+/* Base Mobile Styles */
+@media (max-width: 768px) {
+    body {
+        font-size: 16px;
+        overflow-x: hidden;
+        background-size: 15px 15px; /* Smaller grid for mobile */
+    }
+    
+    /* Ensure yellow bar is visible on homepage */
+    .desktop::after {
+        content: '';
+        position: fixed; /* Change to fixed to ensure it stays at the bottom */
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        background-color: #f9e04c; /* Bright yellow color */
+        z-index: 5; /* Increase z-index to ensure visibility */
+    }
+    
+    /* Adjust stalogy info for mobile */
+    .stalogy-info {
+        height: auto;
+        padding: 5px 10px;
+        flex-wrap: wrap;
+        position: fixed; /* Change to fixed to match the yellow bar */
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 6; /* Higher than the yellow bar */
+        background-color: transparent; /* Ensure text is visible on yellow background */
+    }
+    
+    /* Make info points more visible on yellow background */
+    .info-point {
+        margin: 5px 0;
+        width: 50%;
+        color: #000; /* Ensure text is readable on yellow background */
+    }
+    
+    /* Hide desktop elements */
+    .desktop-icons {
+        display: none !important;
+    }
+    
+    .resize-handle {
+        display: none !important;
+    }
+    
+    /* Show mobile menu */
+    .mobile-menu {
+        display: block !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: rgba(245, 240, 224, 0.95);
+        border-top: 1px solid #d9d2c0;
+        padding: 10px 5px;
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    }
+    
+    .mobile-icons {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+    }
+    
+    .mobile-icon {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 5px;
+        font-size: 14px;
+        color: #333;
+        text-align: center;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+    }
+    
+    .mobile-icon:active {
+        background-color: rgba(0, 0, 0, 0.05);
+        transform: scale(0.95);
+    }
+    
+    .mobile-icon .filled-dot {
+        font-size: 20px;
+        margin-bottom: 5px;
+    }
+    
+    /* Active mobile icon */
+    .mobile-icon.active {
+        color: #000;
+        background-color: rgba(249, 224, 76, 0.3); /* Light yellow background */
+    }
+    
+    /* Window Styling for Mobile */
+    .window {
+        width: 100% !important;
+        height: calc(100vh - 60px) !important;
+        max-height: calc(100vh - 60px) !important;
+        top: 0 !important;
+        left: 0 !important;
+        border-radius: 0 !important;
+        position: fixed !important;
+        overflow-y: auto;
+        transform: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        display: none; /* Hide all windows by default on mobile */
+    }
+    
+    /* Show active window */
+    .window.active-mobile {
+        display: block !important;
+    }
+    
+    .title-bar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        height: 40px !important;
+        display: flex;
+        align-items: center;
+        padding: 0 10px !important;
+        background-color: #f9e04c !important; /* Stalogy yellow */
+    }
+    
+    .title-bar-text {
+        font-size: 14px !important;
+        flex-grow: 1;
+    }
+    
+    .title-bar-controls {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .title-bar-controls button {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+    
+    /* Only show close button on mobile */
+    .title-bar-controls button:not(:last-child) {
+        display: none !important;
+    }
+    
+    /* Adjust date header for mobile */
+    .date-header {
+        top: 5px;
+        right: 5px;
+        font-size: 6px;
+        padding: 3px 6px;
+    }
+    
+    .month-row {
+        font-size: 5px;
+        gap: 1px;
+    }
+    
+    .day-row {
+        width: 250px;
+        grid-template-columns: repeat(31, 6px);
+    }
+    
+    .day {
+        width: 6px;
+        font-size: 5px;
+    }
+    
+    /* Adjust content for mobile */
+    .window-content {
+        padding: 15px !important;
+        height: auto !important;
+        min-height: calc(100vh - 100px) !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .about-content {
+        padding: 10px !important;
+    }
+    
+    /* Music player adjustments */
+    .music-player {
+        width: 100% !important;
+        padding: 10px !important;
+    }
+    
+    .playlist {
+        max-height: 200px !important;
+    }
+    
+    /* Adjust stalogy elements */
+    .info-point {
+        font-size: 8px;
+        margin: 3px 0;
+    }
+    
+    /* Touch-friendly buttons */
+    button, .icon, .mobile-icon {
+        min-height: 44px; /* Apple's recommended minimum touch target size */
+        min-width: 44px;
+    }
+}
+
+/* Small phones */
+@media (max-width: 375px) {
+    .mobile-icon {
+        font-size: 12px;
+    }
+    
+    .mobile-icon .filled-dot {
+        font-size: 18px;
+    }
+    
+    .title-bar-text {
+        font-size: 14px;
+    }
+    
+    .title-bar-controls button {
+        width: 30px;
+    }
+}
+
+/* Landscape orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+    .window {
+        height: calc(100vh - 50px) !important;
+    }
+    
+    .mobile-menu {
+        height: 50px;
+        padding: 5px;
+    }
+    
+    .mobile-icons {
+        flex-direction: row;
+    }
+    
+    .mobile-icon {
+        flex-direction: row;
+        font-size: 12px;
+    }
+    
+    .mobile-icon .filled-dot {
+        margin-right: 5px;
+        margin-bottom: 0;
+    }
+}
+
+/* Specific window styles for mobile */
+
+/* About window */
+#about-window .window-content {
+    padding: 15px !important;
+}
+
+#about-window .about-content {
+    padding: 0 !important;
+}
+
+#about-window img {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Music player window */
+#winamp-window .window-content {
+    padding: 10px !important;
+}
+
+#winamp-window .music-player {
+    width: 100% !important;
+    padding: 10px !important;
+}
+
+#winamp-window .player-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+#winamp-window .player-controls button {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 16px;
+}
+
+#winamp-window .playlist {
+    max-height: 200px !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#winamp-window .playlist-item {
+    padding: 10px !important;
+    margin-bottom: 5px !important;
+    border-radius: 3px !important;
+}
+
+/* Chat window */
+#chat-window .window-content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px !important;
+}
+
+#chat-window .chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 10px;
+    max-height: calc(100vh - 150px) !important;
+}
+
+#chat-window .chat-input {
+    display: flex;
+    gap: 5px;
+}
+
+#chat-window .chat-input input {
+    flex-grow: 1;
+    height: 40px;
+    padding: 5px 10px;
+    font-size: 16px;
+}
+
+#chat-window .chat-input button {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 16px;
+} 
