@@ -13,14 +13,14 @@
         /* Mobile-specific styles for index page */
         @media (max-width: 768px) {
             .welcome-window {
-                width: 100% !important;
-                max-width: 100% !important;
+                width: 80% !important;
+                max-width: 80% !important;
                 padding: 20px !important;
                 margin: 0 auto !important;
                 position: fixed !important;
                 top: 50% !important;
                 left: 50% !important;
-                transform: translate(-50%, -50%) !important;
+                transform: translate(-50%, -50%) scale(0.8) !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: center !important;
@@ -195,11 +195,34 @@
             // If already playing the same song, toggle play/pause
             if (audioPlayer.src.includes(audioFile) && !audioPlayer.paused) {
                 audioPlayer.pause();
+                sessionStorage.removeItem('currentlyPlaying');
+                sessionStorage.removeItem('audioCurrentTime');
             } else {
                 audioPlayer.src = audioFile;
                 audioPlayer.play();
+                // Store the current audio file and timestamp in sessionStorage
+                sessionStorage.setItem('currentlyPlaying', audioFile);
+                
+                // Add event listener to update current time in sessionStorage
+                audioPlayer.addEventListener('timeupdate', function() {
+                    sessionStorage.setItem('audioCurrentTime', audioPlayer.currentTime);
+                });
             }
         }
+        
+        // Modify the Enter button to preserve audio state
+        document.addEventListener('DOMContentLoaded', function() {
+            const enterButton = document.querySelector('.enter-button a');
+            if (enterButton) {
+                enterButton.addEventListener('click', function(e) {
+                    const audioPlayer = document.getElementById('audio-player');
+                    if (audioPlayer && !audioPlayer.paused) {
+                        // Update the current time right before navigation
+                        sessionStorage.setItem('audioCurrentTime', audioPlayer.currentTime);
+                    }
+                });
+            }
+        });
         
         // Function to detect mobile devices and adjust UI
         function detectMobileAndAdjustUI() {
