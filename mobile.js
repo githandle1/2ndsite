@@ -27,9 +27,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Delay showing the earbuds window to ensure DOM is fully ready
         setTimeout(() => {
-            console.log('Showing winamp window on mobile');
-            showMobileWindow('winamp-window');
-            updateActiveMobileIcon('winamp-window');
+            // Check if we're on the index page (welcome window)
+            if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html')) {
+                console.log('Showing welcome window on mobile');
+                showMobileWindow('about-window');
+                updateActiveMobileIcon('about-window');
+            } else {
+                console.log('Showing winamp window on mobile');
+                showMobileWindow('winamp-window');
+                updateActiveMobileIcon('winamp-window');
+            }
         }, 300);
     }
     
@@ -42,8 +49,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Show earbuds window when resizing to mobile with a delay
             setTimeout(() => {
-                showMobileWindow('winamp-window');
-                updateActiveMobileIcon('winamp-window');
+                // Check if we're on the index page (welcome window)
+                if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html')) {
+                    showMobileWindow('about-window');
+                    updateActiveMobileIcon('about-window');
+                } else {
+                    showMobileWindow('winamp-window');
+                    updateActiveMobileIcon('winamp-window');
+                }
             }, 300);
         } else {
             document.documentElement.classList.remove('mobile-view');
