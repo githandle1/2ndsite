@@ -240,12 +240,12 @@ function setupMobileWindowBehavior() {
                 const buttons = controls.querySelectorAll('button');
                 buttons.forEach((button, index) => {
                     button.setAttribute('style', `
-                        width: 8px !important;
-                        height: 7px !important;
+                        width: 13px !important;
+                        height: 11px !important;
                         background-color: #c0c0c0 !important;
                         border: 1px solid !important;
                         border-color: #ffffff #808080 #808080 #ffffff !important;
-                        font-size: 5px !important;
+                        font-size: 6px !important;
                         display: flex !important;
                         justify-content: center !important;
                         align-items: center !important;

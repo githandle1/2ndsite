@@ -251,12 +251,12 @@
     }
     
     .title-bar-controls button {
-        width: 8px;
-        height: 7px;
+        width: 13px;
+        height: 11px;
         background-color: #c0c0c0;
         border: 1px solid;
         border-color: #ffffff #808080 #808080 #ffffff;
-        font-size: 5px;
+        font-size: 6px;
         display: flex;
         justify-content: center;
         align-items: center;
