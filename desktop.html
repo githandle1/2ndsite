@@ -1429,6 +1429,106 @@
             let currentTrack = 0;
             let isPlaying = false;
             let audio = new Audio();
+            audio.load(); // Ensure audio is loaded
+            
+            // Initialize audio visualization
+            let audioContext = null;
+            let analyser = null;
+            let dataArray = null;
+            let animationId = null;
+            
+            // Get canvas for visualization
+            const canvas = document.getElementById('visualizer');
+            const canvasCtx = canvas.getContext('2d');
+            
+            // Set canvas dimensions
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            
+            // Function to initialize audio context and analyzer
+            function setupAudioContext() {
+                try {
+                    // Create audio context if it doesn't exist
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        analyser = audioContext.createAnalyser();
+                        analyser.fftSize = 256; // Power of 2, affects visualization detail
+                        
+                        // Connect audio to analyser
+                        const source = audioContext.createMediaElementSource(audio);
+                        source.connect(analyser);
+                        analyser.connect(audioContext.destination);
+                        
+                        // Create data array for visualization
+                        dataArray = new Uint8Array(analyser.frequencyBinCount);
+                        
+                        console.log('Audio context initialized successfully');
+                    }
+                    return true;
+                } catch (error) {
+                    console.error('Error setting up audio context:', error);
+                    return false;
+                }
+            }
+            
+            // Draw static visualization (when not playing)
+            function drawStaticVisualization() {
+                // Clear canvas
+                canvasCtx.fillStyle = '#e0daca';
+                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw static line
+                canvasCtx.fillStyle = '#F7C9C3';
+                canvasCtx.fillRect(0, canvas.height / 2, canvas.width, 2);
+            }
+            
+            // Draw waveform visualization
+            function drawWaveform() {
+                // Cancel any existing animation
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+                
+                // If not playing or no audio context, show static visualization
+                if (!isPlaying || !audioContext || !analyser) {
+                    drawStaticVisualization();
+                    return;
+                }
+                
+                // Request next animation frame
+                animationId = requestAnimationFrame(drawWaveform);
+                
+                // Get time domain data
+                analyser.getByteTimeDomainData(dataArray);
+                
+                // Clear canvas
+                canvasCtx.fillStyle = '#e0daca';
+                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw waveform
+                canvasCtx.lineWidth = 2;
+                canvasCtx.strokeStyle = '#F7C9C3';
+                canvasCtx.beginPath();
+                
+                const sliceWidth = canvas.width / dataArray.length;
+                let x = 0;
+                
+                for (let i = 0; i < dataArray.length; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = v * canvas.height / 2;
+                    
+                    if (i === 0) {
+                        canvasCtx.moveTo(x, y);
+                    } else {
+                        canvasCtx.lineTo(x, y);
+                    }
+                    
+                    x += sliceWidth;
+                }
+                
+                canvasCtx.lineTo(canvas.width, canvas.height / 2);
+                canvasCtx.stroke();
+            }
             
             // Enhanced audio player implementation
             function loadAndPlayTrack(index) {
@@ -1447,6 +1547,11 @@
                     // Ensure audio is loaded before playing
                     audio.load();
                     
+                    // Setup audio context if not already done
+                    if (!audioContext) {
+                        setupAudioContext();
+                    }
+                    
                     // Play audio with proper error handling
                     const playPromise = audio.play();
                     
@@ -1457,10 +1562,15 @@
                             playButton.innerHTML = '⏸';
                             
                             // Ensure the audio context is running (needed for Chrome)
-                            if (window.audioContext && window.audioContext.state === 'suspended') {
-                                window.audioContext.resume().then(() => {
+                            if (audioContext && audioContext.state === 'suspended') {
+                                audioContext.resume().then(() => {
                                     console.log('AudioContext resumed successfully');
+                                    // Start visualization
+                                    drawWaveform();
                                 });
+                            } else {
+                                // Start visualization
+                                drawWaveform();
                             }
                         }).catch(error => {
                             console.error('Error playing audio:', error);
@@ -1483,16 +1593,30 @@
             
             // Initialize first track
             audio.src = musicFiles[0];
-            console.log('Initial track loaded:', musicFiles[0]);
+            
+            // Draw initial static visualization
+            drawStaticVisualization();
             
             // Event listeners
             playButton.addEventListener('click', function() {
                 console.log('Play button clicked');
+                
+                // Setup audio context on first click if not already done
+                if (!audioContext) {
+                    setupAudioContext();
+                }
+                
                 if (isPlaying) {
                     audio.pause();
                     isPlaying = false;
                     playButton.innerHTML = '▶';
                     console.log('Audio paused');
+                    
+                    // Stop visualization
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                        drawStaticVisualization();
+                    }
                 } else {
                     loadAndPlayTrack(currentTrack);
                 }
@@ -1504,6 +1628,12 @@
                 isPlaying = false;
                 playButton.innerHTML = '▶';
                 console.log('Audio stopped');
+                
+                // Stop visualization
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    drawStaticVisualization();
+                }
             });
             
             nextButton.addEventListener('click', function() {
@@ -1535,7 +1665,7 @@
             // Debug events
             audio.addEventListener('error', function(e) {
                 console.error('Audio error:', e);
-                alert('Error with audio: ' + e.target.error.message);
+                alert('Error with audio: ' + (e.target.error ? e.target.error.message : 'Unknown error'));
             });
             
             audio.addEventListener('canplay', function() {
@@ -1551,173 +1681,6 @@
                 console.log('Audio is now paused');
                 isPlaying = false;
             });
-
-            // Dynamic audio visualization
-            const canvas = document.getElementById('visualizer');
-            if (canvas) {
-                // Set canvas dimensions to match its display size
-                canvas.width = canvas.clientWidth;
-                canvas.height = canvas.clientHeight;
-                
-                const canvasCtx = canvas.getContext('2d');
-                let audioContext;
-                let analyser;
-                let dataArray;
-                let animationId;
-                let visualizationType = 'bars'; // 'bars' or 'waveform'
-                
-                // Initialize audio visualization
-                function initAudioVisualization() {
-                    try {
-                        // Create audio context if it doesn't exist
-                        if (!audioContext) {
-                            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                            analyser = audioContext.createAnalyser();
-                            analyser.fftSize = 256; // Power of 2, affects visualization detail
-                            
-                            // Connect audio to analyser
-                            const source = audioContext.createMediaElementSource(audio);
-                            source.connect(analyser);
-                            analyser.connect(audioContext.destination);
-                            
-                            // Create data array for visualization
-                            dataArray = new Uint8Array(analyser.frequencyBinCount);
-                        }
-                        
-                        // Start visualization loop
-                        drawVisualization();
-                        
-                        console.log('Audio visualization initialized');
-                    } catch (error) {
-                        console.error('Error initializing audio visualization:', error);
-                        // Fall back to static visualization if there's an error
-                        drawStaticVisualization();
-                    }
-                }
-                
-                // Draw static visualization (fallback)
-                function drawStaticVisualization() {
-                    // Clear canvas
-                    canvasCtx.fillStyle = '#e0daca';
-                    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    // Draw static line
-                    canvasCtx.fillStyle = '#F7C9C3';
-                    canvasCtx.fillRect(0, canvas.height / 2, canvas.width, 2);
-                }
-                
-                // Draw dynamic visualization based on audio data
-                function drawVisualization() {
-                    // Cancel any existing animation
-                    if (animationId) {
-                        cancelAnimationFrame(animationId);
-                    }
-                    
-                    // If not playing, show static visualization
-                    if (!isPlaying || !audioContext || !analyser) {
-                        drawStaticVisualization();
-                        return;
-                    }
-                    
-                    // Request next animation frame
-                    animationId = requestAnimationFrame(drawVisualization);
-                    
-                    // Clear canvas
-                    canvasCtx.fillStyle = '#e0daca';
-                    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    if (visualizationType === 'bars') {
-                        // Get frequency data for bars
-                        analyser.getByteFrequencyData(dataArray);
-                        
-                        const barWidth = (canvas.width / dataArray.length) * 2.5;
-                        let x = 0;
-                        
-                        // Draw bars based on frequency data
-                        for (let i = 0; i < dataArray.length; i++) {
-                            const barHeight = (dataArray[i] / 255) * canvas.height;
-                            
-                            // Use a soft pink color for the bars
-                            canvasCtx.fillStyle = '#F7C9C3';
-                            canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                            
-                            x += barWidth + 1;
-                        }
-                    } else if (visualizationType === 'waveform') {
-                        // Get time domain data for waveform
-                        analyser.getByteTimeDomainData(dataArray);
-                        
-                        canvasCtx.lineWidth = 2;
-                        canvasCtx.strokeStyle = '#F7C9C3';
-                        canvasCtx.beginPath();
-                        
-                        const sliceWidth = canvas.width / dataArray.length;
-                        let x = 0;
-                        
-                        // Draw waveform based on time domain data
-                        for (let i = 0; i < dataArray.length; i++) {
-                            const v = dataArray[i] / 128.0;
-                            const y = v * canvas.height / 2;
-                            
-                            if (i === 0) {
-                                canvasCtx.moveTo(x, y);
-                            } else {
-                                canvasCtx.lineTo(x, y);
-                            }
-                            
-                            x += sliceWidth;
-                        }
-                        
-                        canvasCtx.lineTo(canvas.width, canvas.height / 2);
-                        canvasCtx.stroke();
-                    }
-                }
-                
-                // Add visualization toggle button
-                const visualizationToggleButton = document.createElement('button');
-                visualizationToggleButton.innerHTML = '🔊';
-                visualizationToggleButton.title = 'Toggle visualization type';
-                visualizationToggleButton.style.marginLeft = '5px';
-                
-                // Add the button to the controls
-                const controlsContainer = document.querySelector('.winamp-controls');
-                if (controlsContainer) {
-                    controlsContainer.appendChild(visualizationToggleButton);
-                    
-                    // Toggle visualization type on click
-                    visualizationToggleButton.addEventListener('click', function() {
-                        visualizationType = visualizationType === 'bars' ? 'waveform' : 'bars';
-                        this.innerHTML = visualizationType === 'bars' ? '🔊' : '📊';
-                    });
-                }
-                
-                // Initial static visualization
-                drawStaticVisualization();
-                
-                // Initialize visualization when audio plays
-                audio.addEventListener('play', function() {
-                    // Resume audio context if suspended (needed for Chrome)
-                    if (audioContext && audioContext.state === 'suspended') {
-                        audioContext.resume();
-                    }
-                    
-                    // Initialize visualization if not already done
-                    if (!analyser) {
-                        initAudioVisualization();
-                    } else {
-                        // Just start the visualization loop
-                        drawVisualization();
-                    }
-                });
-                
-                // Stop visualization when audio pauses
-                audio.addEventListener('pause', function() {
-                    if (animationId) {
-                        cancelAnimationFrame(animationId);
-                        drawStaticVisualization();
-                    }
-                });
-            }
         });
         
         // Add click handling for desktop icons
