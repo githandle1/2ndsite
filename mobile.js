@@ -13,6 +13,11 @@ document.addEventListener('DOMContentLoaded', function() {
         optimizeImagesForMobile();
         setupMobileWindowBehavior();
         setupMobileMusicPlayer();
+        
+        // Show about window by default
+        setTimeout(() => {
+            showMobileWindow('about-window');
+        }, 100);
     }
 });
 
@@ -247,6 +252,15 @@ function setupMobileWindowNavigation() {
                 // Show the about window when closing other windows
                 if (parentWindow.id !== 'about-window') {
                     showMobileWindow('about-window');
+                } else {
+                    // If closing the about window, just hide it
+                    // This prevents repositioning issues when reopening
+                    parentWindow.style.display = 'none';
+                    
+                    // After a brief delay, show it again properly positioned
+                    setTimeout(() => {
+                        showMobileWindow('about-window');
+                    }, 100);
                 }
             });
         }
@@ -344,16 +358,45 @@ function showMobileWindow(windowId) {
     if (targetWindow) {
         // Apply proper mobile styling
         targetWindow.style.display = 'flex';
+        targetWindow.style.flexDirection = 'column';
         targetWindow.style.width = '100%';
-        targetWindow.style.height = windowId === 'about-window' ? '100vh' : 'calc(100vh - 60px)';
+        targetWindow.style.height = '100vh';
         targetWindow.style.top = '0';
         targetWindow.style.left = '0';
         targetWindow.style.right = '0';
+        targetWindow.style.bottom = '0';
         targetWindow.style.margin = '0 auto';
         targetWindow.style.position = 'fixed';
         targetWindow.style.transform = 'none';
         targetWindow.style.borderRadius = '0';
+        targetWindow.style.zIndex = '1000';
         targetWindow.classList.add('active-mobile');
+        
+        // Special handling for about window
+        if (windowId === 'about-window') {
+            const windowContent = targetWindow.querySelector('.window-content');
+            if (windowContent) {
+                windowContent.style.display = 'flex';
+                windowContent.style.flexDirection = 'column';
+                windowContent.style.justifyContent = 'center';
+                windowContent.style.alignItems = 'center';
+                windowContent.style.height = 'calc(100vh - 40px)';
+                windowContent.style.padding = '20px';
+                windowContent.style.boxSizing = 'border-box';
+            }
+            
+            const aboutContent = targetWindow.querySelector('.about-content');
+            if (aboutContent) {
+                aboutContent.style.display = 'flex';
+                aboutContent.style.flexDirection = 'column';
+                aboutContent.style.justifyContent = 'center';
+                aboutContent.style.alignItems = 'center';
+                aboutContent.style.width = '100%';
+                aboutContent.style.height = '100%';
+                aboutContent.style.padding = '20px';
+                aboutContent.style.boxSizing = 'border-box';
+            }
+        }
         
         // Scroll to top
         targetWindow.scrollTop = 0;

@@ -176,10 +176,10 @@
     /* Welcome window specific styling */
     #about-window {
         display: flex !important;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
         height: 100vh !important;
         max-height: 100vh !important;
         width: 100% !important;
@@ -191,44 +191,47 @@
         bottom: 0 !important;
         margin: 0 auto !important;
         position: fixed !important;
-        overflow: auto;
-        z-index: 1000; /* Added to ensure it appears on top */
+        overflow: auto !important;
+        z-index: 1000 !important; /* Added to ensure it appears on top */
         transform: none !important;
         border-radius: 0 !important;
     }
     
     #about-window .window-content {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
         width: 100% !important;
         max-width: 100% !important;
         padding: 20px !important;
         margin: 0 auto !important;
         height: calc(100vh - 40px) !important; /* Subtract title bar height */
+        overflow-y: auto !important;
     }
     
     #about-window .about-content {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        padding: 20px;
-        box-sizing: border-box;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        padding: 20px !important;
+        box-sizing: border-box !important;
     }
     
     #about-window .profile-section {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 20px;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin-bottom: 20px !important;
     }
     
     #about-window .content-section {
-        text-align: center;
-        width: 100%;
+        text-align: left !important;
+        width: 100% !important;
+        max-width: 400px !important;
     }
     
     /* Show active window */
