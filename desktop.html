@@ -1401,6 +1401,26 @@
             let isPlaying = false;
             let audio = new Audio();
             
+            // Add event listeners for audio debugging
+            audio.addEventListener('error', function(e) {
+                console.error('Audio error:', e);
+                alert('Error loading audio file. Check console for details.');
+            });
+            
+            audio.addEventListener('canplay', function() {
+                console.log('Audio can play now');
+            });
+            
+            audio.addEventListener('playing', function() {
+                console.log('Audio is playing');
+                isPlaying = true;
+            });
+            
+            audio.addEventListener('pause', function() {
+                console.log('Audio paused');
+                isPlaying = false;
+            });
+            
             // Check if we have audio playing from index.html
             if (window.tempAudioFromIndex) {
                 // If we have audio from index.html, use it instead
@@ -1556,6 +1576,16 @@
                 'music/SpotiDown.App - Thousand Finger Man - Candido.mp3'
             ];
             
+            // Function to continue playing from a previous session
+            function continuePlaying() {
+                // If we have a previously playing track from index.html, it's already handled above
+                // Otherwise, just load the first track
+                if (!window.tempAudioFromIndex) {
+                    loadTrack(0);
+                    console.log('Initial track loaded');
+                }
+            }
+            
             // Call continuePlaying after musicFiles is defined
             setTimeout(continuePlaying, 500);
             
@@ -1565,22 +1595,47 @@
                     cancelAnimationFrame(animationId);
                 }
                 
-                audio.src = musicFiles[trackIndex];
-                audio.load();
-                
-                // Update active class
-                playlistItems.forEach(item => item.classList.remove('active'));
-                playlistItems[trackIndex].classList.add('active');
-                
-                currentTrack = trackIndex;
-                
-                // Initialize visualization if not already done
-                if (!audioContext) {
-                    initAudioVisualization();
+                try {
+                    console.log('Loading track:', musicFiles[trackIndex]);
+                    
+                    // Check if the file exists
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('HEAD', musicFiles[trackIndex], true);
+                    xhr.onreadystatechange = function() {
+                        if (xhr.readyState === 4) {
+                            if (xhr.status === 200) {
+                                console.log('File exists:', musicFiles[trackIndex]);
+                            } else {
+                                console.error('File does not exist:', musicFiles[trackIndex], 'Status:', xhr.status);
+                                alert('Music file not found: ' + musicFiles[trackIndex]);
+                            }
+                        }
+                    };
+                    xhr.send();
+                    
+                    // Set the audio source and load it
+                    audio.src = musicFiles[trackIndex];
+                    audio.load();
+                    
+                    // Update active class
+                    playlistItems.forEach(item => item.classList.remove('active'));
+                    playlistItems[trackIndex].classList.add('active');
+                    
+                    currentTrack = trackIndex;
+                    
+                    // Initialize visualization if not already done
+                    if (!audioContext) {
+                        initAudioVisualization();
+                    }
+                    
+                    // Start static visualization
+                    drawVisualization();
+                    
+                    console.log('Track loaded successfully');
+                } catch (error) {
+                    console.error('Error loading track:', error);
+                    alert('Error loading track: ' + error.message);
                 }
-                
-                // Start static visualization
-                drawVisualization();
             }
             
             function playTrack() {
@@ -1588,12 +1643,42 @@
                     audioContext.resume();
                 }
                 
-                audio.play();
-                isPlaying = true;
-                playButton.innerHTML = '⏸';
+                // Make sure we have a valid audio source
+                if (!audio.src || audio.src === '') {
+                    console.log('No audio source, loading track', currentTrack);
+                    loadTrack(currentTrack);
+                }
                 
-                // Start visualization animation
-                drawVisualization();
+                // Play with error handling
+                const playPromise = audio.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // Playback started successfully
+                        console.log('Audio playback started successfully');
+                        isPlaying = true;
+                        playButton.innerHTML = '⏸';
+                        
+                        // Start visualization animation
+                        drawVisualization();
+                    }).catch(error => {
+                        // Auto-play was prevented or there was another error
+                        console.error('Error playing audio:', error);
+                        // Try to handle auto-play prevention
+                        if (error.name === 'NotAllowedError') {
+                            alert('Please interact with the page first to enable audio playback');
+                        }
+                        isPlaying = false;
+                        playButton.innerHTML = '▶';
+                    });
+                } else {
+                    // Older browsers might not return a promise
+                    isPlaying = true;
+                    playButton.innerHTML = '⏸';
+                    
+                    // Start visualization animation
+                    drawVisualization();
+                }
             }
             
             function pauseTrack() {
@@ -1626,9 +1711,17 @@
             
             // Event listeners
             playButton.addEventListener('click', function() {
+                console.log('Play button clicked, isPlaying:', isPlaying);
                 if (isPlaying) {
+                    console.log('Pausing track');
                     pauseTrack();
                 } else {
+                    console.log('Playing track:', musicFiles[currentTrack]);
+                    // Make sure we have a track loaded
+                    if (!audio.src || audio.src === '') {
+                        console.log('No audio source, loading track', currentTrack);
+                        loadTrack(currentTrack);
+                    }
                     playTrack();
                 }
             });
