@@ -3,83 +3,48 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Enhanced mobile detection to include Arc browser and other modern browsers
+    console.log('Mobile.js loaded - checking for mobile device');
+    
+    // Enhanced mobile detection to include all modern mobile browsers
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Arc/i.test(navigator.userAgent) || window.innerWidth <= 768;
     
     // Also check viewport width as a fallback for browsers that don't report accurate user agent
     const isMobileViewport = window.innerWidth <= 768;
     
+    console.log('Mobile detection:', { isMobile, isMobileViewport, width: window.innerWidth });
+    
     if (isMobile || isMobileViewport) {
+        console.log('Mobile device detected - initializing mobile view');
         // Force mobile mode for all windows
         document.documentElement.classList.add('mobile-view');
         
-        // Immediately show the earbuds window instead of about window
-        const winampWindow = document.getElementById('winamp-window');
-        if (winampWindow) {
-            winampWindow.setAttribute('style', `
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: flex-start !important;
-                align-items: center !important;
-                text-align: center !important;
-                height: calc(100vh - 60px) !important;
-                max-height: calc(100vh - 60px) !important;
-                width: 100% !important;
-                padding: 0 !important;
-                box-sizing: border-box !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: auto !important;
-                margin: 0 auto !important;
-                position: fixed !important;
-                overflow: auto !important;
-                z-index: 1000 !important;
-                transform: none !important;
-                border-radius: 0 !important;
-                background-color: #f5f0e0 !important;
-                border: 2px solid #d9d2c0 !important;
-            `);
-            winampWindow.classList.add('active-mobile');
-            
-            // Style the window content
-            const windowContent = winampWindow.querySelector('.window-content');
-            if (windowContent) {
-                windowContent.setAttribute('style', `
-                    display: flex !important;
-                    flex-direction: column !important;
-                    justify-content: flex-start !important;
-                    align-items: center !important;
-                    height: calc(100vh - 100px) !important;
-                    padding: 20px !important;
-                    box-sizing: border-box !important;
-                    width: 100% !important;
-                    overflow-y: auto !important;
-                `);
-            }
-            
-            // Update active mobile icon
-            updateActiveMobileIcon('winamp-window');
-        }
-        
-        // Add mobile-specific event listeners and behaviors
+        // Setup mobile behaviors first
         setupMobileNavigation();
         setupTouchInteractions();
         optimizeImagesForMobile();
         setupMobileWindowBehavior();
         setupMobileMusicPlayer();
+        
+        // Delay showing the earbuds window to ensure DOM is fully ready
+        setTimeout(() => {
+            console.log('Showing winamp window on mobile');
+            showMobileWindow('winamp-window');
+            updateActiveMobileIcon('winamp-window');
+        }, 300);
     }
     
     // Add resize listener to handle orientation changes and browser resizing
     window.addEventListener('resize', function() {
+        console.log('Window resized:', window.innerWidth);
         if (window.innerWidth <= 768) {
             document.documentElement.classList.add('mobile-view');
             setupMobileWindowBehavior();
             
-            // Show earbuds window when resizing to mobile
+            // Show earbuds window when resizing to mobile with a delay
             setTimeout(() => {
                 showMobileWindow('winamp-window');
-            }, 100);
+                updateActiveMobileIcon('winamp-window');
+            }, 300);
         } else {
             document.documentElement.classList.remove('mobile-view');
         }
@@ -440,6 +405,8 @@ function setupMobileMusicPlayer() {
  * Shows a specific window on mobile and hides others
  */
 function showMobileWindow(windowId) {
+    console.log('Showing mobile window:', windowId);
+    
     // Hide all windows first
     document.querySelectorAll('.window').forEach(window => {
         window.classList.remove('active-mobile');
@@ -449,15 +416,121 @@ function showMobileWindow(windowId) {
     // Show the target window
     const targetWindow = document.getElementById(windowId);
     if (targetWindow) {
+        console.log('Target window found:', windowId);
         targetWindow.classList.add('active-mobile');
         targetWindow.style.display = 'flex';
         targetWindow.style.flexDirection = 'column';
         
-        // Set height to 100vh for full screen windows
-        targetWindow.style.height = '100vh';
-        
+        // Special handling for winamp window
+        if (windowId === 'winamp-window') {
+            console.log('Applying special styling for winamp window');
+            // Apply specific styling for the earbuds window
+            targetWindow.style.position = 'fixed';
+            targetWindow.style.top = '0';
+            targetWindow.style.left = '0';
+            targetWindow.style.right = '0';
+            targetWindow.style.bottom = 'auto';
+            targetWindow.style.height = 'calc(100vh - 60px)';
+            targetWindow.style.maxHeight = 'calc(100vh - 60px)';
+            targetWindow.style.width = '100%';
+            targetWindow.style.margin = '0 auto';
+            targetWindow.style.padding = '0';
+            targetWindow.style.borderRadius = '0';
+            targetWindow.style.backgroundColor = '#f5f0e0';
+            targetWindow.style.border = '2px solid #d9d2c0';
+            targetWindow.style.zIndex = '1000';
+            targetWindow.style.overflow = 'auto';
+            targetWindow.style.boxSizing = 'border-box';
+            
+            // Ensure the title bar has the appropriate color
+            const titleBar = targetWindow.querySelector('.title-bar');
+            if (titleBar) {
+                titleBar.style.backgroundColor = '#d9d2c0';
+                titleBar.style.padding = '3px 8px';
+                titleBar.style.color = '#333';
+                titleBar.style.width = '100%';
+                titleBar.style.boxSizing = 'border-box';
+            }
+            
+            // Style the window content
+            const windowContent = targetWindow.querySelector('.window-content');
+            if (windowContent) {
+                windowContent.style.height = 'calc(100vh - 100px)';
+                windowContent.style.display = 'flex';
+                windowContent.style.flexDirection = 'column';
+                windowContent.style.alignItems = 'center';
+                windowContent.style.justifyContent = 'flex-start';
+                windowContent.style.padding = '15px';
+                windowContent.style.overflow = 'auto';
+                windowContent.style.width = '100%';
+                windowContent.style.boxSizing = 'border-box';
+            }
+            
+            // Ensure the music player controls are properly sized
+            const musicPlayer = targetWindow.querySelector('.music-player');
+            if (musicPlayer) {
+                musicPlayer.style.width = '100%';
+                musicPlayer.style.maxWidth = '100%';
+                musicPlayer.style.padding = '10px';
+                musicPlayer.style.boxSizing = 'border-box';
+            }
+            
+            const playerControls = targetWindow.querySelector('.player-controls');
+            if (playerControls) {
+                playerControls.style.display = 'flex';
+                playerControls.style.justifyContent = 'center';
+                playerControls.style.width = '100%';
+                playerControls.style.margin = '15px 0';
+                playerControls.style.flexWrap = 'wrap';
+            }
+            
+            // Make player control buttons more touch-friendly
+            const controlButtons = targetWindow.querySelectorAll('.player-controls button');
+            controlButtons.forEach(button => {
+                button.style.padding = '12px';
+                button.style.margin = '5px';
+                button.style.fontSize = '16px';
+                button.style.cursor = 'pointer';
+                button.style.minWidth = '44px';
+                button.style.minHeight = '44px';
+            });
+            
+            // Make playlist items more touch-friendly
+            const playlist = targetWindow.querySelector('.playlist');
+            if (playlist) {
+                playlist.style.width = '100%';
+                playlist.style.maxWidth = '100%';
+                playlist.style.margin = '10px 0';
+                playlist.style.padding = '0';
+                playlist.style.boxSizing = 'border-box';
+            }
+            
+            const playlistItems = targetWindow.querySelectorAll('.playlist-item');
+            playlistItems.forEach(item => {
+                item.style.padding = '12px 8px';
+                item.style.fontSize = '14px';
+                item.style.cursor = 'pointer';
+                item.style.margin = '5px 0';
+                item.style.borderRadius = '4px';
+                item.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+            });
+            
+            // Resize visualizer if present
+            const canvas = targetWindow.querySelector('#visualizer');
+            if (canvas) {
+                console.log('Resizing visualizer canvas');
+                setTimeout(() => {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                    // Redraw visualization if needed
+                    if (typeof drawVisualization === 'function') {
+                        drawVisualization();
+                    }
+                }, 300);
+            }
+        }
         // Special handling for about window
-        if (windowId === 'about-window') {
+        else if (windowId === 'about-window') {
             // Apply specific styling for the welcome window
             targetWindow.style.height = '60vh';
             targetWindow.style.maxHeight = '60vh';
@@ -525,70 +598,6 @@ function showMobileWindow(windowId) {
                 aboutContent.style.padding = '0';
                 aboutContent.style.justifyContent = 'flex-start';
             }
-        } 
-        // Special handling for winamp window
-        else if (windowId === 'winamp-window') {
-            // Apply specific styling for the earbuds window
-            targetWindow.style.height = 'calc(100vh - 60px)';
-            targetWindow.style.maxHeight = 'calc(100vh - 60px)';
-            targetWindow.style.width = '100%';
-            targetWindow.style.top = '0';
-            targetWindow.style.left = '0';
-            targetWindow.style.right = '0';
-            targetWindow.style.margin = '0 auto';
-            targetWindow.style.borderRadius = '0';
-            targetWindow.style.backgroundColor = '#f5f0e0';
-            targetWindow.style.border = '2px solid #d9d2c0';
-            
-            // Ensure the title bar has the appropriate color
-            const titleBar = targetWindow.querySelector('.title-bar');
-            if (titleBar) {
-                titleBar.style.backgroundColor = '#d9d2c0';
-                titleBar.style.padding = '3px 8px';
-                titleBar.style.color = '#333';
-            }
-            
-            // Style the window content
-            const windowContent = targetWindow.querySelector('.window-content');
-            if (windowContent) {
-                windowContent.style.height = 'calc(100vh - 100px)';
-                windowContent.style.display = 'flex';
-                windowContent.style.flexDirection = 'column';
-                windowContent.style.alignItems = 'center';
-                windowContent.style.justifyContent = 'flex-start';
-                windowContent.style.padding = '15px';
-                windowContent.style.overflow = 'auto';
-            }
-            
-            // Ensure the music player controls are properly sized
-            const winampControls = targetWindow.querySelector('.winamp-controls');
-            if (winampControls) {
-                winampControls.style.display = 'flex';
-                winampControls.style.justifyContent = 'center';
-                winampControls.style.width = '100%';
-                winampControls.style.margin = '15px 0';
-            }
-            
-            // Make playlist items more touch-friendly
-            const playlistItems = targetWindow.querySelectorAll('.playlist-item');
-            playlistItems.forEach(item => {
-                item.style.padding = '12px 8px';
-                item.style.fontSize = '14px';
-                item.style.cursor = 'pointer';
-            });
-            
-            // Resize visualizer if present
-            const canvas = document.getElementById('visualizer');
-            if (canvas) {
-                setTimeout(() => {
-                    canvas.width = canvas.offsetWidth;
-                    canvas.height = canvas.offsetHeight;
-                    // Redraw visualization if needed
-                    if (typeof drawVisualization === 'function') {
-                        drawVisualization();
-                    }
-                }, 100);
-            }
         } else {
             // For other windows, use full height
             targetWindow.style.height = 'calc(100vh - 60px)';
@@ -601,6 +610,8 @@ function showMobileWindow(windowId) {
         
         // Update active mobile icon
         updateActiveMobileIcon(windowId);
+    } else {
+        console.error('Target window not found:', windowId);
     }
 }
 

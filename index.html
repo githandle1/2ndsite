@@ -239,14 +239,37 @@
     <script>
         // Function to handle page turn effect
         function pageTurn() {
+            console.log('Page turn initiated');
+            
             // Get the page turn element
             const pageTurnElement = document.getElementById('pageTurn');
+            if (!pageTurnElement) {
+                console.error('Page turn element not found!');
+                window.location.href = 'desktop.html';
+                return;
+            }
             
             // Save audio state if playing
             const audioPlayer = document.getElementById('audio-player');
             if (audioPlayer && !audioPlayer.paused) {
                 sessionStorage.setItem('audioCurrentTime', audioPlayer.currentTime);
+                console.log('Saved audio time:', audioPlayer.currentTime);
             }
+            
+            // Ensure the page turn element is visible and properly styled
+            pageTurnElement.style.position = 'fixed';
+            pageTurnElement.style.top = '0';
+            pageTurnElement.style.right = '0';
+            pageTurnElement.style.height = '100%';
+            pageTurnElement.style.width = '0';
+            pageTurnElement.style.backgroundColor = '#f0ece4';
+            pageTurnElement.style.zIndex = '9999';
+            pageTurnElement.style.boxShadow = '-5px 0 15px rgba(0,0,0,0.2)';
+            pageTurnElement.style.pointerEvents = 'none';
+            
+            // Add grid pattern to the page turn
+            pageTurnElement.style.backgroundImage = 'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)';
+            pageTurnElement.style.backgroundSize = '20px 20px';
             
             // Manually animate the page turn with JavaScript for better reliability
             let width = 0;
@@ -264,11 +287,13 @@
                 
                 width = easedProgress * 100; // 0 to 100%
                 pageTurnElement.style.width = width + '%';
+                console.log('Page turn animation progress:', Math.round(width) + '%');
                 
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
                     // Animation complete, navigate to desktop.html
+                    console.log('Page turn complete, navigating to desktop.html');
                     window.location.href = 'desktop.html';
                 }
             }
@@ -301,16 +326,26 @@
         
         // Modify the Enter button to preserve audio state
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded on index page');
+            
             const enterButton = document.querySelector('.enter-button a');
             if (enterButton) {
-                enterButton.addEventListener('click', function(e) {
-                    const audioPlayer = document.getElementById('audio-player');
-                    if (audioPlayer && !audioPlayer.paused) {
-                        // Update the current time right before navigation
-                        sessionStorage.setItem('audioCurrentTime', audioPlayer.currentTime);
-                    }
+                // Remove any existing click handlers
+                const newEnterButton = enterButton.cloneNode(true);
+                enterButton.parentNode.replaceChild(newEnterButton, enterButton);
+                
+                // Add new click handler
+                newEnterButton.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default navigation
+                    console.log('Enter button clicked');
+                    pageTurn(); // Call our page turn function
                 });
+            } else {
+                console.error('Enter button not found!');
             }
+            
+            // Function to detect mobile devices and adjust UI
+            detectMobileAndAdjustUI();
         });
         
         // Function to detect mobile devices and adjust UI
@@ -337,9 +372,6 @@
                 });
             }
         }
-        
-        // Call the function when the page loads
-        document.addEventListener('DOMContentLoaded', detectMobileAndAdjustUI);
         
         // Also call it on orientation change
         window.addEventListener('orientationchange', detectMobileAndAdjustUI);
