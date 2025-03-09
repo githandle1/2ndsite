@@ -55,7 +55,10 @@
                 linear-gradient(#ccc 1px, transparent 1px),
                 linear-gradient(90deg, #ccc 1px, transparent 1px);
             background-size: 20px 20px;
-            transition: opacity 0.4s ease-out;
+            transition: opacity 0.4s cubic-bezier(0.33, 0.1, 0.67, 1);
+            will-change: opacity, transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
         
         /* Special handling for page turn transition */
@@ -63,6 +66,7 @@
             opacity: 1;
             left: 0;
             width: 100%;
+            transition: opacity 0.5s cubic-bezier(0.33, 0.1, 0.67, 1);
         }
         
         /* Mobile-specific adjustments */
@@ -1795,6 +1799,10 @@
                 pageEntranceElement.style.opacity = '1';
                 pageEntranceElement.style.transform = 'translateX(0)';
                 
+                // Apply GPU acceleration
+                pageEntranceElement.style.willChange = 'opacity';
+                pageEntranceElement.style.transform = 'translateZ(0)';
+                
                 // Fade out after a short delay to ensure continuity
                 setTimeout(() => {
                     pageEntranceElement.style.opacity = '0';
@@ -1804,41 +1812,44 @@
                         if (pageEntranceElement.parentNode) {
                             pageEntranceElement.parentNode.removeChild(pageEntranceElement);
                         }
-                    }, 400); // Match the transition duration
-                }, 100);
+                    }, 500); // Increased from 400ms for smoother fade
+                }, 50); // Reduced from 100ms for faster response
                 
                 return; // Skip the standard animation
             }
             
             // Standard animation for non-page-turn navigation
-            // Manually animate the page entrance with JavaScript for better reliability
+            // Manually animate the page entrance for better reliability
             let opacity = 1;
-            let translateX = 0;
-            const duration = window.innerWidth <= 768 ? 400 : 500; // Shorter on mobile
+            const duration = window.innerWidth <= 768 ? 400 : 500;
             const startTime = performance.now();
+            
+            // Apply GPU acceleration
+            pageEntranceElement.style.willChange = 'opacity, transform';
+            pageEntranceElement.style.transform = 'translateZ(0)';
             
             function animate(currentTime) {
                 const elapsedTime = currentTime - startTime;
                 const progress = Math.min(elapsedTime / duration, 1);
                 
-                // Ease-out timing function
-                const easedProgress = 1 - Math.pow(1 - progress, 2);
+                // Use cubic bezier easing for smoother animation
+                const easedProgress = progress < 0.5 
+                    ? 4 * progress * progress * progress 
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
                 
                 opacity = 1 - easedProgress;
-                translateX = -100 * easedProgress; // 0 to -100%
-                
-                pageEntranceElement.style.opacity = opacity;
-                pageEntranceElement.style.transform = `translateX(${translateX}%)`;
+                pageEntranceElement.style.opacity = opacity.toString();
                 
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
-                    // Animation complete, remove the element
-                    pageEntranceElement.remove();
+                    // Remove the element when animation is complete
+                    if (pageEntranceElement.parentNode) {
+                        pageEntranceElement.parentNode.removeChild(pageEntranceElement);
+                    }
                 }
             }
             
-            // Start the animation
             requestAnimationFrame(animate);
         });
     </script>

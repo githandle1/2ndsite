@@ -38,9 +38,10 @@
         z-index: 9999 !important;
         box-shadow: -5px 0 15px rgba(0,0,0,0.2) !important;
         pointer-events: none !important;
-        transform: translateZ(0) !important; /* Force GPU acceleration */
-        will-change: width, box-shadow !important; /* Optimize for animation */
-        transition: width 0.96s cubic-bezier(0.25, 0.1, 0.25, 1) !important; /* 1.2s/1.25 = 0.96s */
+        will-change: width, box-shadow, transform !important;
+        transform: translateZ(0) !important;
+        backface-visibility: hidden !important;
+        transition: width 1s cubic-bezier(0.33, 0.1, 0.67, 1) !important;
     }
     
     /* Force mobile view for all browsers including Arc */

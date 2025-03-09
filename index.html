@@ -48,7 +48,10 @@
             z-index: 9999;
             box-shadow: -5px 0 15px rgba(0,0,0,0.2);
             pointer-events: none;
-            transition: width 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+            transition: width 1.2s cubic-bezier(0.33, 0.1, 0.67, 1);
+            will-change: width, box-shadow, transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
         
         /* Grid pattern for the page turn */
@@ -306,12 +309,16 @@
             const isMobile = window.innerWidth <= 768;
             // Base durations: 1500ms for mobile, 1800ms for desktop
             // Speed up by 1.25x: 1200ms for mobile, 1440ms for desktop
-            const duration = isMobile ? 1200 : 1440; 
+            const duration = isMobile ? 1000 : 1200; // Further reduced for smoother animation
             const startTime = performance.now();
             
-            // Play page turn sound
-            const pageTurnSound = new Audio('page-turn.mp3');
-            pageTurnSound.play().catch(e => console.log('Could not play page turn sound:', e));
+            // Try to play page turn sound, but don't block if file is missing
+            try {
+                const pageTurnSound = new Audio('page-turn.mp3');
+                pageTurnSound.play().catch(e => console.log('Could not play page turn sound:', e));
+            } catch (e) {
+                console.log('Page turn sound not available');
+            }
             
             // Create a full-screen overlay to prevent flashing
             const overlay = document.createElement('div');
@@ -325,15 +332,20 @@
             overlay.style.opacity = '0';
             overlay.style.transition = 'opacity 0.2s ease-in';
             overlay.style.pointerEvents = 'none';
+            overlay.style.willChange = 'opacity';
+            overlay.style.transform = 'translateZ(0)';
             document.body.appendChild(overlay);
             
+            // Use requestAnimationFrame with timestamp for smoother animation
             function animate(currentTime) {
                 const elapsedTime = currentTime - startTime;
                 const progress = Math.min(elapsedTime / duration, 1);
                 
-                // Use a more graceful easing function for a smoother sweep
-                // This creates a gentle acceleration at the start and deceleration at the end
-                const easedProgress = 0.5 - 0.5 * Math.cos(Math.PI * progress);
+                // Enhanced easing function for ultra-smooth animation
+                // This creates a more natural page turning motion
+                const easedProgress = progress < 0.5 
+                    ? 4 * progress * progress * progress 
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
                 
                 // For mobile, ensure we go beyond 100% to account for any potential viewport issues
                 // Increase the max width to 120% for mobile to ensure full coverage with the faster animation
@@ -347,10 +359,11 @@
                 
                 // Use transform for better performance
                 pageTurnElement.style.transform = `translateZ(0)`; // Force GPU acceleration
+                pageTurnElement.style.willChange = 'width, box-shadow';
                 
                 if (progress < 1) {
                     // Use high priority for the animation frame
-                    window.requestAnimationFrame(animate);
+                    requestAnimationFrame(animate);
                 } else {
                     // When animation is complete, fade in the overlay to prevent flash
                     overlay.style.opacity = '1';
@@ -361,7 +374,7 @@
                         // Store a flag to indicate we're coming from a page turn
                         sessionStorage.setItem('fromPageTurn', 'true');
                         window.location.href = 'desktop.html';
-                    }, 100);
+                    }, 50); // Reduced delay for faster transition
                 }
             }
             
