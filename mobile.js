@@ -169,8 +169,15 @@ function setupMobileWindowBehavior() {
     // Show about window by default
     const aboutWindow = document.getElementById('about-window');
     if (aboutWindow) {
-        aboutWindow.style.display = 'block';
-        aboutWindow.classList.add('active-mobile');
+        aboutWindow.style.display = 'none'; // Hide about window
+        aboutWindow.classList.remove('active-mobile');
+    }
+    
+    // Show welcome window by default
+    const welcomeWindow = document.getElementById('welcome-window');
+    if (welcomeWindow) {
+        welcomeWindow.style.display = 'block';
+        welcomeWindow.classList.add('active-mobile');
     }
     
     // Set up mobile navigation between windows
@@ -219,9 +226,9 @@ function setupMobileWindowNavigation() {
                 parentWindow.style.display = 'none';
                 parentWindow.classList.remove('active-mobile');
                 
-                // Show the about window when closing other windows
-                if (parentWindow.id !== 'about-window') {
-                    showMobileWindow('about-window');
+                // Show the welcome window when closing other windows
+                if (parentWindow.id !== 'welcome-window') {
+                    showMobileWindow('welcome-window');
                 }
             });
         }

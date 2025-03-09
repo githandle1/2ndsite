@@ -175,7 +175,7 @@
     
     /* Welcome window specific styling */
     #welcome-window {
-        display: flex !important;
+        display: block !important; /* Changed from flex to block to show by default */
         flex-direction: column;
         justify-content: center;
         align-items: center;
@@ -192,6 +192,7 @@
         margin: 0 auto !important;
         position: fixed !important;
         overflow: auto;
+        z-index: 1000; /* Added to ensure it appears on top */
     }
     
     #welcome-window .window-content {
