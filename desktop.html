@@ -682,19 +682,18 @@
         }
         
         .winamp-equalizer {
-            height: 100px;
-            background-color: #ebe6d9; /* Slightly darker beige for equalizer */
+            height: 60px;
+            background-color: #e0daca;
+            border-top: 1px solid #ccc;
             padding: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
         }
         
         #visualizer {
             width: 100%;
-            height: 80px;
-            background-color: #e0daca;
-            border: 1px solid #ccc8b8;
+            height: 100%;
+            display: block;
         }
         
         /* Chat Window Styling */
@@ -1431,7 +1430,7 @@
             let isPlaying = false;
             let audio = new Audio();
             
-            // Simple audio player implementation
+            // Enhanced audio player implementation
             function loadAndPlayTrack(index) {
                 try {
                     // Update current track index
@@ -1445,7 +1444,10 @@
                     // Set audio source
                     audio.src = musicFiles[index];
                     
-                    // Play audio
+                    // Ensure audio is loaded before playing
+                    audio.load();
+                    
+                    // Play audio with proper error handling
                     const playPromise = audio.play();
                     
                     if (playPromise !== undefined) {
@@ -1453,11 +1455,24 @@
                             console.log('Playing track:', musicFiles[index]);
                             isPlaying = true;
                             playButton.innerHTML = '⏸';
+                            
+                            // Ensure the audio context is running (needed for Chrome)
+                            if (window.audioContext && window.audioContext.state === 'suspended') {
+                                window.audioContext.resume().then(() => {
+                                    console.log('AudioContext resumed successfully');
+                                });
+                            }
                         }).catch(error => {
                             console.error('Error playing audio:', error);
                             isPlaying = false;
                             playButton.innerHTML = '▶';
-                            alert('Error playing audio: ' + error.message);
+                            
+                            // Show user-friendly error message
+                            if (error.name === 'NotAllowedError') {
+                                alert('Please interact with the page first to enable audio playback');
+                            } else {
+                                alert('Error playing audio: ' + error.message);
+                            }
                         });
                     }
                 } catch (error) {
@@ -1537,12 +1552,50 @@
                 isPlaying = false;
             });
 
-            // Simple static visualization
+            // Dynamic audio visualization
             const canvas = document.getElementById('visualizer');
             if (canvas) {
-                const canvasCtx = canvas.getContext('2d');
+                // Set canvas dimensions to match its display size
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
                 
-                // Draw static visualization
+                const canvasCtx = canvas.getContext('2d');
+                let audioContext;
+                let analyser;
+                let dataArray;
+                let animationId;
+                let visualizationType = 'bars'; // 'bars' or 'waveform'
+                
+                // Initialize audio visualization
+                function initAudioVisualization() {
+                    try {
+                        // Create audio context if it doesn't exist
+                        if (!audioContext) {
+                            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            analyser = audioContext.createAnalyser();
+                            analyser.fftSize = 256; // Power of 2, affects visualization detail
+                            
+                            // Connect audio to analyser
+                            const source = audioContext.createMediaElementSource(audio);
+                            source.connect(analyser);
+                            analyser.connect(audioContext.destination);
+                            
+                            // Create data array for visualization
+                            dataArray = new Uint8Array(analyser.frequencyBinCount);
+                        }
+                        
+                        // Start visualization loop
+                        drawVisualization();
+                        
+                        console.log('Audio visualization initialized');
+                    } catch (error) {
+                        console.error('Error initializing audio visualization:', error);
+                        // Fall back to static visualization if there's an error
+                        drawStaticVisualization();
+                    }
+                }
+                
+                // Draw static visualization (fallback)
                 function drawStaticVisualization() {
                     // Clear canvas
                     canvasCtx.fillStyle = '#e0daca';
@@ -1553,8 +1606,117 @@
                     canvasCtx.fillRect(0, canvas.height / 2, canvas.width, 2);
                 }
                 
-                // Initial draw
+                // Draw dynamic visualization based on audio data
+                function drawVisualization() {
+                    // Cancel any existing animation
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                    }
+                    
+                    // If not playing, show static visualization
+                    if (!isPlaying || !audioContext || !analyser) {
+                        drawStaticVisualization();
+                        return;
+                    }
+                    
+                    // Request next animation frame
+                    animationId = requestAnimationFrame(drawVisualization);
+                    
+                    // Clear canvas
+                    canvasCtx.fillStyle = '#e0daca';
+                    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    if (visualizationType === 'bars') {
+                        // Get frequency data for bars
+                        analyser.getByteFrequencyData(dataArray);
+                        
+                        const barWidth = (canvas.width / dataArray.length) * 2.5;
+                        let x = 0;
+                        
+                        // Draw bars based on frequency data
+                        for (let i = 0; i < dataArray.length; i++) {
+                            const barHeight = (dataArray[i] / 255) * canvas.height;
+                            
+                            // Use a soft pink color for the bars
+                            canvasCtx.fillStyle = '#F7C9C3';
+                            canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                            
+                            x += barWidth + 1;
+                        }
+                    } else if (visualizationType === 'waveform') {
+                        // Get time domain data for waveform
+                        analyser.getByteTimeDomainData(dataArray);
+                        
+                        canvasCtx.lineWidth = 2;
+                        canvasCtx.strokeStyle = '#F7C9C3';
+                        canvasCtx.beginPath();
+                        
+                        const sliceWidth = canvas.width / dataArray.length;
+                        let x = 0;
+                        
+                        // Draw waveform based on time domain data
+                        for (let i = 0; i < dataArray.length; i++) {
+                            const v = dataArray[i] / 128.0;
+                            const y = v * canvas.height / 2;
+                            
+                            if (i === 0) {
+                                canvasCtx.moveTo(x, y);
+                            } else {
+                                canvasCtx.lineTo(x, y);
+                            }
+                            
+                            x += sliceWidth;
+                        }
+                        
+                        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+                        canvasCtx.stroke();
+                    }
+                }
+                
+                // Add visualization toggle button
+                const visualizationToggleButton = document.createElement('button');
+                visualizationToggleButton.innerHTML = '🔊';
+                visualizationToggleButton.title = 'Toggle visualization type';
+                visualizationToggleButton.style.marginLeft = '5px';
+                
+                // Add the button to the controls
+                const controlsContainer = document.querySelector('.winamp-controls');
+                if (controlsContainer) {
+                    controlsContainer.appendChild(visualizationToggleButton);
+                    
+                    // Toggle visualization type on click
+                    visualizationToggleButton.addEventListener('click', function() {
+                        visualizationType = visualizationType === 'bars' ? 'waveform' : 'bars';
+                        this.innerHTML = visualizationType === 'bars' ? '🔊' : '📊';
+                    });
+                }
+                
+                // Initial static visualization
                 drawStaticVisualization();
+                
+                // Initialize visualization when audio plays
+                audio.addEventListener('play', function() {
+                    // Resume audio context if suspended (needed for Chrome)
+                    if (audioContext && audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+                    
+                    // Initialize visualization if not already done
+                    if (!analyser) {
+                        initAudioVisualization();
+                    } else {
+                        // Just start the visualization loop
+                        drawVisualization();
+                    }
+                });
+                
+                // Stop visualization when audio pauses
+                audio.addEventListener('pause', function() {
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                        drawStaticVisualization();
+                    }
+                });
             }
         });
         
