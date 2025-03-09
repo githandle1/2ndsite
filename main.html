@@ -22,7 +22,12 @@
                 linear-gradient(#e5e5e5 1px, transparent 1px),
                 linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
             background-size: 20px 20px;
+            background-attachment: fixed !important;
             overflow: hidden;
+            /* Force immediate rendering of gridlines */
+            will-change: background-position;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
         
         /* Month and day header */

@@ -9,18 +9,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="mobile.css">
+    <!-- Preload critical background images -->
+    <link rel="preload" as="image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0h20v1H0zM0 0h1v20H0z' fill='%23ccc'/%3E%3C/svg%3E">
     <style>
+        /* Critical CSS for immediate background grid rendering */
+        body, .desktop {
+            background-color: #f0ece4 !important; /* Light beige/off-white color */
+            background-image: 
+                linear-gradient(#ccc 1px, transparent 1px),
+                linear-gradient(90deg, #ccc 1px, transparent 1px) !important;
+            background-size: 20px 20px !important;
+            background-attachment: fixed !important;
+        }
+        
         /* Mobile-specific styles for index page */
         @media (max-width: 768px) {
             .welcome-window {
-                width: 80% !important;
-                max-width: 80% !important;
+                width: 100% !important;
+                max-width: 100% !important;
                 padding: 20px !important;
                 margin: 0 auto !important;
                 position: fixed !important;
                 top: 50% !important;
                 left: 50% !important;
-                transform: translate(-50%, -50%) scale(0.8) !important;
+                transform: translate(-50%, -50%) !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: center !important;
