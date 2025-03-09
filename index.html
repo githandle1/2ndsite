@@ -273,14 +273,15 @@
             
             // Manually animate the page turn with JavaScript for better reliability
             let width = 0;
-            const duration = window.innerWidth <= 768 ? 600 : 800; // Shorter on mobile
+            // Increase duration to make the animation slower (was 600/800ms)
+            const duration = window.innerWidth <= 768 ? 1000 : 1200; // Slower animation for better effect
             const startTime = performance.now();
             
             function animate(currentTime) {
                 const elapsedTime = currentTime - startTime;
                 const progress = Math.min(elapsedTime / duration, 1);
                 
-                // Ease-in-out timing function
+                // Ease-in-out timing function with slightly more pronounced easing
                 const easedProgress = progress < 0.5 
                     ? 2 * progress * progress 
                     : 1 - Math.pow(-2 * progress + 2, 2) / 2;
