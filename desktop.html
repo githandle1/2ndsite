@@ -76,9 +76,39 @@
             color: #333333;
             font-size: 12px;
             text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.9);
-            background-color: rgba(255, 255, 255, 0.7);
+            background-color: transparent;
             padding: 2px 4px;
             border-radius: 3px;
+            position: relative;
+        }
+        
+        /* Remove specific styling for "what i'm saving" icon */
+        /* .icon[onclick*="cosmos.so/babka"] .icon-label {
+            border: none;
+            background-color: transparent;
+            padding: 2px 6px;
+            text-shadow: none;
+            position: relative;
+        } */
+        
+        /* Add butter yellow paint stroke that will appear on click */
+        .icon-label::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 100%;
+            height: 4px;
+            background-color: #f9e04c; /* Butter yellow paint stroke */
+            z-index: -1;
+            border-radius: 2px;
+            opacity: 0; /* Hide by default */
+            transition: opacity 0.2s ease; /* Smooth transition */
+        }
+        
+        /* Show the paint stroke for the active icon */
+        .icon.active .icon-label::after {
+            opacity: 1;
         }
         
         /* Windows */
@@ -99,8 +129,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 600px;
-            height: 450px;
+            width: 700px;
+            height: 550px;
         }
         
         .winamp-window {
@@ -177,7 +207,7 @@
         
         .profile-section {
             width: 100%;
-            max-width: 350px;
+            max-width: 518px;
             border: none;
             padding: 10px;
             display: flex;
@@ -213,7 +243,7 @@
         
         .profile-image {
             width: 100%;
-            max-width: 350px;
+            max-width: 518px;
             height: auto;
             object-fit: contain;
             border: none;
@@ -489,30 +519,43 @@
             left: 0;
             cursor: nwse-resize;
         }
+        
+        .window-button:active {
+            border-color: #ffffff #F7C9C3 #F7C9C3 #ffffff;
+        }
+        
+        .nav-item.active {
+            background-color: #F7C9C3; /* Pale pink for active item to match title bar */
+            font-weight: bold;
+        }
+        
+        .music-player-controls button:active {
+            background-color: #F7C9C3;
+        }
     </style>
 </head>
 <body>
     <!-- Desktop Icons -->
     <div class="desktop-icons">
         <div class="icon" onclick="toggleWindow('about-window')">
-            <div class="filled-dot">🫖</div>
+            <div class="filled-dot">🩰</div>
             <div class="icon-label">welcome</div>
         </div>
-        <div class="icon" onclick="window.location.href='mailto:mayabakir38@gmail.com'">
-            <div class="filled-dot">🫖</div>
-            <div class="icon-label">say hi</div>
-        </div>
         <div class="icon" onclick="window.open('https://mayascorner.notion.site/hi-i-m-maya-1a22bb286ed980bba588d6da0f922a3b?pvs=74', '_blank')">
-            <div class="filled-dot">🫖</div>
+            <div class="filled-dot">🩰</div>
             <div class="icon-label">working<br>on</div>
         </div>
         <div class="icon" onclick="toggleWindow('winamp-window')">
-            <div class="filled-dot">🫖</div>
+            <div class="filled-dot">🩰</div>
             <div class="icon-label">maya's<br>earbuds</div>
         </div>
         <div class="icon" onclick="window.open('https://www.cosmos.so/babka/elements', '_blank')">
-            <div class="filled-dot">🫖</div>
+            <div class="filled-dot">🩰</div>
             <div class="icon-label">what i'm<br>saving</div>
+        </div>
+        <div class="icon" onclick="window.location.href='mailto:mayabakir38@gmail.com'">
+            <div class="filled-dot">🩰</div>
+            <div class="icon-label">say hi</div>
         </div>
     </div>
     
@@ -536,7 +579,7 @@
                         </div>
                     </div>
                     <div class="content-section">
-                        <p class="intro-text">Hi I'm Maya.<br><br>I'm bringing Notion to our next generation ✨</p>
+                        <p class="intro-text">Hi, I'm Maya.<br><br>I'm working on bringing Notion to our next generation ✨<br><br>Some things I love:<br><br>→ Music<br>→ Fashion<br>→ Stalogy notebooks<br><br><a href="mailto:mayabakir38@gmail.com" style="color: inherit; text-decoration: none;">Say hi :~)</a></p>
                     </div>
                 </div>
             </div>
@@ -589,7 +632,7 @@
         <div class="window-content" style="padding: 0;">
             <div class="winamp-player">
                 <div class="winamp-header">
-                    maya's earbuds
+                    warmth for your winter
                 </div>
                 <div class="winamp-controls">
                     <button>⏮</button>
@@ -979,6 +1022,28 @@
             
             // When track ends, play next
             audio.addEventListener('ended', nextTrack);
+        });
+        
+        // Add click handling for desktop icons
+        document.addEventListener('DOMContentLoaded', function() {
+            const icons = document.querySelectorAll('.icon');
+            
+            icons.forEach(icon => {
+                icon.addEventListener('click', function() {
+                    // Remove active class from all icons
+                    icons.forEach(i => i.classList.remove('active'));
+                    
+                    // Add active class to clicked icon
+                    this.classList.add('active');
+                    
+                    // Execute the original onclick function if it exists
+                    const originalOnclick = this.getAttribute('onclick');
+                    if (originalOnclick) {
+                        // We still want the original onclick to execute
+                        // The active class will remain until another icon is clicked
+                    }
+                });
+            });
         });
     </script>
 </body>
