@@ -926,7 +926,7 @@
     <!-- Mobile Menu -->
     <div class="mobile-menu">
         <div class="mobile-icons">
-            <div class="mobile-icon" onclick="toggleWindow('about-window')">
+            <div class="mobile-icon" onclick="showMobileWindow('about-window'); updateActiveMobileIcon('about-window')">
                 <div class="filled-dot">🔖</div>
                 <div>welcome</div>
             </div>
@@ -934,7 +934,7 @@
                 <div class="filled-dot">🔖</div>
                 <div>working on</div>
             </div>
-            <div class="mobile-icon" onclick="toggleWindow('winamp-window')">
+            <div class="mobile-icon" onclick="toggleWindow('winamp-window'); updateActiveMobileIcon('winamp-window')">
                 <div class="filled-dot">🔖</div>
                 <div>earbuds</div>
             </div>

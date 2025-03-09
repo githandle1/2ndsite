@@ -656,6 +656,10 @@ function updateActiveMobileIcon(windowId) {
     });
 }
 
+// Make these functions available globally
+window.updateActiveMobileIcon = updateActiveMobileIcon;
+window.showMobileWindow = showMobileWindow;
+
 /**
  * Minimizes a window on mobile
  */
