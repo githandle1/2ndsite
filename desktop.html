@@ -87,24 +87,6 @@
             const fromPageTurn = sessionStorage.getItem('fromPageTurn') === 'true';
             if (fromPageTurn) {
                 document.documentElement.classList.add('from-page-turn');
-                // Clear the flag immediately to prevent issues with page refreshes
-                sessionStorage.removeItem('fromPageTurn');
-                
-                // Add a page entrance element if it doesn't exist yet
-                if (!document.querySelector('.page-entrance')) {
-                    const pageEntrance = document.createElement('div');
-                    pageEntrance.className = 'page-entrance';
-                    pageEntrance.style.position = 'fixed';
-                    pageEntrance.style.top = '0';
-                    pageEntrance.style.left = '0';
-                    pageEntrance.style.width = '100%';
-                    pageEntrance.style.height = '100%';
-                    pageEntrance.style.backgroundColor = '#f0ece4';
-                    pageEntrance.style.zIndex = '9999';
-                    pageEntrance.style.opacity = '1';
-                    pageEntrance.style.transition = 'opacity 0.5s cubic-bezier(0.33, 0.1, 0.67, 1)';
-                    document.body.appendChild(pageEntrance);
-                }
             }
             
             // Check if we're on mobile
@@ -1806,11 +1788,14 @@
             if (!pageEntranceElement) return;
             
             // Check if we're coming from a page turn
-            const fromPageTurn = document.documentElement.classList.contains('from-page-turn');
+            const fromPageTurn = sessionStorage.getItem('fromPageTurn') === 'true';
             
+            // Clear the flag
+            sessionStorage.removeItem('fromPageTurn');
+            
+            // If coming from page turn, handle differently
             if (fromPageTurn) {
-                console.log('Handling page entrance from page turn');
-                // Set initial state for the page entrance element
+                // Start with opacity 1
                 pageEntranceElement.style.opacity = '1';
                 pageEntranceElement.style.transform = 'translateX(0)';
                 
@@ -1827,10 +1812,8 @@
                         if (pageEntranceElement.parentNode) {
                             pageEntranceElement.parentNode.removeChild(pageEntranceElement);
                         }
-                        // Remove the from-page-turn class to prevent issues with back navigation
-                        document.documentElement.classList.remove('from-page-turn');
                     }, 500); // Increased from 400ms for smoother fade
-                }, 100); // Increased from 50ms for more reliable transition
+                }, 50); // Reduced from 100ms for faster response
                 
                 return; // Skip the standard animation
             }
@@ -1867,7 +1850,6 @@
                 }
             }
             
-            // Start the animation
             requestAnimationFrame(animate);
         });
     </script>

@@ -48,10 +48,10 @@
             z-index: 9999;
             box-shadow: -5px 0 15px rgba(0,0,0,0.2);
             pointer-events: none;
+            transition: width 1.2s cubic-bezier(0.33, 0.1, 0.67, 1);
             will-change: width, box-shadow, transform;
             transform: translateZ(0);
             backface-visibility: hidden;
-            display: none; /* Hidden by default, shown via JS */
         }
         
         /* Grid pattern for the page turn */
@@ -261,15 +261,42 @@
     <script src="script.js"></script>
     <script src="mobile.js"></script>
     <script>
-        // Page turn animation function with debounce to prevent multiple triggers
-        let isPageTurning = false; // Flag to prevent multiple clicks
+        // Function to handle page turn effect
         function pageTurn() {
-            // Prevent multiple clicks from triggering the animation multiple times
-            if (isPageTurning) return;
-            isPageTurning = true;
+            console.log('Page turn initiated');
             
+            // Get the page turn element
             const pageTurnElement = document.getElementById('pageTurn');
-            pageTurnElement.style.display = 'block';
+            if (!pageTurnElement) {
+                console.error('Page turn element not found!');
+                window.location.href = 'desktop.html';
+                return;
+            }
+            
+            // Save audio state if playing
+            const audioPlayer = document.getElementById('audio-player');
+            if (audioPlayer && !audioPlayer.paused) {
+                sessionStorage.setItem('audioCurrentTime', audioPlayer.currentTime);
+                console.log('Saved audio time:', audioPlayer.currentTime);
+            }
+            
+            // Keep welcome window visible until animation completes
+            const welcomeWindow = document.querySelector('.welcome-window');
+            if (welcomeWindow) {
+                welcomeWindow.style.display = 'flex';
+                welcomeWindow.style.opacity = '1';
+                welcomeWindow.style.visibility = 'visible';
+            }
+            
+            // Ensure the page turn element is visible and properly styled
+            pageTurnElement.style.position = 'fixed';
+            pageTurnElement.style.top = '0';
+            pageTurnElement.style.right = '0';
+            pageTurnElement.style.height = '100%';
+            pageTurnElement.style.width = '0';
+            pageTurnElement.style.backgroundColor = '#f0ece4';
+            pageTurnElement.style.zIndex = '9999';
+            pageTurnElement.style.boxShadow = '-5px 0 15px rgba(0,0,0,0.2)';
             pageTurnElement.style.pointerEvents = 'none';
             
             // Add grid pattern to the page turn
@@ -284,6 +311,14 @@
             // Speed up by 1.25x: 1200ms for mobile, 1440ms for desktop
             const duration = isMobile ? 1000 : 1200; // Further reduced for smoother animation
             const startTime = performance.now();
+            
+            // Try to play page turn sound, but don't block if file is missing
+            try {
+                const pageTurnSound = new Audio('page-turn.mp3');
+                pageTurnSound.play().catch(e => console.log('Could not play page turn sound:', e));
+            } catch (e) {
+                console.log('Page turn sound not available');
+            }
             
             // Create a full-screen overlay to prevent flashing
             const overlay = document.createElement('div');
@@ -336,21 +371,15 @@
                     // Then navigate to desktop.html after a very short delay
                     // This ensures the overlay is visible before navigation
                     setTimeout(() => {
-                        try {
-                            // Store a flag to indicate we're coming from a page turn
-                            sessionStorage.setItem('fromPageTurn', 'true');
-                            window.location.href = 'desktop.html';
-                        } catch (e) {
-                            console.error('Navigation failed:', e);
-                            // Fallback direct navigation if the sessionStorage fails
-                            window.location.href = 'desktop.html';
-                        }
+                        // Store a flag to indicate we're coming from a page turn
+                        sessionStorage.setItem('fromPageTurn', 'true');
+                        window.location.href = 'desktop.html';
                     }, 50); // Reduced delay for faster transition
                 }
             }
             
             // Start the animation with high priority
-            requestAnimationFrame(animate);
+            window.requestAnimationFrame(animate);
         }
         
         // Function to play audio file
