@@ -48,6 +48,15 @@
                 text-align: center !important;
             }
             
+            /* Special layout for date and bopping around to ensure they're on the same row */
+            .info-point:nth-child(1),
+            .info-point:nth-child(2) {
+                width: 50% !important; /* Ensure they take exactly half the width each */
+                margin-bottom: 15px !important; /* Add space between rows */
+                display: inline-flex !important; /* Use inline-flex to keep them on the same row */
+                flex-direction: column !important;
+            }
+            
             /* Style the point numbers (date, bopping around, etc.) */
             .point-number {
                 font-weight: bold !important;
@@ -63,16 +72,11 @@
                 font-size: 12px !important;
             }
             
-            /* Ensure first row (date and bopping around) are aligned */
-            .info-point:nth-child(1),
-            .info-point:nth-child(2) {
-                margin-bottom: 15px !important; /* Add space between rows */
-            }
-            
             /* Ensure second row (wearing and listening to) are aligned */
             .info-point:nth-child(3),
             .info-point:nth-child(4) {
                 margin-top: 0 !important;
+                width: 50% !important; /* Ensure they take exactly half the width each */
             }
             
             .stalogy-title {
