@@ -39,6 +39,7 @@
                 width: 100% !important;
                 padding: 10px 5px 5px !important;
                 background-color: #f0ece4 !important; /* Match the background color */
+                align-items: flex-start !important; /* Align items at the top */
             }
             
             /* Style the info points */
@@ -48,13 +49,28 @@
                 text-align: center !important;
             }
             
-            /* Special layout for date and bopping around to ensure they're on the same row */
+            /* Special layout for date and bopping around to ensure they're on the same row and level */
             .info-point:nth-child(1),
             .info-point:nth-child(2) {
                 width: 50% !important; /* Ensure they take exactly half the width each */
                 margin-bottom: 15px !important; /* Add space between rows */
                 display: inline-flex !important; /* Use inline-flex to keep them on the same row */
                 flex-direction: column !important;
+                align-items: center !important;
+                justify-content: flex-start !important; /* Align content at the top */
+                height: 40px !important; /* Set a fixed height for both */
+            }
+            
+            /* Ensure the first row items have the same exact spacing */
+            .info-point:nth-child(1) .point-number,
+            .info-point:nth-child(2) .point-number {
+                margin-bottom: 3px !important; /* Consistent spacing */
+                line-height: 1.2 !important; /* Consistent line height */
+            }
+            
+            .info-point:nth-child(1) .point-title,
+            .info-point:nth-child(2) .point-title {
+                line-height: 1.2 !important; /* Consistent line height */
             }
             
             /* Style the point numbers (date, bopping around, etc.) */
@@ -77,6 +93,7 @@
             .info-point:nth-child(4) {
                 margin-top: 0 !important;
                 width: 50% !important; /* Ensure they take exactly half the width each */
+                height: 40px !important; /* Set a fixed height for both */
             }
             
             .stalogy-title {

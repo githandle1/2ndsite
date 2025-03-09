@@ -26,6 +26,7 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: space-around;
+        align-items: flex-start; /* Align items at the top */
     }
     
     /* Style the info points */
@@ -38,13 +39,28 @@
         align-items: center;
     }
     
-    /* Special layout for date and bopping around to ensure they're on the same row */
+    /* Special layout for date and bopping around to ensure they're on the same row and level */
     .info-point:nth-child(1),
     .info-point:nth-child(2) {
         width: 50%; /* Ensure they take exactly half the width each */
         margin-bottom: 15px; /* Add space between rows */
         display: inline-flex; /* Use inline-flex to keep them on the same row */
         flex-direction: column;
+        align-items: center;
+        justify-content: flex-start; /* Align content at the top */
+        height: 40px; /* Set a fixed height for both */
+    }
+    
+    /* Ensure the first row items have the same exact spacing */
+    .info-point:nth-child(1) .point-number,
+    .info-point:nth-child(2) .point-number {
+        margin-bottom: 3px; /* Consistent spacing */
+        line-height: 1.2; /* Consistent line height */
+    }
+    
+    .info-point:nth-child(1) .point-title,
+    .info-point:nth-child(2) .point-title {
+        line-height: 1.2; /* Consistent line height */
     }
     
     /* Style the point numbers (date, bopping around, etc.) */
@@ -67,6 +83,7 @@
     .info-point:nth-child(4) {
         margin-top: 0;
         width: 50%; /* Ensure they take exactly half the width each */
+        height: 40px; /* Set a fixed height for both */
     }
     
     /* Hide desktop elements */
