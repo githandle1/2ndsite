@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .track {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Audio Test</h1>
+    <p>This page tests direct playback of audio files.</p>
+    
+    <div class="track">
+        <h3>1. Careless Whisper - George Michael</h3>
+        <audio controls src="music/SpotiDown.App - Careless Whisper - George Michael.mp3"></audio>
+        <button onclick="playTrack('music/SpotiDown.App - Careless Whisper - George Michael.mp3')">Play with JS</button>
+    </div>
+    
+    <div class="track">
+        <h3>2. Final Credits - Midland</h3>
+        <audio controls src="music/SpotiDown.App - Final Credits - Midland.mp3"></audio>
+        <button onclick="playTrack('music/SpotiDown.App - Final Credits - Midland.mp3')">Play with JS</button>
+    </div>
+    
+    <div class="track">
+        <h3>3. Get It Together - Drake, Black Coffee, Jorja Smith</h3>
+        <audio controls src="music/SpotiDown.App - Get It Together - Drake, Black Coffee, Jorja Smith.mp3"></audio>
+        <button onclick="playTrack('music/SpotiDown.App - Get It Together - Drake, Black Coffee, Jorja Smith.mp3')">Play with JS</button>
+    </div>
+    
+    <div class="track">
+        <h3>4. Opal - Four Tet Remix - BICEP, Four Tet</h3>
+        <audio controls src="music/SpotiDown.App - Opal - Four Tet Remix - BICEP, Four Tet.mp3"></audio>
+        <button onclick="playTrack('music/SpotiDown.App - Opal - Four Tet Remix - BICEP, Four Tet.mp3')">Play with JS</button>
+    </div>
+    
+    <div class="track">
+        <h3>5. Thousand Finger Man - Candido</h3>
+        <audio controls src="music/SpotiDown.App - Thousand Finger Man - Candido.mp3"></audio>
+        <button onclick="playTrack('music/SpotiDown.App - Thousand Finger Man - Candido.mp3')">Play with JS</button>
+    </div>
+    
+    <script>
+        let currentAudio = null;
+        
+        function playTrack(src) {
+            // Stop any currently playing audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            
+            // Create new audio element
+            currentAudio = new Audio(src);
+            
+            // Add error handling
+            currentAudio.addEventListener('error', function(e) {
+                console.error('Audio error:', e);
+                alert('Error playing audio file: ' + src);
+            });
+            
+            // Play with promise handling
+            const playPromise = currentAudio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log('Audio playback started successfully:', src);
+                }).catch(error => {
+                    console.error('Error playing audio:', error);
+                    if (error.name === 'NotAllowedError') {
+                        alert('Please interact with the page first to enable audio playback');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html> 

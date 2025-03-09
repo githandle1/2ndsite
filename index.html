@@ -31,22 +31,11 @@
             height: 100%;
             background-color: #f0ece4;
             z-index: 9999;
-            transform-origin: right center;
-            transition: width 0.8s ease-in-out;
             box-shadow: -5px 0 15px rgba(0,0,0,0.2);
             pointer-events: none;
-            overflow: hidden;
-            -webkit-transform-origin: right center;
-            -webkit-transition: width 0.8s ease-in-out;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            will-change: width;
         }
         
-        .page-turn.active {
-            width: 100%;
-        }
-        
+        /* Grid pattern for the page turn */
         .page-turn::after {
             content: '';
             position: absolute;
@@ -259,13 +248,33 @@
                 sessionStorage.setItem('audioCurrentTime', audioPlayer.currentTime);
             }
             
-            // Activate the page turn animation
-            pageTurnElement.classList.add('active');
+            // Manually animate the page turn with JavaScript for better reliability
+            let width = 0;
+            const duration = window.innerWidth <= 768 ? 600 : 800; // Shorter on mobile
+            const startTime = performance.now();
             
-            // Wait for animation to complete before navigating
-            setTimeout(function() {
-                window.location.href = 'desktop.html';
-            }, window.innerWidth <= 768 ? 600 : 800); // Shorter duration on mobile
+            function animate(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / duration, 1);
+                
+                // Ease-in-out timing function
+                const easedProgress = progress < 0.5 
+                    ? 2 * progress * progress 
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                
+                width = easedProgress * 100; // 0 to 100%
+                pageTurnElement.style.width = width + '%';
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Animation complete, navigate to desktop.html
+                    window.location.href = 'desktop.html';
+                }
+            }
+            
+            // Start the animation
+            requestAnimationFrame(animate);
         }
         
         // Function to play audio file

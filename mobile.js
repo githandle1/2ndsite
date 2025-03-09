@@ -13,21 +13,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Force mobile mode for all windows
         document.documentElement.classList.add('mobile-view');
         
-        // Immediately show the about window to prevent flashing
-        const aboutWindow = document.getElementById('about-window');
-        if (aboutWindow) {
-            aboutWindow.setAttribute('style', `
+        // Immediately show the earbuds window instead of about window
+        const winampWindow = document.getElementById('winamp-window');
+        if (winampWindow) {
+            winampWindow.setAttribute('style', `
                 display: flex !important;
                 flex-direction: column !important;
-                justify-content: center !important;
+                justify-content: flex-start !important;
                 align-items: center !important;
                 text-align: center !important;
-                height: 80vh !important;
-                max-height: 80vh !important;
-                width: 85% !important;
+                height: calc(100vh - 60px) !important;
+                max-height: calc(100vh - 60px) !important;
+                width: 100% !important;
                 padding: 0 !important;
                 box-sizing: border-box !important;
-                top: 10vh !important;
+                top: 0 !important;
                 left: 0 !important;
                 right: 0 !important;
                 bottom: auto !important;
@@ -36,22 +36,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 overflow: auto !important;
                 z-index: 1000 !important;
                 transform: none !important;
-                border-radius: 8px !important;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+                border-radius: 0 !important;
                 background-color: #f5f0e0 !important;
                 border: 2px solid #d9d2c0 !important;
             `);
-            aboutWindow.classList.add('active-mobile');
+            winampWindow.classList.add('active-mobile');
             
             // Style the window content
-            const windowContent = aboutWindow.querySelector('.window-content');
+            const windowContent = winampWindow.querySelector('.window-content');
             if (windowContent) {
                 windowContent.setAttribute('style', `
                     display: flex !important;
                     flex-direction: column !important;
-                    justify-content: center !important;
+                    justify-content: flex-start !important;
                     align-items: center !important;
-                    height: calc(80vh - 40px) !important;
+                    height: calc(100vh - 100px) !important;
                     padding: 20px !important;
                     box-sizing: border-box !important;
                     width: 100% !important;
@@ -59,21 +58,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 `);
             }
             
-            // Style the about content
-            const aboutContent = aboutWindow.querySelector('.about-content');
-            if (aboutContent) {
-                aboutContent.setAttribute('style', `
-                    display: flex !important;
-                    flex-direction: column !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    text-align: center !important;
-                    width: 100% !important;
-                    max-width: 100% !important;
-                    padding: 10px !important;
-                    box-sizing: border-box !important;
-                `);
-            }
+            // Update active mobile icon
+            updateActiveMobileIcon('winamp-window');
         }
         
         // Add mobile-specific event listeners and behaviors
@@ -82,9 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
         optimizeImagesForMobile();
         setupMobileWindowBehavior();
         setupMobileMusicPlayer();
-        
-        // Update active mobile icon
-        updateActiveMobileIcon('about-window');
     }
     
     // Add resize listener to handle orientation changes and browser resizing
@@ -93,9 +76,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.classList.add('mobile-view');
             setupMobileWindowBehavior();
             
-            // Show about window when resizing to mobile
+            // Show earbuds window when resizing to mobile
             setTimeout(() => {
-                showMobileWindow('about-window');
+                showMobileWindow('winamp-window');
             }, 100);
         } else {
             document.documentElement.classList.remove('mobile-view');
@@ -541,6 +524,70 @@ function showMobileWindow(windowId) {
             if (aboutContent) {
                 aboutContent.style.padding = '0';
                 aboutContent.style.justifyContent = 'flex-start';
+            }
+        } 
+        // Special handling for winamp window
+        else if (windowId === 'winamp-window') {
+            // Apply specific styling for the earbuds window
+            targetWindow.style.height = 'calc(100vh - 60px)';
+            targetWindow.style.maxHeight = 'calc(100vh - 60px)';
+            targetWindow.style.width = '100%';
+            targetWindow.style.top = '0';
+            targetWindow.style.left = '0';
+            targetWindow.style.right = '0';
+            targetWindow.style.margin = '0 auto';
+            targetWindow.style.borderRadius = '0';
+            targetWindow.style.backgroundColor = '#f5f0e0';
+            targetWindow.style.border = '2px solid #d9d2c0';
+            
+            // Ensure the title bar has the appropriate color
+            const titleBar = targetWindow.querySelector('.title-bar');
+            if (titleBar) {
+                titleBar.style.backgroundColor = '#d9d2c0';
+                titleBar.style.padding = '3px 8px';
+                titleBar.style.color = '#333';
+            }
+            
+            // Style the window content
+            const windowContent = targetWindow.querySelector('.window-content');
+            if (windowContent) {
+                windowContent.style.height = 'calc(100vh - 100px)';
+                windowContent.style.display = 'flex';
+                windowContent.style.flexDirection = 'column';
+                windowContent.style.alignItems = 'center';
+                windowContent.style.justifyContent = 'flex-start';
+                windowContent.style.padding = '15px';
+                windowContent.style.overflow = 'auto';
+            }
+            
+            // Ensure the music player controls are properly sized
+            const winampControls = targetWindow.querySelector('.winamp-controls');
+            if (winampControls) {
+                winampControls.style.display = 'flex';
+                winampControls.style.justifyContent = 'center';
+                winampControls.style.width = '100%';
+                winampControls.style.margin = '15px 0';
+            }
+            
+            // Make playlist items more touch-friendly
+            const playlistItems = targetWindow.querySelectorAll('.playlist-item');
+            playlistItems.forEach(item => {
+                item.style.padding = '12px 8px';
+                item.style.fontSize = '14px';
+                item.style.cursor = 'pointer';
+            });
+            
+            // Resize visualizer if present
+            const canvas = document.getElementById('visualizer');
+            if (canvas) {
+                setTimeout(() => {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                    // Redraw visualization if needed
+                    if (typeof drawVisualization === 'function') {
+                        drawVisualization();
+                    }
+                }, 100);
             }
         } else {
             // For other windows, use full height

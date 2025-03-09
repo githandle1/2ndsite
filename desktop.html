@@ -49,35 +49,12 @@
             height: 100%;
             background-color: #f0ece4;
             z-index: 9999;
-            opacity: 1;
             pointer-events: none;
-            animation: pageReveal 0.5s ease-out forwards;
-            -webkit-animation: pageReveal 0.5s ease-out forwards;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            will-change: transform, opacity;
-        }
-        
-        @keyframes pageReveal {
-            0% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            100% {
-                opacity: 0;
-                transform: translateX(-100%);
-            }
-        }
-        
-        @-webkit-keyframes pageReveal {
-            0% {
-                opacity: 1;
-                -webkit-transform: translateX(0);
-            }
-            100% {
-                opacity: 0;
-                -webkit-transform: translateX(-100%);
-            }
+            opacity: 1;
+            background-image: 
+                linear-gradient(#ccc 1px, transparent 1px),
+                linear-gradient(90deg, #ccc 1px, transparent 1px);
+            background-size: 20px 20px;
         }
         
         /* Mobile-specific adjustments */
@@ -1784,6 +1761,43 @@
             if ((isMobile && !wasMobile) || (!isMobile && wasMobile)) {
                 location.reload();
             }
+        });
+
+        // Add this script at the end of the body
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the page entrance element
+            const pageEntranceElement = document.querySelector('.page-entrance');
+            if (!pageEntranceElement) return;
+            
+            // Manually animate the page entrance with JavaScript for better reliability
+            let opacity = 1;
+            let translateX = 0;
+            const duration = window.innerWidth <= 768 ? 400 : 500; // Shorter on mobile
+            const startTime = performance.now();
+            
+            function animate(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / duration, 1);
+                
+                // Ease-out timing function
+                const easedProgress = 1 - Math.pow(1 - progress, 2);
+                
+                opacity = 1 - easedProgress;
+                translateX = -100 * easedProgress; // 0 to -100%
+                
+                pageEntranceElement.style.opacity = opacity;
+                pageEntranceElement.style.transform = `translateX(${translateX}%)`;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Animation complete, remove the element
+                    pageEntranceElement.remove();
+                }
+            }
+            
+            // Start the animation
+            requestAnimationFrame(animate);
         });
     </script>
     
