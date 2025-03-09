@@ -22,6 +22,21 @@
             background-attachment: fixed !important;
         }
         
+        /* Ensure welcome window is always visible by default */
+        .welcome-window {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        /* Ensure stalogy info is always visible by default */
+        .stalogy-info {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
         /* Page turn transition effect */
         .page-turn {
             position: fixed;
@@ -256,6 +271,14 @@
                 console.log('Saved audio time:', audioPlayer.currentTime);
             }
             
+            // Keep welcome window visible until animation completes
+            const welcomeWindow = document.querySelector('.welcome-window');
+            if (welcomeWindow) {
+                welcomeWindow.style.display = 'flex';
+                welcomeWindow.style.opacity = '1';
+                welcomeWindow.style.visibility = 'visible';
+            }
+            
             // Ensure the page turn element is visible and properly styled
             pageTurnElement.style.position = 'fixed';
             pageTurnElement.style.top = '0';
@@ -388,6 +411,67 @@
         
         // Also call it on orientation change
         window.addEventListener('orientationchange', detectMobileAndAdjustUI);
+        
+        // Handle page visibility changes to ensure content is displayed when navigating back
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('Page is now visible - ensuring content is displayed');
+                
+                // Make sure welcome window is visible
+                const welcomeWindow = document.querySelector('.welcome-window');
+                if (welcomeWindow) {
+                    welcomeWindow.style.display = 'flex';
+                    welcomeWindow.style.opacity = '1';
+                }
+                
+                // Make sure stalogy info is visible
+                const stalogyInfo = document.querySelector('.stalogy-info');
+                if (stalogyInfo) {
+                    stalogyInfo.style.display = 'flex';
+                    stalogyInfo.style.opacity = '1';
+                }
+                
+                // Reset page turn element
+                const pageTurnElement = document.getElementById('pageTurn');
+                if (pageTurnElement) {
+                    pageTurnElement.style.width = '0';
+                }
+                
+                // Re-apply mobile UI adjustments if needed
+                detectMobileAndAdjustUI();
+            }
+        });
+        
+        // Ensure content is displayed when page loads or when navigating back
+        window.addEventListener('pageshow', function(event) {
+            // This triggers even when navigating back via browser history
+            if (event.persisted) {
+                console.log('Page loaded from cache (back navigation) - ensuring content is displayed');
+                
+                // Make sure welcome window is visible
+                const welcomeWindow = document.querySelector('.welcome-window');
+                if (welcomeWindow) {
+                    welcomeWindow.style.display = 'flex';
+                    welcomeWindow.style.opacity = '1';
+                }
+                
+                // Make sure stalogy info is visible
+                const stalogyInfo = document.querySelector('.stalogy-info');
+                if (stalogyInfo) {
+                    stalogyInfo.style.display = 'flex';
+                    stalogyInfo.style.opacity = '1';
+                }
+                
+                // Reset page turn element
+                const pageTurnElement = document.getElementById('pageTurn');
+                if (pageTurnElement) {
+                    pageTurnElement.style.width = '0';
+                }
+                
+                // Re-apply mobile UI adjustments
+                detectMobileAndAdjustUI();
+            }
+        });
     </script>
 </body>
 </html> 
