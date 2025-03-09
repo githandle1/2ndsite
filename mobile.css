@@ -53,15 +53,15 @@
     #about-window {
         display: flex !important;
         flex-direction: column !important;
-        justify-content: flex-start !important; /* Changed from center to flex-start */
+        justify-content: flex-start !important;
         align-items: center !important;
         text-align: center !important;
-        height: 70vh !important; /* Reduced from 80vh to 70vh for better proportion */
-        max-height: 70vh !important; /* Reduced from 80vh to 70vh for better proportion */
-        width: 90% !important; /* Increased from 85% to 90% for better visibility */
+        height: 60vh !important;
+        max-height: 60vh !important;
+        width: 80% !important;
         padding: 0 !important;
         box-sizing: border-box !important;
-        top: 15vh !important; /* Increased from 10vh to 15vh to center it better */
+        top: 20vh !important;
         left: 0 !important;
         right: 0 !important;
         bottom: auto !important;
@@ -72,13 +72,13 @@
         transform: none !important;
         border-radius: 8px !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-        background-color: #ffffff !important; /* Changed to white background */
-        border: 2px solid #F7C9C3 !important; /* Changed to pale pink border */
+        background-color: #ffffff !important;
+        border: 2px solid #F7C9C3 !important;
     }
     
     /* Add pale pink title bar for welcome window */
     #about-window .title-bar {
-        background-color: #F7C9C3 !important; /* Pale pink color for title bar */
+        background-color: #F7C9C3 !important;
         padding: 3px 8px !important;
         display: flex !important;
         justify-content: space-between !important;

@@ -272,25 +272,49 @@ function setupMobileWindowBehavior() {
             window.setAttribute('style', `
                 display: flex !important;
                 flex-direction: column !important;
-                justify-content: center !important;
+                justify-content: flex-start !important;
                 align-items: center !important;
                 text-align: center !important;
-                height: 100vh !important;
-                max-height: 100vh !important;
-                width: 100% !important;
+                height: 60vh !important;
+                max-height: 60vh !important;
+                width: 80% !important;
                 padding: 0 !important;
                 box-sizing: border-box !important;
-                top: 0 !important;
+                top: 20vh !important;
                 left: 0 !important;
                 right: 0 !important;
-                bottom: 0 !important;
+                bottom: auto !important;
                 margin: 0 auto !important;
                 position: fixed !important;
                 overflow: auto !important;
                 z-index: 1000 !important;
                 transform: none !important;
-                border-radius: 0 !important;
+                border-radius: 8px !important;
+                background-color: #ffffff !important;
+                border: 2px solid #F7C9C3 !important;
             `);
+            
+            // Style the title bar
+            const aboutTitleBar = window.querySelector('.title-bar');
+            if (aboutTitleBar) {
+                aboutTitleBar.style.backgroundColor = '#F7C9C3';
+            }
+            
+            // Style the window content
+            const aboutContent = window.querySelector('.window-content');
+            if (aboutContent) {
+                aboutContent.setAttribute('style', `
+                    display: flex !important;
+                    flex-direction: column !important;
+                    justify-content: flex-start !important;
+                    align-items: center !important;
+                    height: calc(60vh - 30px) !important;
+                    padding: 20px !important;
+                    box-sizing: border-box !important;
+                    width: 100% !important;
+                    overflow-y: auto !important;
+                `);
+            }
         }
     });
     
@@ -462,10 +486,10 @@ function showMobileWindow(windowId) {
         // Special handling for about window
         if (windowId === 'about-window') {
             // Apply specific styling for the welcome window
-            targetWindow.style.height = '70vh';
-            targetWindow.style.maxHeight = '70vh';
-            targetWindow.style.width = '90%';
-            targetWindow.style.top = '15vh';
+            targetWindow.style.height = '60vh';
+            targetWindow.style.maxHeight = '60vh';
+            targetWindow.style.width = '80%';
+            targetWindow.style.top = '20vh';
             targetWindow.style.left = '0';
             targetWindow.style.right = '0';
             targetWindow.style.margin = '0 auto';
@@ -485,7 +509,7 @@ function showMobileWindow(windowId) {
             // Adjust the window content
             const windowContent = targetWindow.querySelector('.window-content');
             if (windowContent) {
-                windowContent.style.height = 'calc(70vh - 30px)';
+                windowContent.style.height = 'calc(60vh - 30px)';
                 windowContent.style.display = 'flex';
                 windowContent.style.flexDirection = 'column';
                 windowContent.style.alignItems = 'center';
