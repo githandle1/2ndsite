@@ -24,6 +24,64 @@
             position: relative;
         }
         
+        /* Stalogy-style date header */
+        .date-header {
+            position: absolute;
+            top: 10px;
+            right: 10px; /* Move to right-hand corner */
+            font-size: 7px;
+            color: #777; /* Changed back to gray for regular dates */
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(245, 240, 224, 0.7); /* Changed back to semi-transparent background */
+            padding: 4px 8px;
+            border-radius: 0;
+            z-index: 10;
+            font-family: 'Courier New', monospace;
+            letter-spacing: -0.2px;
+            line-height: 1.2;
+            margin-left: 0; /* Remove left margin */
+        }
+        
+        .month-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+            font-size: 6px;
+            text-transform: uppercase;
+            gap: 2px;
+        }
+        
+        .month {
+            width: 14px;
+            text-align: center;
+            opacity: 0.6;
+        }
+        
+        .current-month {
+            font-weight: bold;
+            opacity: 1;
+        }
+        
+        .day-row {
+            display: grid;
+            grid-template-columns: repeat(31, 8px);
+            gap: 2px;
+            width: 310px;
+        }
+        
+        .day {
+            width: 8px;
+            text-align: center;
+            opacity: 0.6;
+            font-size: 6px;
+        }
+        
+        .current-day {
+            font-weight: bold;
+            opacity: 1;
+        }
+        
         /* Add a subtle paper texture overlay */
         body::before {
             content: '';
@@ -42,7 +100,7 @@
         /* Desktop icons */
         .desktop-icons {
             position: absolute;
-            top: 20px;
+            top: 60px; /* Add 20% more vertical spacing from the top */
             left: 20px;
             display: flex;
             flex-direction: column;
@@ -191,6 +249,7 @@
             display: none;
             z-index: 1;
             overflow: hidden;
+            margin-top: 50px; /* Added margin-top to push windows down */
         }
         
         .about-window {
@@ -214,7 +273,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: move;
+            cursor: grab;
             color: #333; /* Dark text for better contrast */
             font-weight: bold;
             font-family: monospace;
@@ -289,6 +348,7 @@
             align-items: center;
             justify-content: center;
             width: 100%;
+            margin-top: 60px; /* Add 20% more vertical spacing from the top */
         }
         
         .profile-label {
@@ -593,9 +653,67 @@
         .music-player-controls button:active {
             background-color: #F7C9C3;
         }
+        
+        /* Add styling for the current date to be highlighted in yellow */
+        .date-header .current-month,
+        .date-header .current-day {
+            color: #f9e04c; /* Yellow color for the current date */
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+    <!-- Stalogy-style date header -->
+    <div class="date-header">
+        <div class="month-row">
+            <div class="month">Jan</div>
+            <div class="month">Feb</div>
+            <div class="month">Mar</div>
+            <div class="month">Apr</div>
+            <div class="month">May</div>
+            <div class="month">Jun</div>
+            <div class="month">Jul</div>
+            <div class="month">Aug</div>
+            <div class="month">Sep</div>
+            <div class="month">Oct</div>
+            <div class="month">Nov</div>
+            <div class="month">Dec</div>
+        </div>
+        <div class="day-row">
+            <div class="day">1</div>
+            <div class="day">2</div>
+            <div class="day">3</div>
+            <div class="day">4</div>
+            <div class="day">5</div>
+            <div class="day">6</div>
+            <div class="day">7</div>
+            <div class="day">8</div>
+            <div class="day">9</div>
+            <div class="day">10</div>
+            <div class="day">11</div>
+            <div class="day">12</div>
+            <div class="day">13</div>
+            <div class="day">14</div>
+            <div class="day">15</div>
+            <div class="day">16</div>
+            <div class="day">17</div>
+            <div class="day">18</div>
+            <div class="day">19</div>
+            <div class="day">20</div>
+            <div class="day">21</div>
+            <div class="day">22</div>
+            <div class="day">23</div>
+            <div class="day">24</div>
+            <div class="day">25</div>
+            <div class="day">26</div>
+            <div class="day">27</div>
+            <div class="day">28</div>
+            <div class="day">29</div>
+            <div class="day">30</div>
+            <div class="day">31</div>
+        </div>
+    </div>
+    
     <!-- Desktop Icons -->
     <div class="desktop-icons">
         <div class="icon" onclick="toggleWindow('about-window')">
@@ -663,10 +781,11 @@
                     <div class="profile-section">
                         <div class="profile-box">
                             <img src="c'est moi!.png" alt="Profile Picture" class="profile-image">
+                            <p class="profile-caption" style="color: #888; font-size: 12px; text-align: center; margin-top: 5px;">from <a href="https://os.ryo.lu" target="_blank" style="color: #888; text-decoration: none;">a friend's OS</a> 🪄</p>
                         </div>
                     </div>
                     <div class="content-section">
-                        <p class="intro-text">Hi, I'm Maya.<br><br>I'm working on bringing Notion to our next generation ✨<br><br>Some things I love:<br><br>→ <a href="https://open.spotify.com/playlist/1lUaZ2N7y7mlpPp80sapK4?si=a7c119b33dc340bf" target="_blank" style="color: inherit; text-decoration: none;">Music</a><br>→ <a href="https://x.com/SnoopyPhotos/status/1898505018279448643" target="_blank" style="color: inherit; text-decoration: none;">Fashion</a><br>→ Stalogy notebooks<br><br><a href="mailto:mayabakir38@gmail.com" style="color: inherit; text-decoration: none;">Say hi :~)</a></p>
+                        <p class="intro-text">Hi, I'm Maya.<br><br>I'm working on bringing Notion to our next generation ✨<br><br>Some things I love:<br><br>→ <a href="https://open.spotify.com/playlist/1lUaZ2N7y7mlpPp80sapK4?si=a7c119b33dc340bf" target="_blank" style="color: inherit; text-decoration: none;" class="highlight-link">Music</a><br>→ <a href="https://x.com/SnoopyPhotos/status/1898505018279448643" target="_blank" style="color: inherit; text-decoration: none;" class="highlight-link">Fashion</a><br>→ <span class="highlight-link" style="cursor: pointer;">Stalogy notebooks</span><br><br><a href="mailto:mayabakir38@gmail.com" style="color: inherit; text-decoration: none;">Say hi :~)</a></p>
                     </div>
                 </div>
             </div>
@@ -766,19 +885,24 @@
             const windowElement = document.getElementById(windowId);
             const titleBar = windowElement.querySelector('.title-bar');
             
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            // Variables to track the initial click position relative to the window
+            let offsetX = 0;
+            let offsetY = 0;
+            let isDragging = false;
             
-            titleBar.onmousedown = dragMouseDown;
+            titleBar.onmousedown = startDrag;
             
-            function dragMouseDown(e) {
+            function startDrag(e) {
                 e = e || window.event;
                 e.preventDefault();
-                // Get the mouse cursor position at startup
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                // Call a function whenever the cursor moves
-                document.onmousemove = elementDrag;
+                
+                // Calculate the initial offset between mouse position and window position
+                // We'll use the center of the title bar as the drag point
+                const titleBarRect = titleBar.getBoundingClientRect();
+                offsetX = titleBarRect.width / 2;
+                offsetY = titleBarRect.height / 2;
+                
+                isDragging = true;
                 
                 // Bring window to front
                 const windows = document.querySelectorAll('.window');
@@ -786,25 +910,67 @@
                     win.style.zIndex = "1";
                 });
                 windowElement.style.zIndex = "10";
+                
+                // Add visual feedback that the window is being dragged
+                titleBar.style.cursor = "grabbing";
+                
+                // Set up event listeners for dragging and releasing
+                document.addEventListener('mousemove', dragWindow);
+                document.addEventListener('mouseup', stopDrag);
+                
+                // Initial positioning to prevent jump on first move
+                dragWindow(e);
             }
             
-            function elementDrag(e) {
-                e = e || window.event;
+            function dragWindow(e) {
+                if (!isDragging) return;
+                
                 e.preventDefault();
-                // Calculate the new cursor position
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                // Set the element's new position
-                windowElement.style.top = (windowElement.offsetTop - pos2) + "px";
-                windowElement.style.left = (windowElement.offsetLeft - pos1) + "px";
+                
+                // Calculate the new position based on mouse position and offset
+                // This positions the window so the cursor is at the center of the title bar
+                let newLeft = e.clientX - offsetX;
+                let newTop = e.clientY - offsetY;
+                
+                // Get viewport dimensions
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // Get window dimensions
+                const windowWidth = windowElement.offsetWidth;
+                const windowHeight = windowElement.offsetHeight;
+                
+                // Add boundary constraints - keep at least 50px of the window visible
+                const minVisible = 50;
+                
+                // Constrain top position
+                if (newTop < 0 && newTop < -windowHeight + minVisible) {
+                    newTop = -windowHeight + minVisible;
+                }
+                if (newTop > viewportHeight - minVisible) {
+                    newTop = viewportHeight - minVisible;
+                }
+                
+                // Constrain left position
+                if (newLeft < 0 && newLeft < -windowWidth + minVisible) {
+                    newLeft = -windowWidth + minVisible;
+                }
+                if (newLeft > viewportWidth - minVisible) {
+                    newLeft = viewportWidth - minVisible;
+                }
+                
+                // Apply the new position
+                windowElement.style.left = newLeft + 'px';
+                windowElement.style.top = newTop + 'px';
             }
             
-            function closeDragElement() {
-                // Stop moving when mouse button is released
-                document.onmouseup = null;
-                document.onmousemove = null;
+            function stopDrag() {
+                isDragging = false;
+                titleBar.style.cursor = "grab";
+                
+                // Remove event listeners
+                document.removeEventListener('mousemove', dragWindow);
+                document.removeEventListener('mouseup', stopDrag);
             }
         }
         
@@ -979,7 +1145,7 @@
                 return "Education is Maya's THING! 📚 She's scaled Notion to over 10M students and grew their student org program from zero to 13K+ orgs across 4K universities! Talk about IMPACT! *mind blown gesture* 🤯";
             }
             else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-                return "Hiiiiiiiii there! *waves frantically* Welcome to Maya's digital playground! What can I help you with today? I'm SO excited you're here! 🎉";
+                return "Hiiiiiii there! *waves frantically* Welcome to Maya's digital playground! What can I help you with today? I'm SO excited you're here! 🎉";
             }
             else if (lowerMessage.includes('thank') || lowerMessage.includes('thanks')) {
                 return "No problemo! *finger guns* That's what I'm here for! Anything else you wanna know about the amazing Maya? I've got ALL the silly answers! 😎";
@@ -1300,6 +1466,50 @@
                     location.reload();
                 }
             });
+        });
+
+        // Add click effect for highlight links
+        document.addEventListener('DOMContentLoaded', function() {
+            const highlightLinks = document.querySelectorAll('.highlight-link');
+            
+            highlightLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Don't prevent default for actual links, only for the span
+                    if (this.tagName.toLowerCase() === 'span') {
+                        e.preventDefault();
+                    }
+                    
+                    // Store original color
+                    const originalColor = this.style.color || 'inherit';
+                    
+                    // Change to pale pink
+                    this.style.color = '#F7C9C3';
+                    
+                    // Revert back after 500ms
+                    setTimeout(() => {
+                        this.style.color = originalColor;
+                    }, 500);
+                });
+            });
+        });
+
+        // Update the date header to highlight current month and day
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            const currentMonth = now.getMonth(); // 0-11
+            const currentDay = now.getDate() - 1; // 0-30
+            
+            // Highlight current month
+            const months = document.querySelectorAll('.month');
+            if (months[currentMonth]) {
+                months[currentMonth].classList.add('current-month');
+            }
+            
+            // Highlight current day
+            const days = document.querySelectorAll('.day');
+            if (days[currentDay]) {
+                days[currentDay].classList.add('current-day');
+            }
         });
     </script>
 </body>
