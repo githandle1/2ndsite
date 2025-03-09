@@ -2,8 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>maya's desktop</title>
+    <link rel="stylesheet" href="mobile.css">
+    <!-- Immediate fix for Arc browser to show welcome window -->
+    <script>
+        // This script runs immediately to ensure the welcome window is displayed on mobile
+        (function() {
+            // Check if we're on mobile
+            const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Arc/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // Add mobile-view class to html element
+                document.documentElement.classList.add('mobile-view');
+                
+                // Create a style element to ensure about-window is displayed immediately
+                const style = document.createElement('style');
+                style.textContent = `
+                    #about-window {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        text-align: center !important;
+                        height: 100vh !important;
+                        max-height: 100vh !important;
+                        width: 100% !important;
+                        padding: 0 !important;
+                        box-sizing: border-box !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        right: 0 !important;
+                        bottom: 0 !important;
+                        margin: 0 auto !important;
+                        position: fixed !important;
+                        overflow: auto !important;
+                        z-index: 1000 !important;
+                        transform: none !important;
+                        border-radius: 0 !important;
+                    }
+                    #about-window .window-content {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        height: calc(100vh - 40px) !important;
+                        padding: 20px !important;
+                        box-sizing: border-box !important;
+                        width: 100% !important;
+                        overflow-y: auto !important;
+                    }
+                    #about-window .about-content {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        text-align: center !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        padding: 10px !important;
+                        box-sizing: border-box !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        })();
+    </script>
     <style>
         * {
             margin: 0;
@@ -864,6 +928,9 @@
         <div class="resize-handle nw"></div>
     </div>
     
+    <!-- Include JavaScript files -->
+    <script src="script.js"></script>
+    <script src="mobile.js"></script>
     <script>
         // Function to toggle window visibility
         function toggleWindow(windowId) {
@@ -890,87 +957,111 @@
             let offsetY = 0;
             let isDragging = false;
             
-            titleBar.onmousedown = startDrag;
+            // Check if we're on a mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            function startDrag(e) {
-                e = e || window.event;
-                e.preventDefault();
+            // Only make windows draggable on desktop
+            if (!isMobile) {
+                titleBar.onmousedown = startDrag;
                 
-                // Calculate the initial offset between mouse position and window position
-                // We'll use the center of the title bar as the drag point
-                const titleBarRect = titleBar.getBoundingClientRect();
-                offsetX = titleBarRect.width / 2;
-                offsetY = titleBarRect.height / 2;
-                
-                isDragging = true;
-                
-                // Bring window to front
-                const windows = document.querySelectorAll('.window');
-                windows.forEach(win => {
-                    win.style.zIndex = "1";
-                });
-                windowElement.style.zIndex = "10";
-                
-                // Add visual feedback that the window is being dragged
-                titleBar.style.cursor = "grabbing";
-                
-                // Set up event listeners for dragging and releasing
-                document.addEventListener('mousemove', dragWindow);
-                document.addEventListener('mouseup', stopDrag);
-                
-                // Initial positioning to prevent jump on first move
-                dragWindow(e);
-            }
-            
-            function dragWindow(e) {
-                if (!isDragging) return;
-                
-                e.preventDefault();
-                
-                // Calculate the new position based on mouse position and offset
-                // This positions the window so the cursor is at the center of the title bar
-                let newLeft = e.clientX - offsetX;
-                let newTop = e.clientY - offsetY;
-                
-                // Get viewport dimensions
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-                
-                // Get window dimensions
-                const windowWidth = windowElement.offsetWidth;
-                const windowHeight = windowElement.offsetHeight;
-                
-                // Add boundary constraints - keep at least 50px of the window visible
-                const minVisible = 50;
-                
-                // Constrain top position
-                if (newTop < 0 && newTop < -windowHeight + minVisible) {
-                    newTop = -windowHeight + minVisible;
-                }
-                if (newTop > viewportHeight - minVisible) {
-                    newTop = viewportHeight - minVisible;
+                function startDrag(e) {
+                    e = e || window.event;
+                    e.preventDefault();
+                    
+                    // Calculate the initial offset between mouse position and window position
+                    // We'll use the center of the title bar as the drag point
+                    const titleBarRect = titleBar.getBoundingClientRect();
+                    offsetX = titleBarRect.width / 2;
+                    offsetY = titleBarRect.height / 2;
+                    
+                    isDragging = true;
+                    
+                    // Bring window to front
+                    const windows = document.querySelectorAll('.window');
+                    windows.forEach(win => {
+                        win.style.zIndex = "1";
+                    });
+                    windowElement.style.zIndex = "10";
+                    
+                    // Add visual feedback that the window is being dragged
+                    titleBar.style.cursor = "grabbing";
+                    
+                    // Set up event listeners for dragging and releasing
+                    document.addEventListener('mousemove', dragWindow);
+                    document.addEventListener('mouseup', stopDrag);
+                    
+                    // Initial positioning to prevent jump on first move
+                    dragWindow(e);
                 }
                 
-                // Constrain left position
-                if (newLeft < 0 && newLeft < -windowWidth + minVisible) {
-                    newLeft = -windowWidth + minVisible;
-                }
-                if (newLeft > viewportWidth - minVisible) {
-                    newLeft = viewportWidth - minVisible;
+                function dragWindow(e) {
+                    if (!isDragging) return;
+                    
+                    e.preventDefault();
+                    
+                    // Calculate the new position based on mouse position and offset
+                    // This positions the window so the cursor is at the center of the title bar
+                    let newLeft = e.clientX - offsetX;
+                    let newTop = e.clientY - offsetY;
+                    
+                    // Get viewport dimensions
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // Get window dimensions
+                    const windowWidth = windowElement.offsetWidth;
+                    const windowHeight = windowElement.offsetHeight;
+                    
+                    // Add boundary constraints - keep at least 50px of the window visible
+                    const minVisible = 50;
+                    
+                    // Constrain top position
+                    if (newTop < 0 && newTop < -windowHeight + minVisible) {
+                        newTop = -windowHeight + minVisible;
+                    }
+                    
+                    if (newTop > viewportHeight - minVisible) {
+                        newTop = viewportHeight - minVisible;
+                    }
+                    
+                    // Constrain left position
+                    if (newLeft < 0 && newLeft < -windowWidth + minVisible) {
+                        newLeft = -windowWidth + minVisible;
+                    }
+                    
+                    if (newLeft > viewportWidth - minVisible) {
+                        newLeft = viewportWidth - minVisible;
+                    }
+                    
+                    // Set the window's new position
+                    windowElement.style.top = newTop + "px";
+                    windowElement.style.left = newLeft + "px";
                 }
                 
-                // Apply the new position
-                windowElement.style.left = newLeft + 'px';
-                windowElement.style.top = newTop + 'px';
-            }
-            
-            function stopDrag() {
-                isDragging = false;
-                titleBar.style.cursor = "grab";
+                function stopDrag() {
+                    isDragging = false;
+                    titleBar.style.cursor = "grab";
+                    document.removeEventListener('mousemove', dragWindow);
+                    document.removeEventListener('mouseup', stopDrag);
+                }
+            } else {
+                // For mobile, add touch event handlers for the title bar
+                titleBar.addEventListener('touchstart', handleTouchStart, { passive: false });
                 
-                // Remove event listeners
-                document.removeEventListener('mousemove', dragWindow);
-                document.removeEventListener('mouseup', stopDrag);
+                function handleTouchStart(e) {
+                    // Don't drag if we're clicking on a button in the title bar
+                    if (e.target.tagName === 'BUTTON') return;
+                    
+                    // Bring window to front
+                    const windows = document.querySelectorAll('.window');
+                    windows.forEach(win => {
+                        win.style.zIndex = "1";
+                    });
+                    windowElement.style.zIndex = "10";
+                    
+                    // For mobile, we'll just use the title bar as a way to bring windows to front
+                    // No dragging on mobile as windows are full-screen
+                }
             }
         }
         
@@ -1435,41 +1526,45 @@
             });
         });
 
-        // Add mobile-specific functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if we're on a mobile device
-            const isMobile = window.innerWidth <= 768;
+        // Function to detect mobile devices and adjust UI
+        function detectMobileAndAdjustUI() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            // If mobile, show the about window by default
             if (isMobile) {
-                toggleWindow('about-window');
+                // Add mobile class to body for CSS targeting
+                document.body.classList.add('mobile-device');
                 
-                // Hide all other windows
-                document.querySelectorAll('.window').forEach(window => {
-                    if (window.id !== 'about-window') {
-                        window.style.display = 'none';
-                    }
-                });
-                
-                // Disable dragging on mobile
-                document.querySelectorAll('.title-bar').forEach(titleBar => {
-                    titleBar.style.cursor = 'default';
-                });
-            }
-            
-            // Handle orientation changes
-            window.addEventListener('resize', function() {
-                const currentIsMobile = window.innerWidth <= 768;
-                
-                // If switching between mobile and desktop
-                if (currentIsMobile !== isMobile) {
-                    location.reload();
+                // Show mobile menu
+                const mobileMenu = document.querySelector('.mobile-menu');
+                if (mobileMenu) {
+                    mobileMenu.style.display = 'block';
                 }
-            });
-        });
-
-        // Add click effect for highlight links
+                
+                // Hide desktop icons
+                const desktopIcons = document.querySelector('.desktop-icons');
+                if (desktopIcons) {
+                    desktopIcons.style.display = 'none';
+                }
+                
+                // Adjust date header for mobile
+                const dateHeader = document.querySelector('.date-header');
+                if (dateHeader) {
+                    dateHeader.style.top = '5px';
+                    dateHeader.style.right = '5px';
+                    dateHeader.style.fontSize = '6px';
+                    dateHeader.style.padding = '3px 6px';
+                }
+                
+                // Show about window by default on mobile
+                toggleWindow('about-window');
+            }
+        }
+        
+        // Call the function when the page loads
         document.addEventListener('DOMContentLoaded', function() {
+            detectMobileAndAdjustUI();
+            
+            // Add click effect for highlight links
             const highlightLinks = document.querySelectorAll('.highlight-link');
             
             highlightLinks.forEach(link => {
@@ -1491,10 +1586,8 @@
                     }, 500);
                 });
             });
-        });
-
-        // Update the date header to highlight current month and day
-        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Update the date header to highlight current month and day
             const now = new Date();
             const currentMonth = now.getMonth(); // 0-11
             const currentDay = now.getDate() - 1; // 0-30
@@ -1509,6 +1602,20 @@
             const days = document.querySelectorAll('.day');
             if (days[currentDay]) {
                 days[currentDay].classList.add('current-day');
+            }
+        });
+        
+        // Handle orientation changes
+        window.addEventListener('orientationchange', detectMobileAndAdjustUI);
+        
+        // Handle resize events for switching between mobile and desktop
+        window.addEventListener('resize', function() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+            const wasMobile = document.body.classList.contains('mobile-device');
+            
+            // If switching between mobile and desktop
+            if ((isMobile && !wasMobile) || (!isMobile && wasMobile)) {
+                location.reload();
             }
         });
     </script>

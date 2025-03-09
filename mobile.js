@@ -10,6 +10,69 @@ document.addEventListener('DOMContentLoaded', function() {
     const isMobileViewport = window.innerWidth <= 768;
     
     if (isMobile || isMobileViewport) {
+        // Force mobile mode for all windows
+        document.documentElement.classList.add('mobile-view');
+        
+        // Immediately show the about window to prevent flashing
+        const aboutWindow = document.getElementById('about-window');
+        if (aboutWindow) {
+            aboutWindow.setAttribute('style', `
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                text-align: center !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                width: 100% !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                margin: 0 auto !important;
+                position: fixed !important;
+                overflow: auto !important;
+                z-index: 1000 !important;
+                transform: none !important;
+                border-radius: 0 !important;
+            `);
+            aboutWindow.classList.add('active-mobile');
+            
+            // Style the window content
+            const windowContent = aboutWindow.querySelector('.window-content');
+            if (windowContent) {
+                windowContent.setAttribute('style', `
+                    display: flex !important;
+                    flex-direction: column !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                    height: calc(100vh - 40px) !important;
+                    padding: 20px !important;
+                    box-sizing: border-box !important;
+                    width: 100% !important;
+                    overflow-y: auto !important;
+                `);
+            }
+            
+            // Style the about content
+            const aboutContent = aboutWindow.querySelector('.about-content');
+            if (aboutContent) {
+                aboutContent.setAttribute('style', `
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    text-align: center !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    padding: 10px !important;
+                    box-sizing: border-box !important;
+                `);
+            }
+        }
+        
         // Add mobile-specific event listeners and behaviors
         setupMobileNavigation();
         setupTouchInteractions();
@@ -17,13 +80,8 @@ document.addEventListener('DOMContentLoaded', function() {
         setupMobileWindowBehavior();
         setupMobileMusicPlayer();
         
-        // Force mobile mode for all windows
-        document.documentElement.classList.add('mobile-view');
-        
-        // Show about window by default
-        setTimeout(() => {
-            showMobileWindow('about-window');
-        }, 100);
+        // Update active mobile icon
+        updateActiveMobileIcon('about-window');
     }
     
     // Add resize listener to handle orientation changes and browser resizing
@@ -31,6 +89,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.innerWidth <= 768) {
             document.documentElement.classList.add('mobile-view');
             setupMobileWindowBehavior();
+            
+            // Show about window when resizing to mobile
+            setTimeout(() => {
+                showMobileWindow('about-window');
+            }, 100);
         } else {
             document.documentElement.classList.remove('mobile-view');
         }

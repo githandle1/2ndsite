@@ -48,7 +48,7 @@
         box-sizing: border-box !important;
     }
     
-    /* Welcome window specific styling */
+    /* Welcome window specific styling - ALWAYS DISPLAY BY DEFAULT */
     html.mobile-view #about-window,
     #about-window {
         display: flex !important;
