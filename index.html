@@ -273,6 +273,10 @@
                 return;
             }
             
+            // Force mobile detection
+            const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            console.log('Is mobile device:', isMobile, 'Screen width:', window.innerWidth);
+            
             // Save audio state if playing
             const audioPlayer = document.getElementById('audio-player');
             if (audioPlayer && !audioPlayer.paused) {
@@ -298,6 +302,7 @@
             pageTurnElement.style.zIndex = '9999';
             pageTurnElement.style.boxShadow = '-5px 0 15px rgba(0,0,0,0.2)';
             pageTurnElement.style.pointerEvents = 'none';
+            pageTurnElement.style.display = 'block'; // Ensure it's visible
             
             // Add grid pattern to the page turn
             pageTurnElement.style.backgroundImage = 'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)';
@@ -306,19 +311,12 @@
             // Manually animate the page turn with JavaScript for better reliability
             let width = 0;
             // Speed up the animation by dividing duration by 1.25
-            const isMobile = window.innerWidth <= 768;
             // Base durations: 1500ms for mobile, 1800ms for desktop
             // Speed up by 1.25x: 1200ms for mobile, 1440ms for desktop
             const duration = isMobile ? 1000 : 1200; // Further reduced for smoother animation
             const startTime = performance.now();
             
-            // Try to play page turn sound, but don't block if file is missing
-            try {
-                const pageTurnSound = new Audio('page-turn.mp3');
-                pageTurnSound.play().catch(e => console.log('Could not play page turn sound:', e));
-            } catch (e) {
-                console.log('Page turn sound not available');
-            }
+            console.log('Animation starting with duration:', duration, 'ms');
             
             // Create a full-screen overlay to prevent flashing
             const overlay = document.createElement('div');
@@ -365,6 +363,7 @@
                     // Use high priority for the animation frame
                     requestAnimationFrame(animate);
                 } else {
+                    console.log('Animation complete, navigating to desktop.html');
                     // When animation is complete, fade in the overlay to prevent flash
                     overlay.style.opacity = '1';
                     
@@ -374,7 +373,7 @@
                         // Store a flag to indicate we're coming from a page turn
                         sessionStorage.setItem('fromPageTurn', 'true');
                         window.location.href = 'desktop.html';
-                    }, 50); // Reduced delay for faster transition
+                    }, 100); // Slightly increased delay for mobile
                 }
             }
             
