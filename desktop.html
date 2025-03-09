@@ -142,6 +142,52 @@
             }
         })();
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const previouslyPlaying = sessionStorage.getItem('currentlyPlaying');
+            const audioTime = parseFloat(sessionStorage.getItem('audioCurrentTime') || 0);
+            
+            if (previouslyPlaying) {
+                console.log('Continuing playback from index.html:', previouslyPlaying);
+                // Create a temporary audio element to continue playback
+                const tempAudio = new Audio(previouslyPlaying);
+                tempAudio.currentTime = audioTime;
+                
+                // Play the audio (this needs user interaction on some browsers)
+                const playPromise = tempAudio.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log('Auto-play prevented. Will try to play when user interacts with the page.');
+                        
+                        // Add a one-time event listener for user interaction
+                        const playOnInteraction = function() {
+                            tempAudio.play().catch(e => console.error('Still could not play audio:', e));
+                            document.removeEventListener('click', playOnInteraction);
+                            document.removeEventListener('keydown', playOnInteraction);
+                        };
+                        
+                        document.addEventListener('click', playOnInteraction);
+                        document.addEventListener('keydown', playOnInteraction);
+                    });
+                }
+                
+                // Store reference to this audio element globally
+                window.tempAudioFromIndex = tempAudio;
+                
+                // Update session storage as playback continues
+                tempAudio.addEventListener('timeupdate', function() {
+                    sessionStorage.setItem('audioCurrentTime', tempAudio.currentTime);
+                });
+                
+                // When the audio ends, remove it from session storage
+                tempAudio.addEventListener('ended', function() {
+                    sessionStorage.removeItem('currentlyPlaying');
+                    sessionStorage.removeItem('audioCurrentTime');
+                });
+            }
+        });
+    </script>
     <style>
         * {
             margin: 0;
@@ -444,8 +490,9 @@
         .window-content {
             padding: 10px;
             height: calc(100% - 22px);
-            overflow: auto;
+            overflow-y: scroll;
             background-color: white;
+            -webkit-overflow-scrolling: touch;
         }
         
         .about-content {
@@ -1353,6 +1400,35 @@
             let isPlaying = false;
             let audio = new Audio();
             
+            // Check if we have audio playing from index.html
+            if (window.tempAudioFromIndex) {
+                // If we have audio from index.html, use it instead
+                const tempAudio = window.tempAudioFromIndex;
+                
+                // Stop the current audio player if it's playing
+                if (!audio.paused) {
+                    audio.pause();
+                }
+                
+                // Replace our audio with the temp audio
+                audio = tempAudio;
+                isPlaying = !audio.paused;
+                
+                // Try to find the track in our playlist
+                const audioSrc = audio.src;
+                const trackName = audioSrc.split('/').pop();
+                
+                // Update the playlist UI to show the current track
+                playlistItems.forEach((item, index) => {
+                    if (item.textContent.includes(trackName.split(' - ').pop().split('.')[0])) {
+                        currentTrack = index;
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
+            
             // Audio visualization variables
             let audioContext;
             let analyser;
@@ -1370,17 +1446,28 @@
                 analyser.fftSize = 256;
                 
                 // Connect audio to analyser
-                source = audioContext.createMediaElementSource(audio);
-                source.connect(analyser);
-                analyser.connect(audioContext.destination);
+                try {
+                    // If the audio is already connected to another audio context, we need to disconnect it first
+                    if (audio._connectedToContext) {
+                        console.log('Audio already connected to a context, creating a new connection');
+                    }
+                    
+                    source = audioContext.createMediaElementSource(audio);
+                    source.connect(analyser);
+                    analyser.connect(audioContext.destination);
+                    
+                    // Mark that we've connected this audio element
+                    audio._connectedToContext = true;
+                } catch (e) {
+                    console.error('Error connecting audio to analyser:', e);
+                }
                 
                 // Set up canvas
                 canvas = document.getElementById('visualizer');
                 canvasCtx = canvas.getContext('2d');
                 
-                // Set canvas dimensions
-                canvas.width = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
+                // Start visualization
+                drawVisualization();
             }
             
             // Draw visualization
@@ -1461,6 +1548,9 @@
                 'music/SpotiDown.App - Opal - Four Tet Remix - BICEP, Four Tet.mp3',
                 'music/SpotiDown.App - Thousand Finger Man - Candido.mp3'
             ];
+            
+            // Call continuePlaying after musicFiles is defined
+            setTimeout(continuePlaying, 500);
             
             function loadTrack(trackIndex) {
                 // Cancel any existing animation

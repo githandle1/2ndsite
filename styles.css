@@ -9,6 +9,12 @@ body {
     overflow: hidden;
 }
 
+/* Enable scrolling in window content */
+.window-content {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
 /* Add keyframes for the flag-waving animation */
 @keyframes waveFlag {
     0% {
