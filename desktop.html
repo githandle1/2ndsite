@@ -88,9 +88,8 @@
                         align-items: center !important;
                         height: calc(60vh - 30px) !important;
                         padding: 15px !important;
-                        box-sizing: border-box !important;
-                        width: 100% !important;
                         overflow-y: auto !important;
+                        -webkit-overflow-scrolling: touch !important;
                     }
                 `;
                 document.head.appendChild(style);
@@ -500,6 +499,8 @@
             flex-direction: column;
             height: 100%;
             padding: 10px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         .about-header {
