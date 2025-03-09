@@ -423,24 +423,15 @@
             background-color: #ebe6d9; /* Slightly darker beige for equalizer */
             padding: 5px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            align-items: center;
         }
         
-        .eq-slider {
-            width: 15px;
+        #visualizer {
+            width: 100%;
             height: 80px;
             background-color: #e0daca;
-            position: relative;
             border: 1px solid #ccc8b8;
-        }
-        
-        .eq-slider::before {
-            content: '';
-            position: absolute;
-            width: 15px;
-            height: 5px;
-            background-color: #F7C9C3;
-            bottom: 40px;
         }
         
         /* Chat Window Styling */
@@ -608,23 +599,23 @@
     <!-- Desktop Icons -->
     <div class="desktop-icons">
         <div class="icon" onclick="toggleWindow('about-window')">
-            <div class="filled-dot">🩰</div>
+            <div class="filled-dot">🔖</div>
             <div class="icon-label">welcome</div>
         </div>
         <div class="icon" onclick="window.open('https://mayascorner.notion.site/hi-i-m-maya-1a22bb286ed980bba588d6da0f922a3b?pvs=74', '_blank')">
-            <div class="filled-dot">🩰</div>
+            <div class="filled-dot">🔖</div>
             <div class="icon-label">working<br>on</div>
         </div>
         <div class="icon" onclick="toggleWindow('winamp-window')">
-            <div class="filled-dot">🩰</div>
+            <div class="filled-dot">🔖</div>
             <div class="icon-label">maya's<br>earbuds</div>
         </div>
         <div class="icon" onclick="window.open('https://www.cosmos.so/babka/elements', '_blank')">
-            <div class="filled-dot">🩰</div>
+            <div class="filled-dot">🔖</div>
             <div class="icon-label">what i'm<br>saving</div>
         </div>
         <div class="icon" onclick="window.location.href='mailto:mayabakir38@gmail.com'">
-            <div class="filled-dot">🩰</div>
+            <div class="filled-dot">🔖</div>
             <div class="icon-label">say hi</div>
         </div>
     </div>
@@ -633,23 +624,23 @@
     <div class="mobile-menu">
         <div class="mobile-icons">
             <div class="mobile-icon" onclick="toggleWindow('about-window')">
-                <div class="filled-dot">🩰</div>
+                <div class="filled-dot">🔖</div>
                 <div>welcome</div>
             </div>
             <div class="mobile-icon" onclick="window.open('https://mayascorner.notion.site/hi-i-m-maya-1a22bb286ed980bba588d6da0f922a3b?pvs=74', '_blank')">
-                <div class="filled-dot">🩰</div>
+                <div class="filled-dot">🔖</div>
                 <div>working on</div>
             </div>
             <div class="mobile-icon" onclick="toggleWindow('winamp-window')">
-                <div class="filled-dot">🩰</div>
+                <div class="filled-dot">🔖</div>
                 <div>earbuds</div>
             </div>
             <div class="mobile-icon" onclick="window.open('https://www.cosmos.so/babka/elements', '_blank')">
-                <div class="filled-dot">🩰</div>
+                <div class="filled-dot">🔖</div>
                 <div>saving</div>
             </div>
             <div class="mobile-icon" onclick="window.location.href='mailto:mayabakir38@gmail.com'">
-                <div class="filled-dot">🩰</div>
+                <div class="filled-dot">🔖</div>
                 <div>say hi</div>
             </div>
         </div>
@@ -744,16 +735,7 @@
                     <div class="playlist-item">5. Thousand Finger Man - Candido.mp3</div>
                 </div>
                 <div class="winamp-equalizer">
-                    <div class="eq-slider"></div>
-                    <div class="eq-slider"></div>
-                    <div class="eq-slider"></div>
-                    <div class="eq-slider"></div>
-                    <div class="eq-slider"></div>
-                    <div class="eq-slider"></div>
-                    <div class="eq-slider"></div>
-                    <div class="eq-slider"></div>
-                    <div class="eq-slider"></div>
-                    <div class="eq-slider"></div>
+                    <canvas id="visualizer"></canvas>
                 </div>
             </div>
         </div>
@@ -1040,6 +1022,107 @@
             let isPlaying = false;
             let audio = new Audio();
             
+            // Audio visualization variables
+            let audioContext;
+            let analyser;
+            let source;
+            let canvas;
+            let canvasCtx;
+            let animationId;
+            let visualizationType = 'bars'; // 'bars' or 'waveform'
+            
+            // Initialize audio visualization
+            function initAudioVisualization() {
+                // Create audio context
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                
+                // Connect audio to analyser
+                source = audioContext.createMediaElementSource(audio);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+                
+                // Set up canvas
+                canvas = document.getElementById('visualizer');
+                canvasCtx = canvas.getContext('2d');
+                
+                // Set canvas dimensions
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+            
+            // Draw visualization
+            function drawVisualization() {
+                if (!isPlaying) {
+                    // Draw static bars when not playing
+                    canvasCtx.fillStyle = '#e0daca';
+                    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw static line
+                    canvasCtx.fillStyle = '#F7C9C3';
+                    canvasCtx.fillRect(0, canvas.height / 2, canvas.width, 2);
+                    return;
+                }
+                
+                // Get frequency data
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                
+                // Clear canvas
+                canvasCtx.fillStyle = '#e0daca';
+                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                if (visualizationType === 'bars') {
+                    // Get frequency data for bars
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    // Draw bars
+                    const barWidth = (canvas.width / bufferLength) * 2.5;
+                    let x = 0;
+                    
+                    for (let i = 0; i < bufferLength; i++) {
+                        const barHeight = (dataArray[i] / 255) * canvas.height;
+                        
+                        // Use a soft pink color for the bars
+                        canvasCtx.fillStyle = '#F7C9C3';
+                        canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                        
+                        x += barWidth + 1;
+                    }
+                } else if (visualizationType === 'waveform') {
+                    // Get time domain data for waveform
+                    analyser.getByteTimeDomainData(dataArray);
+                    
+                    // Draw waveform
+                    canvasCtx.lineWidth = 2;
+                    canvasCtx.strokeStyle = '#F7C9C3';
+                    canvasCtx.beginPath();
+                    
+                    const sliceWidth = canvas.width / bufferLength;
+                    let x = 0;
+                    
+                    for (let i = 0; i < bufferLength; i++) {
+                        const v = dataArray[i] / 128.0;
+                        const y = v * canvas.height / 2;
+                        
+                        if (i === 0) {
+                            canvasCtx.moveTo(x, y);
+                        } else {
+                            canvasCtx.lineTo(x, y);
+                        }
+                        
+                        x += sliceWidth;
+                    }
+                    
+                    canvasCtx.lineTo(canvas.width, canvas.height / 2);
+                    canvasCtx.stroke();
+                }
+                
+                // Request next frame
+                animationId = requestAnimationFrame(drawVisualization);
+            }
+            
             const musicFiles = [
                 'music/SpotiDown.App - Careless Whisper - George Michael.mp3',
                 'music/SpotiDown.App - Final Credits - Midland.mp3',
@@ -1049,6 +1132,11 @@
             ];
             
             function loadTrack(trackIndex) {
+                // Cancel any existing animation
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+                
                 audio.src = musicFiles[trackIndex];
                 audio.load();
                 
@@ -1057,18 +1145,39 @@
                 playlistItems[trackIndex].classList.add('active');
                 
                 currentTrack = trackIndex;
+                
+                // Initialize visualization if not already done
+                if (!audioContext) {
+                    initAudioVisualization();
+                }
+                
+                // Start static visualization
+                drawVisualization();
             }
             
             function playTrack() {
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
                 audio.play();
                 isPlaying = true;
                 playButton.innerHTML = '⏸';
+                
+                // Start visualization animation
+                drawVisualization();
             }
             
             function pauseTrack() {
                 audio.pause();
                 isPlaying = false;
                 playButton.innerHTML = '▶';
+                
+                // Stop animation but keep static visualization
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    drawVisualization();
+                }
             }
             
             function stopTrack() {
@@ -1076,20 +1185,12 @@
                 audio.currentTime = 0;
                 isPlaying = false;
                 playButton.innerHTML = '▶';
-            }
-            
-            function nextTrack() {
-                let next = currentTrack + 1;
-                if (next >= musicFiles.length) next = 0;
-                loadTrack(next);
-                if (isPlaying) playTrack();
-            }
-            
-            function prevTrack() {
-                let prev = currentTrack - 1;
-                if (prev < 0) prev = musicFiles.length - 1;
-                loadTrack(prev);
-                if (isPlaying) playTrack();
+                
+                // Stop animation but keep static visualization
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    drawVisualization();
+                }
             }
             
             // Initialize first track
@@ -1105,8 +1206,18 @@
             });
             
             stopButton.addEventListener('click', stopTrack);
-            nextButton.addEventListener('click', nextTrack);
-            prevButton.addEventListener('click', prevTrack);
+            nextButton.addEventListener('click', function() {
+                let next = currentTrack + 1;
+                if (next >= musicFiles.length) next = 0;
+                loadTrack(next);
+                playTrack();
+            });
+            prevButton.addEventListener('click', function() {
+                let prev = currentTrack - 1;
+                if (prev < 0) prev = musicFiles.length - 1;
+                loadTrack(prev);
+                playTrack();
+            });
             
             // Playlist item click
             playlistItems.forEach((item, index) => {
@@ -1117,7 +1228,23 @@
             });
             
             // When track ends, play next
-            audio.addEventListener('ended', nextTrack);
+            audio.addEventListener('ended', function() {
+                let next = currentTrack + 1;
+                if (next >= musicFiles.length) next = 0;
+                loadTrack(next);
+                playTrack();
+            });
+            
+            // Add visualization toggle button to winamp controls
+            const visualizationToggleButton = document.createElement('button');
+            visualizationToggleButton.innerHTML = '🔊';
+            visualizationToggleButton.title = 'Toggle visualization type';
+            document.querySelector('.winamp-controls').appendChild(visualizationToggleButton);
+            
+            visualizationToggleButton.addEventListener('click', function() {
+                visualizationType = visualizationType === 'bars' ? 'waveform' : 'bars';
+                this.innerHTML = visualizationType === 'bars' ? '🔊' : '📊';
+            });
         });
         
         // Add click handling for desktop icons
