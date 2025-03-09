@@ -17,6 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             this.style.borderColor = '#fff #808080 #808080 #fff';
         }, 100);
+        
+        // If audio is playing, update its current time in localStorage
+        const audioPlayer = document.getElementById('audio-player');
+        if (audioPlayer && !audioPlayer.paused) {
+            localStorage.setItem('audioCurrentTime', audioPlayer.currentTime);
+        }
     });
     
     // Update the current date
@@ -31,14 +37,16 @@ function updateCurrentDate() {
     const currentDateElement = document.getElementById('current-date');
     if (currentDateElement) {
         const now = new Date();
-        const options = { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        };
-        currentDateElement.textContent = now.toLocaleDateString('en-US', options);
+        
+        // Create a custom date string without time
+        const weekday = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()];
+        const month = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][now.getMonth()];
+        const day = now.getDate();
+        const year = now.getFullYear();
+        
+        // Format: "Weekday, Month Day, Year"
+        const formattedDate = `${weekday}, ${month} ${day}, ${year}`;
+        console.log('Updating date to:', formattedDate);
+        currentDateElement.textContent = formattedDate;
     }
 } 
