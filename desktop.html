@@ -1389,183 +1389,16 @@
             return randomResponse;
         }
         
-        // Music player functionality
+        // Music player functionality - Simplified implementation
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded - initializing music player');
+            
+            // Get UI elements
             const playlistItems = document.querySelectorAll('.playlist-item');
             const playButton = document.querySelector('.winamp-controls button:nth-child(2)');
             const stopButton = document.querySelector('.winamp-controls button:nth-child(3)');
             const prevButton = document.querySelector('.winamp-controls button:nth-child(1)');
             const nextButton = document.querySelector('.winamp-controls button:nth-child(4)');
-            
-            let currentTrack = 0;
-            let isPlaying = false;
-            let audio = new Audio();
-            
-            // Add event listeners for audio debugging
-            audio.addEventListener('error', function(e) {
-                console.error('Audio error:', e);
-                alert('Error loading audio file. Check console for details.');
-            });
-            
-            audio.addEventListener('canplay', function() {
-                console.log('Audio can play now');
-            });
-            
-            audio.addEventListener('playing', function() {
-                console.log('Audio is playing');
-                isPlaying = true;
-            });
-            
-            audio.addEventListener('pause', function() {
-                console.log('Audio paused');
-                isPlaying = false;
-            });
-            
-            // Check if we have audio playing from index.html
-            if (window.tempAudioFromIndex) {
-                // If we have audio from index.html, use it instead
-                const tempAudio = window.tempAudioFromIndex;
-                
-                // Stop the current audio player if it's playing
-                if (!audio.paused) {
-                    audio.pause();
-                }
-                
-                // Replace our audio with the temp audio
-                audio = tempAudio;
-                isPlaying = !audio.paused;
-                
-                // Try to find the track in our playlist
-                const audioSrc = audio.src;
-                const trackName = audioSrc.split('/').pop();
-                
-                // Update the playlist UI to show the current track
-                playlistItems.forEach((item, index) => {
-                    // Extract the song name without the SpotiDown.App prefix and .mp3 extension
-                    const songName = trackName.replace('SpotiDown.App - ', '').split('.mp3')[0];
-                    // Extract the playlist item text without the number prefix
-                    const itemText = item.textContent.replace(/^\d+\.\s+/, '');
-                    
-                    if (itemText === songName) {
-                        currentTrack = index;
-                        item.classList.add('active');
-                    } else {
-                        item.classList.remove('active');
-                    }
-                });
-            }
-            
-            // Audio visualization variables
-            let audioContext;
-            let analyser;
-            let source;
-            let canvas;
-            let canvasCtx;
-            let animationId;
-            let visualizationType = 'bars'; // 'bars' or 'waveform'
-            
-            // Initialize audio visualization
-            function initAudioVisualization() {
-                // Create audio context
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                
-                // Connect audio to analyser
-                try {
-                    // If the audio is already connected to another audio context, we need to disconnect it first
-                    if (audio._connectedToContext) {
-                        console.log('Audio already connected to a context, creating a new connection');
-                    }
-                    
-                    source = audioContext.createMediaElementSource(audio);
-                    source.connect(analyser);
-                    analyser.connect(audioContext.destination);
-                    
-                    // Mark that we've connected this audio element
-                    audio._connectedToContext = true;
-                } catch (e) {
-                    console.error('Error connecting audio to analyser:', e);
-                }
-                
-                // Set up canvas
-                canvas = document.getElementById('visualizer');
-                canvasCtx = canvas.getContext('2d');
-                
-                // Start visualization
-                drawVisualization();
-            }
-            
-            // Draw visualization
-            function drawVisualization() {
-                if (!isPlaying) {
-                    // Draw static bars when not playing
-                    canvasCtx.fillStyle = '#e0daca';
-                    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    // Draw static line
-                    canvasCtx.fillStyle = '#F7C9C3';
-                    canvasCtx.fillRect(0, canvas.height / 2, canvas.width, 2);
-                    return;
-                }
-                
-                // Get frequency data
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
-                
-                // Clear canvas
-                canvasCtx.fillStyle = '#e0daca';
-                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                if (visualizationType === 'bars') {
-                    // Get frequency data for bars
-                    analyser.getByteFrequencyData(dataArray);
-                    
-                    // Draw bars
-                    const barWidth = (canvas.width / bufferLength) * 2.5;
-                    let x = 0;
-                    
-                    for (let i = 0; i < bufferLength; i++) {
-                        const barHeight = (dataArray[i] / 255) * canvas.height;
-                        
-                        // Use a soft pink color for the bars
-                        canvasCtx.fillStyle = '#F7C9C3';
-                        canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                        
-                        x += barWidth + 1;
-                    }
-                } else if (visualizationType === 'waveform') {
-                    // Get time domain data for waveform
-                    analyser.getByteTimeDomainData(dataArray);
-                    
-                    // Draw waveform
-                    canvasCtx.lineWidth = 2;
-                    canvasCtx.strokeStyle = '#F7C9C3';
-                    canvasCtx.beginPath();
-                    
-                    const sliceWidth = canvas.width / bufferLength;
-                    let x = 0;
-                    
-                    for (let i = 0; i < bufferLength; i++) {
-                        const v = dataArray[i] / 128.0;
-                        const y = v * canvas.height / 2;
-                        
-                        if (i === 0) {
-                            canvasCtx.moveTo(x, y);
-                        } else {
-                            canvasCtx.lineTo(x, y);
-                        }
-                        
-                        x += sliceWidth;
-                    }
-                    
-                    canvasCtx.lineTo(canvas.width, canvas.height / 2);
-                    canvasCtx.stroke();
-                }
-                
-                // Request next frame
-                animationId = requestAnimationFrame(drawVisualization);
-            }
             
             // Music files
             const musicFiles = [
@@ -1576,175 +1409,87 @@
                 'music/SpotiDown.App - Thousand Finger Man - Candido.mp3'
             ];
             
-            // Function to continue playing from a previous session
-            function continuePlaying() {
-                // If we have a previously playing track from index.html, it's already handled above
-                // Otherwise, just load the first track
-                if (!window.tempAudioFromIndex) {
-                    loadTrack(0);
-                    console.log('Initial track loaded');
-                }
-            }
+            // Player state
+            let currentTrack = 0;
+            let isPlaying = false;
+            let audio = new Audio();
             
-            // Call continuePlaying after musicFiles is defined
-            setTimeout(continuePlaying, 500);
-            
-            function loadTrack(trackIndex) {
-                // Cancel any existing animation
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                }
-                
+            // Simple audio player implementation
+            function loadAndPlayTrack(index) {
                 try {
-                    console.log('Loading track:', musicFiles[trackIndex]);
+                    // Update current track index
+                    currentTrack = index;
                     
-                    // Check if the file exists
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('HEAD', musicFiles[trackIndex], true);
-                    xhr.onreadystatechange = function() {
-                        if (xhr.readyState === 4) {
-                            if (xhr.status === 200) {
-                                console.log('File exists:', musicFiles[trackIndex]);
-                            } else {
-                                console.error('File does not exist:', musicFiles[trackIndex], 'Status:', xhr.status);
-                                alert('Music file not found: ' + musicFiles[trackIndex]);
-                            }
-                        }
-                    };
-                    xhr.send();
-                    
-                    // Set the audio source and load it
-                    audio.src = musicFiles[trackIndex];
-                    audio.load();
-                    
-                    // Update active class
-                    playlistItems.forEach(item => item.classList.remove('active'));
-                    playlistItems[trackIndex].classList.add('active');
-                    
-                    currentTrack = trackIndex;
-                    
-                    // Initialize visualization if not already done
-                    if (!audioContext) {
-                        initAudioVisualization();
-                    }
-                    
-                    // Start static visualization
-                    drawVisualization();
-                    
-                    console.log('Track loaded successfully');
-                } catch (error) {
-                    console.error('Error loading track:', error);
-                    alert('Error loading track: ' + error.message);
-                }
-            }
-            
-            function playTrack() {
-                if (audioContext && audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
-                
-                // Make sure we have a valid audio source
-                if (!audio.src || audio.src === '') {
-                    console.log('No audio source, loading track', currentTrack);
-                    loadTrack(currentTrack);
-                }
-                
-                // Play with error handling
-                const playPromise = audio.play();
-                
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        // Playback started successfully
-                        console.log('Audio playback started successfully');
-                        isPlaying = true;
-                        playButton.innerHTML = '⏸';
-                        
-                        // Start visualization animation
-                        drawVisualization();
-                    }).catch(error => {
-                        // Auto-play was prevented or there was another error
-                        console.error('Error playing audio:', error);
-                        // Try to handle auto-play prevention
-                        if (error.name === 'NotAllowedError') {
-                            alert('Please interact with the page first to enable audio playback');
-                        }
-                        isPlaying = false;
-                        playButton.innerHTML = '▶';
+                    // Update UI
+                    playlistItems.forEach((item, i) => {
+                        item.classList.toggle('active', i === index);
                     });
-                } else {
-                    // Older browsers might not return a promise
-                    isPlaying = true;
-                    playButton.innerHTML = '⏸';
                     
-                    // Start visualization animation
-                    drawVisualization();
-                }
-            }
-            
-            function pauseTrack() {
-                audio.pause();
-                isPlaying = false;
-                playButton.innerHTML = '▶';
-                
-                // Stop animation but keep static visualization
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                    drawVisualization();
-                }
-            }
-            
-            function stopTrack() {
-                audio.pause();
-                audio.currentTime = 0;
-                isPlaying = false;
-                playButton.innerHTML = '▶';
-                
-                // Stop animation but keep static visualization
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                    drawVisualization();
+                    // Set audio source
+                    audio.src = musicFiles[index];
+                    
+                    // Play audio
+                    const playPromise = audio.play();
+                    
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            console.log('Playing track:', musicFiles[index]);
+                            isPlaying = true;
+                            playButton.innerHTML = '⏸';
+                        }).catch(error => {
+                            console.error('Error playing audio:', error);
+                            isPlaying = false;
+                            playButton.innerHTML = '▶';
+                            alert('Error playing audio: ' + error.message);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error in loadAndPlayTrack:', error);
+                    alert('Error: ' + error.message);
                 }
             }
             
             // Initialize first track
-            loadTrack(0);
+            audio.src = musicFiles[0];
+            console.log('Initial track loaded:', musicFiles[0]);
             
             // Event listeners
             playButton.addEventListener('click', function() {
-                console.log('Play button clicked, isPlaying:', isPlaying);
+                console.log('Play button clicked');
                 if (isPlaying) {
-                    console.log('Pausing track');
-                    pauseTrack();
+                    audio.pause();
+                    isPlaying = false;
+                    playButton.innerHTML = '▶';
+                    console.log('Audio paused');
                 } else {
-                    console.log('Playing track:', musicFiles[currentTrack]);
-                    // Make sure we have a track loaded
-                    if (!audio.src || audio.src === '') {
-                        console.log('No audio source, loading track', currentTrack);
-                        loadTrack(currentTrack);
-                    }
-                    playTrack();
+                    loadAndPlayTrack(currentTrack);
                 }
             });
             
-            stopButton.addEventListener('click', stopTrack);
+            stopButton.addEventListener('click', function() {
+                audio.pause();
+                audio.currentTime = 0;
+                isPlaying = false;
+                playButton.innerHTML = '▶';
+                console.log('Audio stopped');
+            });
+            
             nextButton.addEventListener('click', function() {
                 let next = currentTrack + 1;
                 if (next >= musicFiles.length) next = 0;
-                loadTrack(next);
-                playTrack();
+                loadAndPlayTrack(next);
             });
+            
             prevButton.addEventListener('click', function() {
                 let prev = currentTrack - 1;
                 if (prev < 0) prev = musicFiles.length - 1;
-                loadTrack(prev);
-                playTrack();
+                loadAndPlayTrack(prev);
             });
             
             // Playlist item click
             playlistItems.forEach((item, index) => {
                 item.addEventListener('click', function() {
-                    loadTrack(index);
-                    playTrack();
+                    loadAndPlayTrack(index);
                 });
             });
             
@@ -1752,20 +1497,48 @@
             audio.addEventListener('ended', function() {
                 let next = currentTrack + 1;
                 if (next >= musicFiles.length) next = 0;
-                loadTrack(next);
-                playTrack();
+                loadAndPlayTrack(next);
             });
             
-            // Add visualization toggle button to winamp controls
-            const visualizationToggleButton = document.createElement('button');
-            visualizationToggleButton.innerHTML = '🔊';
-            visualizationToggleButton.title = 'Toggle visualization type';
-            document.querySelector('.winamp-controls').appendChild(visualizationToggleButton);
-            
-            visualizationToggleButton.addEventListener('click', function() {
-                visualizationType = visualizationType === 'bars' ? 'waveform' : 'bars';
-                this.innerHTML = visualizationType === 'bars' ? '🔊' : '📊';
+            // Debug events
+            audio.addEventListener('error', function(e) {
+                console.error('Audio error:', e);
+                alert('Error with audio: ' + e.target.error.message);
             });
+            
+            audio.addEventListener('canplay', function() {
+                console.log('Audio can play now');
+            });
+            
+            audio.addEventListener('playing', function() {
+                console.log('Audio is now playing');
+                isPlaying = true;
+            });
+            
+            audio.addEventListener('pause', function() {
+                console.log('Audio is now paused');
+                isPlaying = false;
+            });
+
+            // Simple static visualization
+            const canvas = document.getElementById('visualizer');
+            if (canvas) {
+                const canvasCtx = canvas.getContext('2d');
+                
+                // Draw static visualization
+                function drawStaticVisualization() {
+                    // Clear canvas
+                    canvasCtx.fillStyle = '#e0daca';
+                    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw static line
+                    canvasCtx.fillStyle = '#F7C9C3';
+                    canvasCtx.fillRect(0, canvas.height / 2, canvas.width, 2);
+                }
+                
+                // Initial draw
+                drawStaticVisualization();
+            }
         });
         
         // Add click handling for desktop icons
