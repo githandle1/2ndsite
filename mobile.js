@@ -251,6 +251,11 @@ function setupMobileWindowBehavior() {
                         align-items: center !important;
                         cursor: pointer !important;
                         color: black !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        min-width: 0 !important;
+                        min-height: 0 !important;
+                        box-sizing: border-box !important;
                     `);
                 });
                 
