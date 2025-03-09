@@ -478,7 +478,7 @@ function showMobileWindow(windowId) {
             // Apply specific styling for the welcome window
             targetWindow.style.height = '60vh';
             targetWindow.style.maxHeight = '60vh';
-            targetWindow.style.width = '92%';
+            targetWindow.style.width = '105.8%';
             targetWindow.style.top = '20vh';
             targetWindow.style.left = '0';
             targetWindow.style.right = '0';
