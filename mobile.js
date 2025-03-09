@@ -233,99 +233,74 @@ function setupMobileWindowBehavior() {
             if (controls) {
                 controls.setAttribute('style', `
                     display: flex !important;
-                    gap: 5px !important;
+                    gap: 2px !important;
                 `);
                 
-                // Hide minimize and maximize buttons on mobile
+                // Style all buttons to match Windows 98 style
                 const buttons = controls.querySelectorAll('button');
                 buttons.forEach((button, index) => {
-                    if (index < buttons.length - 1) {
-                        button.style.display = 'none';
-                    } else {
-                        // Style close button
-                        button.setAttribute('style', `
-                            width: 30px !important;
-                            height: 30px !important;
-                            font-size: 16px !important;
-                            display: flex !important;
-                            align-items: center !important;
-                            justify-content: center !important;
-                        `);
+                    button.setAttribute('style', `
+                        width: 16px !important;
+                        height: 14px !important;
+                        background-color: #c0c0c0 !important;
+                        border: 1px solid !important;
+                        border-color: #ffffff #808080 #808080 #ffffff !important;
+                        font-size: 9px !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        cursor: pointer !important;
+                        color: black !important;
+                    `);
+                    
+                    // Add event listeners for each button
+                    if (index === 0) {
+                        // First button - Minimize
+                        button.onclick = function(e) {
+                            e.stopPropagation();
+                            const parentWindow = this.closest('.window');
+                            if (parentWindow) {
+                                minimizeWindow(parentWindow.id);
+                            }
+                        };
+                    } else if (index === 1) {
+                        // Second button - Maximize/Restore (disabled on mobile)
+                        button.onclick = function(e) {
+                            e.stopPropagation();
+                            // No action for maximize on mobile
+                        };
+                    } else if (index === 2) {
+                        // Third button - Close
+                        button.onclick = function(e) {
+                            e.stopPropagation();
+                            const parentWindow = this.closest('.window');
+                            if (parentWindow) {
+                                closeWindow(parentWindow.id);
+                            }
+                        };
                     }
                 });
             }
         }
         
-        // Adjust window content
-        const content = window.querySelector('.window-content');
-        if (content) {
-            content.setAttribute('style', `
+        // Make window content scrollable
+        const windowContent = window.querySelector('.window-content');
+        if (windowContent) {
+            windowContent.setAttribute('style', `
+                height: calc(100% - 40px) !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
                 padding: 15px !important;
-                height: auto !important;
-                min-height: calc(100vh - 100px) !important;
-                box-sizing: border-box !important;
             `);
-        }
-        
-        // Special handling for about window
-        if (window.id === 'about-window') {
-            window.setAttribute('style', `
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: flex-start !important;
-                align-items: center !important;
-                text-align: center !important;
-                height: 60vh !important;
-                max-height: 60vh !important;
-                width: 80% !important;
-                padding: 0 !important;
-                box-sizing: border-box !important;
-                top: 20vh !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: auto !important;
-                margin: 0 auto !important;
-                position: fixed !important;
-                overflow: auto !important;
-                z-index: 1000 !important;
-                transform: none !important;
-                border-radius: 8px !important;
-                background-color: #ffffff !important;
-                border: 2px solid #F7C9C3 !important;
-            `);
-            
-            // Style the title bar
-            const aboutTitleBar = window.querySelector('.title-bar');
-            if (aboutTitleBar) {
-                aboutTitleBar.style.backgroundColor = '#F7C9C3';
-            }
-            
-            // Style the window content
-            const aboutContent = window.querySelector('.window-content');
-            if (aboutContent) {
-                aboutContent.setAttribute('style', `
-                    display: flex !important;
-                    flex-direction: column !important;
-                    justify-content: flex-start !important;
-                    align-items: center !important;
-                    height: calc(60vh - 30px) !important;
-                    padding: 20px !important;
-                    box-sizing: border-box !important;
-                    width: 100% !important;
-                    overflow-y: auto !important;
-                `);
-            }
         }
     });
     
-    // Add -webkit-overflow-scrolling: touch for smooth scrolling on all scrollable elements
-    const scrollableElements = document.querySelectorAll('.window-content, .about-content, .chat-messages');
-    scrollableElements.forEach(element => {
-        element.style.webkitOverflowScrolling = 'touch';
-    });
-    
-    // Set up mobile navigation between windows
-    setupMobileWindowNavigation();
+    // Show about window by default
+    setTimeout(() => {
+        showMobileWindow('about-window');
+    }, 100);
 }
 
 /**
@@ -593,4 +568,82 @@ function updateActiveMobileIcon(windowId) {
             icon.classList.add('active');
         }
     });
+}
+
+/**
+ * Minimizes a window on mobile
+ */
+function minimizeWindow(windowId) {
+    const window = document.getElementById(windowId);
+    if (!window) return;
+    
+    // Check if window is already minimized
+    const isMinimized = window.classList.contains('minimized');
+    
+    if (isMinimized) {
+        // Restore window
+        window.classList.remove('minimized');
+        
+        // Restore original size based on window type
+        if (windowId === 'about-window') {
+            window.style.height = '60vh';
+            window.style.width = '80%';
+            window.style.top = '20vh';
+            
+            const windowContent = window.querySelector('.window-content');
+            if (windowContent) {
+                windowContent.style.height = 'calc(60vh - 30px)';
+                windowContent.style.display = 'flex';
+            }
+        } else {
+            window.style.height = 'calc(100vh - 60px)';
+            window.style.width = '100%';
+            window.style.top = '0';
+            
+            const windowContent = window.querySelector('.window-content');
+            if (windowContent) {
+                windowContent.style.height = 'calc(100% - 40px)';
+                windowContent.style.display = 'block';
+            }
+        }
+    } else {
+        // Minimize window
+        window.classList.add('minimized');
+        
+        // Save current position and size
+        window.dataset.originalHeight = window.style.height;
+        window.dataset.originalWidth = window.style.width;
+        window.dataset.originalTop = window.style.top;
+        
+        // Shrink window to just the title bar
+        window.style.height = '40px';
+        window.style.width = '200px';
+        window.style.top = 'calc(100vh - 100px)';
+        
+        // Hide content
+        const windowContent = window.querySelector('.window-content');
+        if (windowContent) {
+            windowContent.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * Closes a window on mobile
+ */
+function closeWindow(windowId) {
+    const window = document.getElementById(windowId);
+    if (!window) return;
+    
+    // Hide the window
+    window.classList.remove('active-mobile');
+    window.style.display = 'none';
+    
+    // If this is the about window, show it again after a brief delay
+    // This ensures the user always has at least one window open
+    if (windowId === 'about-window') {
+        setTimeout(() => {
+            showMobileWindow('about-window');
+        }, 500);
+    }
 } 

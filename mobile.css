@@ -247,24 +247,26 @@
     
     .title-bar-controls {
         display: flex;
-        gap: 5px;
+        gap: 2px;
     }
     
     .title-bar-controls button {
-        width: 21px;
-        height: 21px;
-        font-size: 12px;
+        width: 16px;
+        height: 14px;
+        background-color: #c0c0c0;
+        border: 1px solid;
+        border-color: #ffffff #808080 #808080 #ffffff;
+        font-size: 9px;
         display: flex;
-        align-items: center;
         justify-content: center;
-        background-color: #f0f0f0;
-        border: 1px solid #ccc;
-        border-radius: 3px;
+        align-items: center;
+        cursor: pointer;
+        color: black;
     }
     
-    /* Only show close button on mobile */
+    /* Show all buttons on mobile */
     .title-bar-controls button:not(:last-child) {
-        display: none;
+        display: flex !important;
     }
     
     /* Adjust date header for mobile */

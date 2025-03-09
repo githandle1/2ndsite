@@ -56,16 +56,25 @@
                         width: 100% !important;
                         box-sizing: border-box !important;
                     }
-                    #about-window .title-bar-controls button {
-                        width: 21px !important; /* Reduced from 30px by 30% */
-                        height: 21px !important; /* Reduced from 30px by 30% */
-                        font-size: 12px !important; /* Reduced from 16px by ~30% */
+                    #about-window .title-bar-controls {
                         display: flex !important;
-                        align-items: center !important;
+                        gap: 2px !important;
+                    }
+                    #about-window .title-bar-controls button {
+                        width: 16px !important;
+                        height: 14px !important;
+                        background-color: #c0c0c0 !important;
+                        border: 1px solid !important;
+                        border-color: #ffffff #808080 #808080 #ffffff !important;
+                        font-size: 9px !important;
+                        display: flex !important;
                         justify-content: center !important;
-                        background-color: #f0f0f0 !important;
-                        border: 1px solid #ccc !important;
-                        border-radius: 3px !important;
+                        align-items: center !important;
+                        cursor: pointer !important;
+                        color: black !important;
+                    }
+                    #about-window .title-bar-controls button:not(:last-child) {
+                        display: flex !important;
                     }
                     #about-window .window-content {
                         display: flex !important;
