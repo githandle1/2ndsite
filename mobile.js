@@ -169,15 +169,33 @@ function setupMobileWindowBehavior() {
     // Show about window by default
     const aboutWindow = document.getElementById('about-window');
     if (aboutWindow) {
-        aboutWindow.style.display = 'none'; // Hide about window
-        aboutWindow.classList.remove('active-mobile');
-    }
-    
-    // Show welcome window by default
-    const welcomeWindow = document.getElementById('welcome-window');
-    if (welcomeWindow) {
-        welcomeWindow.style.display = 'block';
-        welcomeWindow.classList.add('active-mobile');
+        // Override any inline styles that might be interfering
+        aboutWindow.style.display = 'flex';
+        aboutWindow.style.width = '100%';
+        aboutWindow.style.height = '100vh';
+        aboutWindow.style.top = '0';
+        aboutWindow.style.left = '0';
+        aboutWindow.style.right = '0';
+        aboutWindow.style.bottom = '0';
+        aboutWindow.style.margin = '0 auto';
+        aboutWindow.style.position = 'fixed';
+        aboutWindow.style.zIndex = '1000';
+        aboutWindow.style.transform = 'none';
+        aboutWindow.style.borderRadius = '0';
+        aboutWindow.classList.add('active-mobile');
+        
+        // Ensure the content is properly styled
+        const content = aboutWindow.querySelector('.window-content');
+        if (content) {
+            content.style.display = 'flex';
+            content.style.flexDirection = 'column';
+            content.style.justifyContent = 'center';
+            content.style.alignItems = 'center';
+            content.style.width = '100%';
+            content.style.height = 'calc(100vh - 40px)';
+            content.style.padding = '20px';
+            content.style.margin = '0 auto';
+        }
     }
     
     // Set up mobile navigation between windows
@@ -226,9 +244,9 @@ function setupMobileWindowNavigation() {
                 parentWindow.style.display = 'none';
                 parentWindow.classList.remove('active-mobile');
                 
-                // Show the welcome window when closing other windows
-                if (parentWindow.id !== 'welcome-window') {
-                    showMobileWindow('welcome-window');
+                // Show the about window when closing other windows
+                if (parentWindow.id !== 'about-window') {
+                    showMobileWindow('about-window');
                 }
             });
         }
@@ -324,7 +342,17 @@ function showMobileWindow(windowId) {
     // Show the selected window
     const targetWindow = document.getElementById(windowId);
     if (targetWindow) {
-        targetWindow.style.display = 'block';
+        // Apply proper mobile styling
+        targetWindow.style.display = 'flex';
+        targetWindow.style.width = '100%';
+        targetWindow.style.height = windowId === 'about-window' ? '100vh' : 'calc(100vh - 60px)';
+        targetWindow.style.top = '0';
+        targetWindow.style.left = '0';
+        targetWindow.style.right = '0';
+        targetWindow.style.margin = '0 auto';
+        targetWindow.style.position = 'fixed';
+        targetWindow.style.transform = 'none';
+        targetWindow.style.borderRadius = '0';
         targetWindow.classList.add('active-mobile');
         
         // Scroll to top
