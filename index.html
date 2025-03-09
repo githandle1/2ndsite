@@ -16,7 +16,7 @@
                 width: 90% !important;
                 max-width: 400px;
                 padding: 20px !important;
-                margin-bottom: 100px; /* Increased space for the yellow bar */
+                margin-bottom: 120px; /* Increased space for the taller yellow bar */
             }
             
             .welcome-text h1 {
@@ -29,7 +29,7 @@
                 position: fixed !important;
                 bottom: 0 !important;
                 z-index: 5 !important;
-                height: 80px !important; /* Match the height in mobile.css */
+                height: 100px !important; /* Match the height in mobile.css */
             }
             
             /* Ensure the stalogy info is properly positioned */
@@ -41,7 +41,7 @@
                 flex-wrap: wrap !important;
                 justify-content: space-around !important;
                 width: 100% !important;
-                padding: 5px 10px !important;
+                padding: 10px 5px 5px !important; /* Increased top padding */
             }
             
             /* Style the info points for better visibility */
@@ -50,6 +50,28 @@
                 margin: 5px 0 !important;
                 text-align: center !important;
                 color: #000 !important;
+                font-weight: bold !important;
+            }
+            
+            /* Ensure first row (date and bopping around) are aligned */
+            .info-point:nth-child(1),
+            .info-point:nth-child(2) {
+                margin-bottom: 15px !important; /* Add space between rows */
+            }
+            
+            /* Ensure second row (wearing and listening to) are aligned */
+            .info-point:nth-child(3),
+            .info-point:nth-child(4) {
+                margin-top: 0 !important;
+            }
+            
+            .point-number {
+                font-size: 12px !important;
+                margin-bottom: 3px !important;
+            }
+            
+            .point-title {
+                font-size: 12px !important;
             }
             
             .stalogy-title {
