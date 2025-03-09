@@ -514,8 +514,43 @@ function showMobileWindow(windowId) {
                 windowContent.style.flexDirection = 'column';
                 windowContent.style.alignItems = 'center';
                 windowContent.style.justifyContent = 'flex-start';
-                windowContent.style.padding = '20px';
+                windowContent.style.padding = '15px';
                 windowContent.style.overflow = 'auto';
+            }
+            
+            // Reduce spacing between title bar and profile picture
+            const aboutHeader = targetWindow.querySelector('.about-header');
+            if (aboutHeader) {
+                aboutHeader.style.margin = '0';
+                aboutHeader.style.padding = '0';
+                aboutHeader.style.height = '0';
+            }
+            
+            const aboutMain = targetWindow.querySelector('.about-main');
+            if (aboutMain) {
+                aboutMain.style.display = 'flex';
+                aboutMain.style.flexDirection = 'column';
+                aboutMain.style.alignItems = 'center';
+                aboutMain.style.gap = '10px';
+                aboutMain.style.width = '100%';
+            }
+            
+            const profileSection = targetWindow.querySelector('.profile-section');
+            if (profileSection) {
+                profileSection.style.marginBottom = '10px';
+                profileSection.style.padding = '0';
+            }
+            
+            const profileBox = targetWindow.querySelector('.profile-box');
+            if (profileBox) {
+                profileBox.style.marginTop = '0';
+            }
+            
+            // Adjust the about content
+            const aboutContent = targetWindow.querySelector('.about-content');
+            if (aboutContent) {
+                aboutContent.style.padding = '0';
+                aboutContent.style.justifyContent = 'flex-start';
             }
         } else {
             // For other windows, use full height
