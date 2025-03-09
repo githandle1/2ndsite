@@ -252,32 +252,42 @@ function setupMobileWindowBehavior() {
                         cursor: pointer !important;
                         color: black !important;
                     `);
-                    
-                    // Add event listeners for each button
+                });
+                
+                // Clear any existing event listeners
+                const newControls = controls.cloneNode(true);
+                controls.parentNode.replaceChild(newControls, controls);
+                
+                // Add event listeners for each button
+                const newButtons = newControls.querySelectorAll('button');
+                newButtons.forEach((button, index) => {
                     if (index === 0) {
                         // First button - Minimize
-                        button.onclick = function(e) {
+                        button.addEventListener('click', function(e) {
                             e.stopPropagation();
                             const parentWindow = this.closest('.window');
                             if (parentWindow) {
                                 minimizeWindow(parentWindow.id);
                             }
-                        };
+                        });
                     } else if (index === 1) {
-                        // Second button - Maximize/Restore (disabled on mobile)
-                        button.onclick = function(e) {
+                        // Second button - Maximize/Restore
+                        button.addEventListener('click', function(e) {
                             e.stopPropagation();
-                            // No action for maximize on mobile
-                        };
+                            const parentWindow = this.closest('.window');
+                            if (parentWindow) {
+                                maximizeWindow(parentWindow.id);
+                            }
+                        });
                     } else if (index === 2) {
                         // Third button - Close
-                        button.onclick = function(e) {
+                        button.addEventListener('click', function(e) {
                             e.stopPropagation();
                             const parentWindow = this.closest('.window');
                             if (parentWindow) {
                                 closeWindow(parentWindow.id);
                             }
-                        };
+                        });
                     }
                 });
             }
@@ -574,6 +584,7 @@ function updateActiveMobileIcon(windowId) {
  * Minimizes a window on mobile
  */
 function minimizeWindow(windowId) {
+    console.log('Minimizing window:', windowId);
     const window = document.getElementById(windowId);
     if (!window) return;
     
@@ -629,21 +640,71 @@ function minimizeWindow(windowId) {
 }
 
 /**
+ * Maximizes a window on mobile
+ */
+function maximizeWindow(windowId) {
+    console.log('Maximizing window:', windowId);
+    const window = document.getElementById(windowId);
+    if (!window) return;
+    
+    // Check if window is already maximized
+    const isMaximized = window.classList.contains('maximized');
+    
+    if (isMaximized) {
+        // Restore window
+        window.classList.remove('maximized');
+        
+        // Restore original size based on window type
+        if (windowId === 'about-window') {
+            window.style.height = '60vh';
+            window.style.width = '80%';
+            window.style.top = '20vh';
+            
+            const windowContent = window.querySelector('.window-content');
+            if (windowContent) {
+                windowContent.style.height = 'calc(60vh - 30px)';
+            }
+        } else {
+            window.style.height = 'calc(100vh - 60px)';
+            window.style.width = '100%';
+            window.style.top = '0';
+            
+            const windowContent = window.querySelector('.window-content');
+            if (windowContent) {
+                windowContent.style.height = 'calc(100% - 40px)';
+            }
+        }
+    } else {
+        // Maximize window
+        window.classList.add('maximized');
+        
+        // Save current position and size
+        window.dataset.originalHeight = window.style.height;
+        window.dataset.originalWidth = window.style.width;
+        window.dataset.originalTop = window.style.top;
+        
+        // Expand window to full screen
+        window.style.height = '100vh';
+        window.style.width = '100%';
+        window.style.top = '0';
+        
+        // Adjust content
+        const windowContent = window.querySelector('.window-content');
+        if (windowContent) {
+            windowContent.style.height = 'calc(100vh - 40px)';
+        }
+    }
+}
+
+/**
  * Closes a window on mobile
  */
 function closeWindow(windowId) {
+    console.log('Closing window:', windowId);
     const window = document.getElementById(windowId);
     if (!window) return;
     
     // Hide the window
     window.classList.remove('active-mobile');
     window.style.display = 'none';
-    
-    // If this is the about window, show it again after a brief delay
-    // This ensures the user always has at least one window open
-    if (windowId === 'about-window') {
-        setTimeout(() => {
-            showMobileWindow('about-window');
-        }, 500);
-    }
 } 

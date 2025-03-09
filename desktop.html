@@ -87,46 +87,53 @@
                         width: 100% !important;
                         overflow-y: auto !important;
                     }
-                    #about-window .about-content {
-                        display: flex !important;
-                        flex-direction: column !important;
-                        align-items: center !important;
-                        justify-content: flex-start !important;
-                        text-align: center !important;
-                        width: 100% !important;
-                        max-width: 100% !important;
-                        padding: 0 !important;
-                        box-sizing: border-box !important;
-                    }
-                    #about-window .about-header {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        height: 0 !important;
-                    }
-                    #about-window .about-main {
-                        display: flex !important;
-                        flex-direction: column !important;
-                        align-items: center !important;
-                        gap: 10px !important;
-                        width: 100% !important;
-                    }
-                    #about-window .profile-section {
-                        display: flex !important;
-                        justify-content: center !important;
-                        align-items: center !important;
-                        margin-bottom: 10px !important;
-                        padding: 0 !important;
-                    }
-                    #about-window .profile-box {
-                        display: flex !important;
-                        flex-direction: column !important;
-                        align-items: center !important;
-                        justify-content: center !important;
-                        width: 100% !important;
-                        margin-top: 0 !important;
-                    }
                 `;
                 document.head.appendChild(style);
+                
+                // Add event listeners to window control buttons after a short delay
+                setTimeout(() => {
+                    const aboutWindow = document.getElementById('about-window');
+                    if (aboutWindow) {
+                        const controls = aboutWindow.querySelector('.title-bar-controls');
+                        if (controls) {
+                            const buttons = controls.querySelectorAll('button');
+                            
+                            // Clear any existing event listeners
+                            const newControls = controls.cloneNode(true);
+                            controls.parentNode.replaceChild(newControls, controls);
+                            
+                            // Add event listeners for each button
+                            const newButtons = newControls.querySelectorAll('button');
+                            newButtons.forEach((button, index) => {
+                                if (index === 0) {
+                                    // First button - Minimize
+                                    button.addEventListener('click', function(e) {
+                                        e.stopPropagation();
+                                        if (typeof minimizeWindow === 'function') {
+                                            minimizeWindow('about-window');
+                                        }
+                                    });
+                                } else if (index === 1) {
+                                    // Second button - Maximize/Restore
+                                    button.addEventListener('click', function(e) {
+                                        e.stopPropagation();
+                                        if (typeof maximizeWindow === 'function') {
+                                            maximizeWindow('about-window');
+                                        }
+                                    });
+                                } else if (index === 2) {
+                                    // Third button - Close
+                                    button.addEventListener('click', function(e) {
+                                        e.stopPropagation();
+                                        if (typeof closeWindow === 'function') {
+                                            closeWindow('about-window');
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
+                }, 500);
             }
         })();
     </script>
