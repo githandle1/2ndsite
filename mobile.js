@@ -233,19 +233,19 @@ function setupMobileWindowBehavior() {
             if (controls) {
                 controls.setAttribute('style', `
                     display: flex !important;
-                    gap: 2px !important;
+                    gap: 1px !important;
                 `);
                 
                 // Style all buttons to match Windows 98 style
                 const buttons = controls.querySelectorAll('button');
                 buttons.forEach((button, index) => {
                     button.setAttribute('style', `
-                        width: 16px !important;
-                        height: 14px !important;
+                        width: 8px !important;
+                        height: 7px !important;
                         background-color: #c0c0c0 !important;
                         border: 1px solid !important;
                         border-color: #ffffff #808080 #808080 #ffffff !important;
-                        font-size: 9px !important;
+                        font-size: 5px !important;
                         display: flex !important;
                         justify-content: center !important;
                         align-items: center !important;

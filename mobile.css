@@ -247,16 +247,16 @@
     
     .title-bar-controls {
         display: flex;
-        gap: 2px;
+        gap: 1px;
     }
     
     .title-bar-controls button {
-        width: 16px;
-        height: 14px;
+        width: 8px;
+        height: 7px;
         background-color: #c0c0c0;
         border: 1px solid;
         border-color: #ffffff #808080 #808080 #ffffff;
-        font-size: 9px;
+        font-size: 5px;
         display: flex;
         justify-content: center;
         align-items: center;
