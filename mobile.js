@@ -486,7 +486,7 @@ function showMobileWindow(windowId) {
             targetWindow.style.borderRadius = '8px';
             targetWindow.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
             targetWindow.style.backgroundColor = '#ffffff';
-            targetWindow.style.border = '2px solid #F7C9C3';
+            targetWindow.style.border = '2.3px solid #F7C9C3';
             
             // Ensure the title bar has the pale pink color
             const titleBar = targetWindow.querySelector('.title-bar');
