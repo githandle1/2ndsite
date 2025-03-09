@@ -16,27 +16,11 @@
                 width: 90% !important;
                 max-width: 400px;
                 padding: 20px !important;
-                margin-bottom: 60px; /* Add space for the yellow bar */
+                margin-bottom: 80px; /* Increased space for the yellow bar */
             }
             
             .welcome-text h1 {
                 font-size: 24px !important;
-            }
-            
-            /* These styles are now in mobile.css with improved positioning */
-            /* .stalogy-info {
-                flex-wrap: wrap;
-                padding: 5px 10px;
-            }
-            
-            .info-point {
-                width: 50%;
-                margin: 5px 0;
-            } */
-            
-            .stalogy-title {
-                font-size: 12px !important;
-                padding: 6px 12px !important;
             }
             
             /* Ensure the yellow bar is visible */
@@ -45,6 +29,32 @@
                 position: fixed !important;
                 bottom: 0 !important;
                 z-index: 5 !important;
+                height: 60px !important; /* Ensure enough height for all text */
+            }
+            
+            /* Ensure the stalogy info is properly positioned */
+            .stalogy-info {
+                position: fixed !important;
+                bottom: 0 !important;
+                z-index: 6 !important;
+                display: flex !important;
+                flex-wrap: wrap !important;
+                justify-content: space-around !important;
+                width: 100% !important;
+                padding: 5px 10px !important;
+            }
+            
+            /* Style the info points for better visibility */
+            .info-point {
+                width: 50% !important;
+                margin: 5px 0 !important;
+                text-align: center !important;
+                color: #000 !important;
+            }
+            
+            .stalogy-title {
+                font-size: 12px !important;
+                padding: 6px 12px !important;
             }
             
             /* Ensure the page has enough height */
