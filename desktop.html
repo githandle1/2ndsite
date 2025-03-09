@@ -49,6 +49,74 @@
             gap: 20px;
         }
         
+        /* Mobile menu for small screens */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #f5f0e0;
+            border-top: 1px solid #d9d2c0;
+            padding: 10px;
+            z-index: 1000;
+        }
+        
+        .mobile-icons {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        
+        .mobile-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+        }
+        
+        .mobile-icon .filled-dot {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        /* Media queries for responsive design */
+        @media (max-width: 768px) {
+            .desktop-icons {
+                display: none;
+            }
+            
+            .mobile-menu {
+                display: block;
+            }
+            
+            .window {
+                width: 100% !important;
+                height: calc(100% - 60px) !important;
+                top: 0 !important;
+                left: 0 !important;
+                border-radius: 0 !important;
+            }
+            
+            .resize-handle {
+                display: none !important;
+            }
+            
+            .window-content {
+                height: calc(100% - 22px) !important;
+                overflow-y: auto !important;
+            }
+            
+            .profile-image {
+                max-width: 100% !important;
+            }
+            
+            .playlist-container {
+                max-height: 200px !important;
+                overflow-y: auto !important;
+            }
+        }
+        
         .filled-dot {
             font-size: 24px;
             text-align: center;
@@ -311,6 +379,8 @@
             background-color: #f5f2e8; /* Pale beige background */
             padding: 5px;
             color: #333; /* Darker text for contrast */
+            font-size: 12px; /* Smaller than the title-bar-text (14px) */
+            font-family: monospace;
         }
         
         .winamp-controls {
@@ -559,6 +629,32 @@
         </div>
     </div>
     
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <div class="mobile-icons">
+            <div class="mobile-icon" onclick="toggleWindow('about-window')">
+                <div class="filled-dot">🩰</div>
+                <div>welcome</div>
+            </div>
+            <div class="mobile-icon" onclick="window.open('https://mayascorner.notion.site/hi-i-m-maya-1a22bb286ed980bba588d6da0f922a3b?pvs=74', '_blank')">
+                <div class="filled-dot">🩰</div>
+                <div>working on</div>
+            </div>
+            <div class="mobile-icon" onclick="toggleWindow('winamp-window')">
+                <div class="filled-dot">🩰</div>
+                <div>earbuds</div>
+            </div>
+            <div class="mobile-icon" onclick="window.open('https://www.cosmos.so/babka/elements', '_blank')">
+                <div class="filled-dot">🩰</div>
+                <div>saving</div>
+            </div>
+            <div class="mobile-icon" onclick="window.location.href='mailto:mayabakir38@gmail.com'">
+                <div class="filled-dot">🩰</div>
+                <div>say hi</div>
+            </div>
+        </div>
+    </div>
+    
     <!-- About Window -->
     <div id="about-window" class="window about-window">
         <div class="title-bar">
@@ -579,7 +675,7 @@
                         </div>
                     </div>
                     <div class="content-section">
-                        <p class="intro-text">Hi, I'm Maya.<br><br>I'm working on bringing Notion to our next generation ✨<br><br>Some things I love:<br><br>→ Music<br>→ Fashion<br>→ Stalogy notebooks<br><br><a href="mailto:mayabakir38@gmail.com" style="color: inherit; text-decoration: none;">Say hi :~)</a></p>
+                        <p class="intro-text">Hi, I'm Maya.<br><br>I'm working on bringing Notion to our next generation ✨<br><br>Some things I love:<br><br>→ <a href="https://open.spotify.com/playlist/1lUaZ2N7y7mlpPp80sapK4?si=a7c119b33dc340bf" target="_blank" style="color: inherit; text-decoration: none;">Music</a><br>→ <a href="https://x.com/SnoopyPhotos/status/1898505018279448643" target="_blank" style="color: inherit; text-decoration: none;">Fashion</a><br>→ Stalogy notebooks<br><br><a href="mailto:mayabakir38@gmail.com" style="color: inherit; text-decoration: none;">Say hi :~)</a></p>
                     </div>
                 </div>
             </div>
@@ -1043,6 +1139,39 @@
                         // The active class will remain until another icon is clicked
                     }
                 });
+            });
+        });
+
+        // Add mobile-specific functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're on a mobile device
+            const isMobile = window.innerWidth <= 768;
+            
+            // If mobile, show the about window by default
+            if (isMobile) {
+                toggleWindow('about-window');
+                
+                // Hide all other windows
+                document.querySelectorAll('.window').forEach(window => {
+                    if (window.id !== 'about-window') {
+                        window.style.display = 'none';
+                    }
+                });
+                
+                // Disable dragging on mobile
+                document.querySelectorAll('.title-bar').forEach(titleBar => {
+                    titleBar.style.cursor = 'default';
+                });
+            }
+            
+            // Handle orientation changes
+            window.addEventListener('resize', function() {
+                const currentIsMobile = window.innerWidth <= 768;
+                
+                // If switching between mobile and desktop
+                if (currentIsMobile !== isMobile) {
+                    location.reload();
+                }
             });
         });
     </script>
