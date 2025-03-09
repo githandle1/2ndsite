@@ -48,6 +48,7 @@
             z-index: 9999;
             box-shadow: -5px 0 15px rgba(0,0,0,0.2);
             pointer-events: none;
+            transition: width 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
         
         /* Grid pattern for the page turn */
@@ -301,13 +302,30 @@
             
             // Manually animate the page turn with JavaScript for better reliability
             let width = 0;
-            // Adjust duration for a more graceful animation that's not too slow or rushed
-            const duration = window.innerWidth <= 768 ? 1200 : 1500; // Balanced timing for both mobile and desktop
+            // Speed up the animation by dividing duration by 1.25
+            const isMobile = window.innerWidth <= 768;
+            // Base durations: 1500ms for mobile, 1800ms for desktop
+            // Speed up by 1.25x: 1200ms for mobile, 1440ms for desktop
+            const duration = isMobile ? 1200 : 1440; 
             const startTime = performance.now();
             
             // Play page turn sound
             const pageTurnSound = new Audio('page-turn.mp3');
             pageTurnSound.play().catch(e => console.log('Could not play page turn sound:', e));
+            
+            // Create a full-screen overlay to prevent flashing
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.backgroundColor = '#f0ece4';
+            overlay.style.zIndex = '9998';
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.2s ease-in';
+            overlay.style.pointerEvents = 'none';
+            document.body.appendChild(overlay);
             
             function animate(currentTime) {
                 const elapsedTime = currentTime - startTime;
@@ -317,12 +335,15 @@
                 // This creates a gentle acceleration at the start and deceleration at the end
                 const easedProgress = 0.5 - 0.5 * Math.cos(Math.PI * progress);
                 
-                width = easedProgress * 100; // 0 to 100%
+                // For mobile, ensure we go beyond 100% to account for any potential viewport issues
+                // Increase the max width to 120% for mobile to ensure full coverage with the faster animation
+                const maxWidth = isMobile ? 120 : 105; 
+                width = easedProgress * maxWidth;
                 pageTurnElement.style.width = width + '%';
                 
                 // Add subtle shadow intensity based on progress for more depth
-                const shadowIntensity = Math.min(15, 5 + (10 * easedProgress));
-                pageTurnElement.style.boxShadow = `-${shadowIntensity}px 0 20px rgba(0,0,0,${0.1 + (easedProgress * 0.1)})`;
+                const shadowIntensity = Math.min(20, 5 + (15 * easedProgress));
+                pageTurnElement.style.boxShadow = `-${shadowIntensity}px 0 25px rgba(0,0,0,${0.1 + (easedProgress * 0.15)})`;
                 
                 // Use transform for better performance
                 pageTurnElement.style.transform = `translateZ(0)`; // Force GPU acceleration
@@ -331,12 +352,16 @@
                     // Use high priority for the animation frame
                     window.requestAnimationFrame(animate);
                 } else {
-                    // Animation complete, navigate to desktop.html
-                    console.log('Page turn complete, navigating to desktop.html');
-                    // Force navigation after animation completes
+                    // When animation is complete, fade in the overlay to prevent flash
+                    overlay.style.opacity = '1';
+                    
+                    // Then navigate to desktop.html after a very short delay
+                    // This ensures the overlay is visible before navigation
                     setTimeout(() => {
+                        // Store a flag to indicate we're coming from a page turn
+                        sessionStorage.setItem('fromPageTurn', 'true');
                         window.location.href = 'desktop.html';
-                    }, 0);
+                    }, 100);
                 }
             }
             

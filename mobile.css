@@ -27,6 +27,22 @@
         z-index: 1;
     }
     
+    /* Enhanced page turn effect for mobile */
+    .page-turn {
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        height: 100vh !important; /* Use viewport height to ensure full coverage */
+        width: 0 !important;
+        background-color: #f0ece4 !important;
+        z-index: 9999 !important;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.2) !important;
+        pointer-events: none !important;
+        transform: translateZ(0) !important; /* Force GPU acceleration */
+        will-change: width, box-shadow !important; /* Optimize for animation */
+        transition: width 0.96s cubic-bezier(0.25, 0.1, 0.25, 1) !important; /* 1.2s/1.25 = 0.96s */
+    }
+    
     /* Force mobile view for all browsers including Arc */
     html.mobile-view .window,
     .window {
