@@ -15,7 +15,7 @@
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 60px; /* Increased height to accommodate all text */
+        height: 80px; /* Increased height to reach the top of date and bopping around */
         background-color: #f9e04c; /* Bright yellow color */
         z-index: 5; /* Increase z-index to ensure visibility */
     }
@@ -39,11 +39,12 @@
     .info-point {
         margin: 5px 0;
         width: 50%;
-        color: #000; /* Ensure text is readable on yellow background */
+        color: #000 !important; /* Ensure text is readable on yellow background */
         text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
+        font-weight: bold; /* Make text more visible */
     }
     
     /* Style the point number and title for better visibility */
