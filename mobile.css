@@ -56,21 +56,24 @@
         justify-content: center !important;
         align-items: center !important;
         text-align: center !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
-        width: 100% !important;
+        height: 80vh !important; /* Reduced from 100vh to 80vh */
+        max-height: 80vh !important; /* Reduced from 100vh to 80vh */
+        width: 85% !important; /* Reduced from 100% to 85% */
         padding: 0 !important;
         box-sizing: border-box !important;
-        top: 0 !important;
+        top: 10vh !important; /* Added 10vh from top to center it */
         left: 0 !important;
         right: 0 !important;
-        bottom: 0 !important;
+        bottom: auto !important; /* Changed from 0 to auto */
         margin: 0 auto !important;
         position: fixed !important;
         overflow: auto !important;
-        z-index: 1000 !important; /* Added to ensure it appears on top */
+        z-index: 1000 !important;
         transform: none !important;
-        border-radius: 0 !important;
+        border-radius: 8px !important; /* Added border radius for better appearance */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Added shadow for depth */
+        background-color: #f5f0e0 !important; /* Match the desktop background */
+        border: 2px solid #d9d2c0 !important; /* Add a subtle border */
     }
     
     /* Ensure active windows are displayed */
