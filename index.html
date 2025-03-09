@@ -274,33 +274,45 @@
             // Manually animate the page turn with JavaScript for better reliability
             let width = 0;
             // Increase duration to make the animation slower (was 600/800ms)
-            const duration = window.innerWidth <= 768 ? 1000 : 1200; // Slower animation for better effect
+            const duration = window.innerWidth <= 768 ? 800 : 1000; // Slightly faster for mobile to prevent stagnation
             const startTime = performance.now();
+            
+            // Play page turn sound
+            const pageTurnSound = new Audio('page-turn.mp3');
+            pageTurnSound.play().catch(e => console.log('Could not play page turn sound:', e));
             
             function animate(currentTime) {
                 const elapsedTime = currentTime - startTime;
                 const progress = Math.min(elapsedTime / duration, 1);
                 
-                // Ease-in-out timing function with slightly more pronounced easing
-                const easedProgress = progress < 0.5 
-                    ? 2 * progress * progress 
-                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                // Use a simpler easing function for better performance on mobile
+                const easedProgress = window.innerWidth <= 768 
+                    ? 0.5 - Math.cos(progress * Math.PI) / 2 // Smoother sine easing for mobile
+                    : progress < 0.5 
+                        ? 2 * progress * progress 
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
                 
                 width = easedProgress * 100; // 0 to 100%
                 pageTurnElement.style.width = width + '%';
-                console.log('Page turn animation progress:', Math.round(width) + '%');
+                
+                // Use transform for better performance
+                pageTurnElement.style.transform = `translateZ(0)`; // Force GPU acceleration
                 
                 if (progress < 1) {
-                    requestAnimationFrame(animate);
+                    // Use high priority for the animation frame
+                    window.requestAnimationFrame(animate);
                 } else {
                     // Animation complete, navigate to desktop.html
                     console.log('Page turn complete, navigating to desktop.html');
-                    window.location.href = 'desktop.html';
+                    // Force navigation after animation completes
+                    setTimeout(() => {
+                        window.location.href = 'desktop.html';
+                    }, 0);
                 }
             }
             
-            // Start the animation
-            requestAnimationFrame(animate);
+            // Start the animation with high priority
+            window.requestAnimationFrame(animate);
         }
         
         // Function to play audio file
