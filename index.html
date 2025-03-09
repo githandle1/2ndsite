@@ -203,8 +203,8 @@
             
             /* Mobile-specific page turn adjustments */
             .page-turn {
-                transition: width 0.6s ease-in-out;
-                -webkit-transition: width 0.6s ease-in-out;
+                transition: width 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+                -webkit-transition: width 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
             }
         }
     </style>
@@ -301,8 +301,8 @@
             
             // Manually animate the page turn with JavaScript for better reliability
             let width = 0;
-            // Increase duration to make the animation slower (was 600/800ms)
-            const duration = window.innerWidth <= 768 ? 800 : 1000; // Slightly faster for mobile to prevent stagnation
+            // Adjust duration for a more graceful animation that's not too slow or rushed
+            const duration = window.innerWidth <= 768 ? 1200 : 1500; // Balanced timing for both mobile and desktop
             const startTime = performance.now();
             
             // Play page turn sound
@@ -313,15 +313,16 @@
                 const elapsedTime = currentTime - startTime;
                 const progress = Math.min(elapsedTime / duration, 1);
                 
-                // Use a simpler easing function for better performance on mobile
-                const easedProgress = window.innerWidth <= 768 
-                    ? 0.5 - Math.cos(progress * Math.PI) / 2 // Smoother sine easing for mobile
-                    : progress < 0.5 
-                        ? 2 * progress * progress 
-                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                // Use a more graceful easing function for a smoother sweep
+                // This creates a gentle acceleration at the start and deceleration at the end
+                const easedProgress = 0.5 - 0.5 * Math.cos(Math.PI * progress);
                 
                 width = easedProgress * 100; // 0 to 100%
                 pageTurnElement.style.width = width + '%';
+                
+                // Add subtle shadow intensity based on progress for more depth
+                const shadowIntensity = Math.min(15, 5 + (10 * easedProgress));
+                pageTurnElement.style.boxShadow = `-${shadowIntensity}px 0 20px rgba(0,0,0,${0.1 + (easedProgress * 0.1)})`;
                 
                 // Use transform for better performance
                 pageTurnElement.style.transform = `translateZ(0)`; // Force GPU acceleration
