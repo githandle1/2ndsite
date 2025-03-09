@@ -22,6 +22,45 @@
             background-attachment: fixed !important;
         }
         
+        /* Page turn transition effect */
+        .page-turn {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 100%;
+            background-color: #f0ece4;
+            z-index: 9999;
+            transform-origin: right center;
+            transition: width 0.8s ease-in-out;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            pointer-events: none;
+            overflow: hidden;
+            -webkit-transform-origin: right center;
+            -webkit-transition: width 0.8s ease-in-out;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            will-change: width;
+        }
+        
+        .page-turn.active {
+            width: 100%;
+        }
+        
+        .page-turn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(#ccc 1px, transparent 1px),
+                linear-gradient(90deg, #ccc 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.5;
+        }
+        
         /* Mobile-specific styles for index page */
         @media (max-width: 768px) {
             .welcome-window {
@@ -152,6 +191,12 @@
             body, .desktop {
                 min-height: 100vh;
             }
+            
+            /* Mobile-specific page turn adjustments */
+            .page-turn {
+                transition: width 0.6s ease-in-out;
+                -webkit-transition: width 0.6s ease-in-out;
+            }
         }
     </style>
 </head>
@@ -168,7 +213,7 @@
             <div class="welcome-text">
                 <h1>maya's sketchbook</h1>
                 <div class="enter-button">
-                    <a href="desktop.html">Enter here</a>
+                    <a href="javascript:void(0);" onclick="pageTurn()">Enter here</a>
                 </div>
             </div>
         </div>
@@ -197,9 +242,32 @@
     <!-- Hidden audio element for playing music -->
     <audio id="audio-player" style="display: none;"></audio>
     
+    <!-- Page turn effect element -->
+    <div class="page-turn" id="pageTurn"></div>
+    
     <script src="script.js"></script>
     <script src="mobile.js"></script>
     <script>
+        // Function to handle page turn effect
+        function pageTurn() {
+            // Get the page turn element
+            const pageTurnElement = document.getElementById('pageTurn');
+            
+            // Save audio state if playing
+            const audioPlayer = document.getElementById('audio-player');
+            if (audioPlayer && !audioPlayer.paused) {
+                sessionStorage.setItem('audioCurrentTime', audioPlayer.currentTime);
+            }
+            
+            // Activate the page turn animation
+            pageTurnElement.classList.add('active');
+            
+            // Wait for animation to complete before navigating
+            setTimeout(function() {
+                window.location.href = 'desktop.html';
+            }, window.innerWidth <= 768 ? 600 : 800); // Shorter duration on mobile
+        }
+        
         // Function to play audio file
         function playAudio(audioFile) {
             const audioPlayer = document.getElementById('audio-player');
