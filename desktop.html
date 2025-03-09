@@ -56,6 +56,17 @@
                         width: 100% !important;
                         box-sizing: border-box !important;
                     }
+                    #about-window .title-bar-controls button {
+                        width: 21px !important; /* Reduced from 30px by 30% */
+                        height: 21px !important; /* Reduced from 30px by 30% */
+                        font-size: 12px !important; /* Reduced from 16px by ~30% */
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        background-color: #f0f0f0 !important;
+                        border: 1px solid #ccc !important;
+                        border-radius: 3px !important;
+                    }
                     #about-window .window-content {
                         display: flex !important;
                         flex-direction: column !important;
@@ -1000,7 +1011,7 @@
             let isDragging = false;
             
             // Check if we're on a mobile device
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile/i.test(navigator.userAgent);
             
             // Only make windows draggable on desktop
             if (!isMobile) {
