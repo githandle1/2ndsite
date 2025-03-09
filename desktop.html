@@ -1033,11 +1033,11 @@
                     <button>⏭</button>
                 </div>
                 <div class="winamp-playlist">
-                    <div class="playlist-item active">1. Careless Whisper - George Michael.mp3</div>
-                    <div class="playlist-item">2. Final Credits - Midland.mp3</div>
-                    <div class="playlist-item">3. Get It Together - Drake, Black Coffee, Jorja Smith.mp3</div>
-                    <div class="playlist-item">4. Opal - Four Tet Remix - BICEP, Four Tet.mp3</div>
-                    <div class="playlist-item">5. Thousand Finger Man - Candido.mp3</div>
+                    <div class="playlist-item active">1. Careless Whisper - George Michael</div>
+                    <div class="playlist-item">2. Final Credits - Midland</div>
+                    <div class="playlist-item">3. Get It Together - Drake, Black Coffee, Jorja Smith</div>
+                    <div class="playlist-item">4. Opal - Four Tet Remix - BICEP, Four Tet</div>
+                    <div class="playlist-item">5. Thousand Finger Man - Candido</div>
                 </div>
                 <div class="winamp-equalizer">
                     <canvas id="visualizer"></canvas>
@@ -1421,7 +1421,12 @@
                 
                 // Update the playlist UI to show the current track
                 playlistItems.forEach((item, index) => {
-                    if (item.textContent.includes(trackName.split(' - ').pop().split('.')[0])) {
+                    // Extract the song name without the SpotiDown.App prefix and .mp3 extension
+                    const songName = trackName.replace('SpotiDown.App - ', '').split('.mp3')[0];
+                    // Extract the playlist item text without the number prefix
+                    const itemText = item.textContent.replace(/^\d+\.\s+/, '');
+                    
+                    if (itemText === songName) {
                         currentTrack = index;
                         item.classList.add('active');
                     } else {
@@ -1542,6 +1547,7 @@
                 animationId = requestAnimationFrame(drawVisualization);
             }
             
+            // Music files
             const musicFiles = [
                 'music/SpotiDown.App - Careless Whisper - George Michael.mp3',
                 'music/SpotiDown.App - Final Credits - Midland.mp3',
