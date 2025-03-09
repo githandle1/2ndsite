@@ -443,112 +443,65 @@ function setupMobileMusicPlayer() {
  * Shows a specific window on mobile and hides others
  */
 function showMobileWindow(windowId) {
-    // Hide all windows
-    const windows = document.querySelectorAll('.window');
-    windows.forEach(window => {
-        window.setAttribute('style', `
-            display: none !important;
-            width: 100% !important;
-            height: calc(100vh - 60px) !important;
-            max-height: calc(100vh - 60px) !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            margin: 0 auto !important;
-            border-radius: 0 !important;
-            position: fixed !important;
-            overflow-y: auto !important;
-            transform: none !important;
-            box-sizing: border-box !important;
-        `);
+    // Hide all windows first
+    document.querySelectorAll('.window').forEach(window => {
         window.classList.remove('active-mobile');
+        window.style.display = 'none';
     });
     
-    // Show the selected window
+    // Show the target window
     const targetWindow = document.getElementById(windowId);
     if (targetWindow) {
-        // Apply proper mobile styling with !important to override browser-specific styles
+        targetWindow.classList.add('active-mobile');
+        targetWindow.style.display = 'flex';
+        targetWindow.style.flexDirection = 'column';
+        
+        // Set height to 100vh for full screen windows
+        targetWindow.style.height = '100vh';
+        
+        // Special handling for about window
         if (windowId === 'about-window') {
-            // Special styling for about window
-            targetWindow.setAttribute('style', `
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                align-items: center !important;
-                text-align: center !important;
-                height: 80vh !important;
-                max-height: 80vh !important;
-                width: 85% !important;
-                padding: 0 !important;
-                box-sizing: border-box !important;
-                top: 10vh !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: auto !important;
-                margin: 0 auto !important;
-                position: fixed !important;
-                overflow: auto !important;
-                z-index: 1000 !important;
-                transform: none !important;
-                border-radius: 8px !important;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-                background-color: #f5f0e0 !important;
-                border: 2px solid #d9d2c0 !important;
-            `);
+            // Apply specific styling for the welcome window
+            targetWindow.style.height = '70vh';
+            targetWindow.style.maxHeight = '70vh';
+            targetWindow.style.width = '90%';
+            targetWindow.style.top = '15vh';
+            targetWindow.style.left = '0';
+            targetWindow.style.right = '0';
+            targetWindow.style.margin = '0 auto';
+            targetWindow.style.borderRadius = '8px';
+            targetWindow.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            targetWindow.style.backgroundColor = '#ffffff';
+            targetWindow.style.border = '2px solid #F7C9C3';
             
-            // Style the window content
+            // Ensure the title bar has the pale pink color
+            const titleBar = targetWindow.querySelector('.title-bar');
+            if (titleBar) {
+                titleBar.style.backgroundColor = '#F7C9C3';
+                titleBar.style.padding = '3px 8px';
+                titleBar.style.color = '#333';
+            }
+            
+            // Adjust the window content
             const windowContent = targetWindow.querySelector('.window-content');
             if (windowContent) {
-                windowContent.setAttribute('style', `
-                    display: flex !important;
-                    flex-direction: column !important;
-                    justify-content: center !important;
-                    align-items: center !important;
-                    height: calc(80vh - 40px) !important;
-                    padding: 20px !important;
-                    box-sizing: border-box !important;
-                    width: 100% !important;
-                    overflow-y: auto !important;
-                `);
-            }
-            
-            // Style the about content
-            const aboutContent = targetWindow.querySelector('.about-content');
-            if (aboutContent) {
-                aboutContent.setAttribute('style', `
-                    display: flex !important;
-                    flex-direction: column !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    text-align: center !important;
-                    width: 100% !important;
-                    max-width: 100% !important;
-                    padding: 10px !important;
-                    box-sizing: border-box !important;
-                `);
+                windowContent.style.height = 'calc(70vh - 30px)';
+                windowContent.style.display = 'flex';
+                windowContent.style.flexDirection = 'column';
+                windowContent.style.alignItems = 'center';
+                windowContent.style.justifyContent = 'flex-start';
+                windowContent.style.padding = '20px';
+                windowContent.style.overflow = 'auto';
             }
         } else {
-            // Standard styling for other windows
-            targetWindow.setAttribute('style', `
-                display: flex !important;
-                flex-direction: column !important;
-                width: 100% !important;
-                height: calc(100vh - 60px) !important;
-                max-height: calc(100vh - 60px) !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                margin: 0 auto !important;
-                border-radius: 0 !important;
-                position: fixed !important;
-                overflow-y: auto !important;
-                transform: none !important;
-                z-index: 1000 !important;
-                box-sizing: border-box !important;
-            `);
+            // For other windows, use full height
+            targetWindow.style.height = 'calc(100vh - 60px)';
+            targetWindow.style.maxHeight = 'calc(100vh - 60px)';
+            targetWindow.style.width = '100%';
+            targetWindow.style.top = '0';
+            targetWindow.style.left = '0';
+            targetWindow.style.borderRadius = '0';
         }
-        
-        targetWindow.classList.add('active-mobile');
         
         // Update active mobile icon
         updateActiveMobileIcon(windowId);

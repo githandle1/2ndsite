@@ -53,27 +53,41 @@
     #about-window {
         display: flex !important;
         flex-direction: column !important;
-        justify-content: center !important;
+        justify-content: flex-start !important; /* Changed from center to flex-start */
         align-items: center !important;
         text-align: center !important;
-        height: 80vh !important; /* Reduced from 100vh to 80vh */
-        max-height: 80vh !important; /* Reduced from 100vh to 80vh */
-        width: 85% !important; /* Reduced from 100% to 85% */
+        height: 70vh !important; /* Reduced from 80vh to 70vh for better proportion */
+        max-height: 70vh !important; /* Reduced from 80vh to 70vh for better proportion */
+        width: 90% !important; /* Increased from 85% to 90% for better visibility */
         padding: 0 !important;
         box-sizing: border-box !important;
-        top: 10vh !important; /* Added 10vh from top to center it */
+        top: 15vh !important; /* Increased from 10vh to 15vh to center it better */
         left: 0 !important;
         right: 0 !important;
-        bottom: auto !important; /* Changed from 0 to auto */
+        bottom: auto !important;
         margin: 0 auto !important;
         position: fixed !important;
         overflow: auto !important;
         z-index: 1000 !important;
         transform: none !important;
-        border-radius: 8px !important; /* Added border radius for better appearance */
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Added shadow for depth */
-        background-color: #f5f0e0 !important; /* Match the desktop background */
-        border: 2px solid #d9d2c0 !important; /* Add a subtle border */
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        background-color: #ffffff !important; /* Changed to white background */
+        border: 2px solid #F7C9C3 !important; /* Changed to pale pink border */
+    }
+    
+    /* Add pale pink title bar for welcome window */
+    #about-window .title-bar {
+        background-color: #F7C9C3 !important; /* Pale pink color for title bar */
+        padding: 3px 8px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        color: #333 !important;
+        font-weight: bold !important;
+        font-family: monospace !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
     
     /* Ensure active windows are displayed */
