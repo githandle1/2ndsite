@@ -3,10 +3,13 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're on a mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    // Enhanced mobile detection to include Arc browser and other modern browsers
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Arc/i.test(navigator.userAgent) || window.innerWidth <= 768;
     
-    if (isMobile) {
+    // Also check viewport width as a fallback for browsers that don't report accurate user agent
+    const isMobileViewport = window.innerWidth <= 768;
+    
+    if (isMobile || isMobileViewport) {
         // Add mobile-specific event listeners and behaviors
         setupMobileNavigation();
         setupTouchInteractions();
@@ -14,11 +17,24 @@ document.addEventListener('DOMContentLoaded', function() {
         setupMobileWindowBehavior();
         setupMobileMusicPlayer();
         
+        // Force mobile mode for all windows
+        document.documentElement.classList.add('mobile-view');
+        
         // Show about window by default
         setTimeout(() => {
             showMobileWindow('about-window');
         }, 100);
     }
+    
+    // Add resize listener to handle orientation changes and browser resizing
+    window.addEventListener('resize', function() {
+        if (window.innerWidth <= 768) {
+            document.documentElement.classList.add('mobile-view');
+            setupMobileWindowBehavior();
+        } else {
+            document.documentElement.classList.remove('mobile-view');
+        }
+    });
 });
 
 /**
@@ -99,18 +115,23 @@ function setupMobileWindowBehavior() {
     
     // Hide all windows initially
     windows.forEach(window => {
-        // Make windows full screen on mobile
-        window.style.width = '100%';
-        window.style.height = 'calc(100vh - 60px)';
-        window.style.top = '0';
-        window.style.left = '0';
-        window.style.borderRadius = '0';
-        window.style.position = 'fixed';
-        window.style.overflowY = 'auto';
-        window.style.display = 'none'; // Hide by default
-        
-        // Add -webkit-overflow-scrolling: touch for smooth scrolling
-        window.style.webkitOverflowScrolling = 'touch';
+        // Make windows full screen on mobile with !important to override any browser-specific styles
+        window.setAttribute('style', `
+            width: 100% !important;
+            height: calc(100vh - 60px) !important;
+            max-height: calc(100vh - 60px) !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            margin: 0 auto !important;
+            border-radius: 0 !important;
+            position: fixed !important;
+            overflow-y: auto !important;
+            transform: none !important;
+            display: none !important;
+            box-sizing: border-box !important;
+            -webkit-overflow-scrolling: touch !important;
+        `);
         
         // Hide resize handles
         const resizeHandles = window.querySelectorAll('.resize-handle');
@@ -121,28 +142,33 @@ function setupMobileWindowBehavior() {
         // Make title bar sticky
         const titleBar = window.querySelector('.title-bar');
         if (titleBar) {
-            titleBar.style.position = 'sticky';
-            titleBar.style.top = '0';
-            titleBar.style.zIndex = '10';
-            
-            // Adjust title bar height and alignment
-            titleBar.style.height = '40px';
-            titleBar.style.display = 'flex';
-            titleBar.style.alignItems = 'center';
-            titleBar.style.padding = '0 10px';
+            titleBar.setAttribute('style', `
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 10 !important;
+                height: 40px !important;
+                display: flex !important;
+                align-items: center !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            `);
             
             // Style title text
             const titleText = titleBar.querySelector('.title-bar-text');
             if (titleText) {
-                titleText.style.fontSize = '14px';
-                titleText.style.flexGrow = '1';
+                titleText.setAttribute('style', `
+                    font-size: 14px !important;
+                    flex-grow: 1 !important;
+                `);
             }
             
             // Style control buttons
             const controls = titleBar.querySelector('.title-bar-controls');
             if (controls) {
-                controls.style.display = 'flex';
-                controls.style.gap = '5px';
+                controls.setAttribute('style', `
+                    display: flex !important;
+                    gap: 5px !important;
+                `);
                 
                 // Hide minimize and maximize buttons on mobile
                 const buttons = controls.querySelectorAll('button');
@@ -151,12 +177,14 @@ function setupMobileWindowBehavior() {
                         button.style.display = 'none';
                     } else {
                         // Style close button
-                        button.style.width = '30px';
-                        button.style.height = '30px';
-                        button.style.fontSize = '16px';
-                        button.style.display = 'flex';
-                        button.style.alignItems = 'center';
-                        button.style.justifyContent = 'center';
+                        button.setAttribute('style', `
+                            width: 30px !important;
+                            height: 30px !important;
+                            font-size: 16px !important;
+                            display: flex !important;
+                            align-items: center !important;
+                            justify-content: center !important;
+                        `);
                     }
                 });
             }
@@ -165,43 +193,46 @@ function setupMobileWindowBehavior() {
         // Adjust window content
         const content = window.querySelector('.window-content');
         if (content) {
-            content.style.padding = '15px';
-            content.style.height = 'auto';
-            content.style.minHeight = 'calc(100vh - 100px)';
+            content.setAttribute('style', `
+                padding: 15px !important;
+                height: auto !important;
+                min-height: calc(100vh - 100px) !important;
+                box-sizing: border-box !important;
+            `);
+        }
+        
+        // Special handling for about window
+        if (window.id === 'about-window') {
+            window.setAttribute('style', `
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                text-align: center !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                width: 100% !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                margin: 0 auto !important;
+                position: fixed !important;
+                overflow: auto !important;
+                z-index: 1000 !important;
+                transform: none !important;
+                border-radius: 0 !important;
+            `);
         }
     });
     
-    // Show about window by default
-    const aboutWindow = document.getElementById('about-window');
-    if (aboutWindow) {
-        // Override any inline styles that might be interfering
-        aboutWindow.style.display = 'flex';
-        aboutWindow.style.width = '100%';
-        aboutWindow.style.height = '100vh';
-        aboutWindow.style.top = '0';
-        aboutWindow.style.left = '0';
-        aboutWindow.style.right = '0';
-        aboutWindow.style.bottom = '0';
-        aboutWindow.style.margin = '0 auto';
-        aboutWindow.style.position = 'fixed';
-        aboutWindow.style.zIndex = '1000';
-        aboutWindow.style.transform = 'none';
-        aboutWindow.style.borderRadius = '0';
-        aboutWindow.classList.add('active-mobile');
-        
-        // Ensure the content is properly styled
-        const content = aboutWindow.querySelector('.window-content');
-        if (content) {
-            content.style.display = 'flex';
-            content.style.flexDirection = 'column';
-            content.style.justifyContent = 'center';
-            content.style.alignItems = 'center';
-            content.style.width = '100%';
-            content.style.height = 'calc(100vh - 40px)';
-            content.style.padding = '20px';
-            content.style.margin = '0 auto';
-        }
-    }
+    // Add -webkit-overflow-scrolling: touch for smooth scrolling on all scrollable elements
+    const scrollableElements = document.querySelectorAll('.window-content, .about-content, .chat-messages');
+    scrollableElements.forEach(element => {
+        element.style.webkitOverflowScrolling = 'touch';
+    });
     
     // Set up mobile navigation between windows
     setupMobileWindowNavigation();
@@ -349,76 +380,109 @@ function showMobileWindow(windowId) {
     // Hide all windows
     const windows = document.querySelectorAll('.window');
     windows.forEach(window => {
-        window.style.display = 'none';
+        window.setAttribute('style', `
+            display: none !important;
+            width: 100% !important;
+            height: calc(100vh - 60px) !important;
+            max-height: calc(100vh - 60px) !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            margin: 0 auto !important;
+            border-radius: 0 !important;
+            position: fixed !important;
+            overflow-y: auto !important;
+            transform: none !important;
+            box-sizing: border-box !important;
+        `);
         window.classList.remove('active-mobile');
     });
     
     // Show the selected window
     const targetWindow = document.getElementById(windowId);
     if (targetWindow) {
-        // Apply proper mobile styling
-        targetWindow.style.display = 'flex';
-        targetWindow.style.flexDirection = 'column';
-        targetWindow.style.width = '100%';
-        targetWindow.style.height = '100vh';
-        targetWindow.style.top = '0';
-        targetWindow.style.left = '0';
-        targetWindow.style.right = '0';
-        targetWindow.style.bottom = '0';
-        targetWindow.style.margin = '0 auto';
-        targetWindow.style.position = 'fixed';
-        targetWindow.style.transform = 'none';
-        targetWindow.style.borderRadius = '0';
-        targetWindow.style.zIndex = '1000';
-        targetWindow.classList.add('active-mobile');
-        
-        // Special handling for about window
+        // Apply proper mobile styling with !important to override browser-specific styles
         if (windowId === 'about-window') {
+            // Special styling for about window
+            targetWindow.setAttribute('style', `
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                text-align: center !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                width: 100% !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                margin: 0 auto !important;
+                position: fixed !important;
+                overflow: auto !important;
+                z-index: 1000 !important;
+                transform: none !important;
+                border-radius: 0 !important;
+            `);
+            
+            // Style the window content
             const windowContent = targetWindow.querySelector('.window-content');
             if (windowContent) {
-                windowContent.style.display = 'flex';
-                windowContent.style.flexDirection = 'column';
-                windowContent.style.justifyContent = 'center';
-                windowContent.style.alignItems = 'center';
-                windowContent.style.height = 'calc(100vh - 40px)';
-                windowContent.style.padding = '20px';
-                windowContent.style.boxSizing = 'border-box';
+                windowContent.setAttribute('style', `
+                    display: flex !important;
+                    flex-direction: column !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                    height: calc(100vh - 40px) !important;
+                    padding: 20px !important;
+                    box-sizing: border-box !important;
+                    width: 100% !important;
+                    overflow-y: auto !important;
+                `);
             }
             
+            // Style the about content
             const aboutContent = targetWindow.querySelector('.about-content');
             if (aboutContent) {
-                aboutContent.style.display = 'flex';
-                aboutContent.style.flexDirection = 'column';
-                aboutContent.style.justifyContent = 'center';
-                aboutContent.style.alignItems = 'center';
-                aboutContent.style.width = '100%';
-                aboutContent.style.height = '100%';
-                aboutContent.style.padding = '20px';
-                aboutContent.style.boxSizing = 'border-box';
+                aboutContent.setAttribute('style', `
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    text-align: center !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    padding: 10px !important;
+                    box-sizing: border-box !important;
+                `);
             }
+        } else {
+            // Standard styling for other windows
+            targetWindow.setAttribute('style', `
+                display: flex !important;
+                flex-direction: column !important;
+                width: 100% !important;
+                height: calc(100vh - 60px) !important;
+                max-height: calc(100vh - 60px) !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                margin: 0 auto !important;
+                border-radius: 0 !important;
+                position: fixed !important;
+                overflow-y: auto !important;
+                transform: none !important;
+                z-index: 1000 !important;
+                box-sizing: border-box !important;
+            `);
         }
         
-        // Scroll to top
-        targetWindow.scrollTop = 0;
+        targetWindow.classList.add('active-mobile');
         
-        // Update active state on mobile icons
+        // Update active mobile icon
         updateActiveMobileIcon(windowId);
-        
-        // Special handling for music player window
-        if (windowId === 'winamp-window') {
-            // Resize visualizer if it exists
-            const canvas = document.getElementById('visualizer');
-            if (canvas) {
-                setTimeout(() => {
-                    canvas.width = canvas.offsetWidth;
-                    canvas.height = canvas.offsetHeight;
-                    // Redraw visualization if needed
-                    if (typeof drawVisualization === 'function') {
-                        drawVisualization();
-                    }
-                }, 100);
-            }
-        }
     }
 }
 
