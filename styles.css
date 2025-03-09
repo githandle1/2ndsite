@@ -152,7 +152,7 @@ body {
 
 .welcome-text h1 {
     font-size: 28px;
-    color: #F7C9C3; /* Pink color from the landing page */
+    color: #000000; /* Changed from pink to black */
     margin-bottom: 20px;
     text-transform: lowercase;
     font-family: 'Libre Baskerville', serif;

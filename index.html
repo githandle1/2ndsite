@@ -43,10 +43,28 @@
             </div>
             <div class="info-point">
                 <span class="point-number">listening to</span>
-                <span class="point-title">this</span>
+                <span class="point-title"><a href="javascript:void(0);" onclick="playAudio('spotidownloader.com - I Love Video - New Paradise.mp3'); return false;" style="color: inherit; text-decoration: none;">this</a></span>
             </div>
         </div>
     </div>
+    
+    <!-- Hidden audio element for playing music -->
+    <audio id="audio-player" style="display: none;"></audio>
+    
     <script src="script.js"></script>
+    <script>
+        // Function to play audio file
+        function playAudio(audioFile) {
+            const audioPlayer = document.getElementById('audio-player');
+            
+            // If already playing the same song, toggle play/pause
+            if (audioPlayer.src.includes(audioFile) && !audioPlayer.paused) {
+                audioPlayer.pause();
+            } else {
+                audioPlayer.src = audioFile;
+                audioPlayer.play();
+            }
+        }
+    </script>
 </body>
 </html> 
