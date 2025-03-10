@@ -47,15 +47,16 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.classList.add('mobile-view');
             setupMobileWindowBehavior();
             
-            // Show earbuds window when resizing to mobile with a delay
+            // Show welcome window when resizing to mobile with a delay
             setTimeout(() => {
                 // Check if we're on the index page (welcome window)
                 if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html')) {
                     showMobileWindow('about-window');
                     updateActiveMobileIcon('about-window');
                 } else {
-                    showMobileWindow('winamp-window');
-                    updateActiveMobileIcon('winamp-window');
+                    // Always show welcome window on desktop.html too
+                    showMobileWindow('about-window');
+                    updateActiveMobileIcon('about-window');
                 }
             }, 300);
         } else {
