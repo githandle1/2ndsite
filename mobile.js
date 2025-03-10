@@ -65,6 +65,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Add an additional event listener that runs after all other scripts
+// This ensures the welcome window is shown on mobile regardless of other scripts
+window.addEventListener('load', function() {
+    // Check if on mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Arc/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    
+    if (isMobile && window.location.pathname.includes('desktop.html')) {
+        console.log('Window load event - forcing welcome window on mobile');
+        // Force the welcome window to be shown and earbuds window to be hidden
+        setTimeout(() => {
+            showMobileWindow('about-window');
+            updateActiveMobileIcon('about-window');
+            
+            // Hide all other windows explicitly
+            const winampWindow = document.getElementById('winamp-window');
+            if (winampWindow) {
+                winampWindow.style.display = 'none';
+                winampWindow.classList.remove('active-mobile');
+            }
+        }, 500); // Slightly longer delay to ensure it runs after other scripts
+    }
+});
+
 /**
  * Sets up mobile navigation
  */
