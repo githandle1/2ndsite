@@ -45,9 +45,11 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
-    /* Welcome window specific styling - ALWAYS DISPLAY BY DEFAULT */
+    /* Common window styling for mobile - applied to all windows */
     html.mobile-view #about-window,
-    #about-window {
+    html.mobile-view #winamp-window,
+    #about-window,
+    #winamp-window {
         display: flex !important;
         flex-direction: column !important;
         justify-content: flex-start !important;
@@ -73,8 +75,9 @@
         border: 2.3px solid #F7C9C3 !important;
     }
     
-    /* Add pale pink title bar for welcome window */
-    #about-window .title-bar {
+    /* Add pale pink title bar for all windows */
+    #about-window .title-bar,
+    #winamp-window .title-bar {
         background-color: #F7C9C3 !important;
         padding: 3px 8px !important;
         display: flex !important;
@@ -380,93 +383,15 @@
     }
 }
 
-/* Specific window styles for mobile */
-
-/* About window */
-#about-window .window-content {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    align-items: center !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    padding-bottom: 15px !important;
-    margin: 0 auto !important;
-    height: auto !important;
-    min-height: unset !important;
-    overflow-y: auto !important;
-    box-sizing: border-box !important;
-}
-
-#about-window .about-content {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    align-items: center !important;
-    width: 100% !important;
-    height: 100% !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-}
-
-#about-window .about-header {
-    margin: 0 !important;
-    padding: 0 !important;
-    height: 0 !important;
-}
-
-#about-window .about-main {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 10px !important;
-    width: 100% !important;
-}
-
-#about-window .profile-section {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    margin-bottom: 10px !important;
-    padding: 0 !important;
-}
-
-#about-window .profile-box {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 100% !important;
-    margin-top: 0 !important;
-}
-
-#about-window .content-section {
-    text-align: left !important;
-    width: 100% !important;
-    max-width: 400px !important;
-    padding-bottom: 10px !important; /* Add minimal padding at the bottom */
-    margin-bottom: 0 !important; /* Remove any margin at the bottom */
-}
-
-/* Add specific styling for the intro-text to control spacing */
-#about-window .intro-text {
-    margin-bottom: 0 !important; /* Remove bottom margin */
-    padding-bottom: 0 !important; /* Remove bottom padding */
-}
-
-#about-window img {
-    max-width: 100% !important;
-    height: auto !important;
-    margin: 0 auto !important;
-    display: block !important;
-}
-
-/* Music player window */
+/* Music player window - maintain consistent styling with welcome window */
 #winamp-window .window-content {
     padding: 10px !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
 }
 
 #winamp-window .music-player {
@@ -474,30 +399,6 @@
     max-width: 100% !important;
     padding: 10px !important;
     margin: 0 auto !important;
-}
-
-#winamp-window .player-controls {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-}
-
-#winamp-window .player-controls button {
-    min-width: 40px;
-    min-height: 40px;
-    font-size: 16px;
-}
-
-#winamp-window .playlist {
-    max-height: 200px !important;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-#winamp-window .playlist-item {
-    padding: 10px !important;
-    margin-bottom: 5px !important;
-    border-radius: 3px !important;
 }
 
 /* Chat window */

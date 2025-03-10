@@ -33,9 +33,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 showMobileWindow('about-window');
                 updateActiveMobileIcon('about-window');
             } else {
-                console.log('Showing winamp window on mobile');
-                showMobileWindow('winamp-window');
-                updateActiveMobileIcon('winamp-window');
+                console.log('Showing welcome window on mobile for desktop.html');
+                showMobileWindow('about-window');
+                updateActiveMobileIcon('about-window');
             }
         }, 300);
     }
@@ -304,6 +304,7 @@ function setupMobileWindowNavigation() {
             // Add new click event listener
             icon.addEventListener('click', function() {
                 showMobileWindow(windowId);
+                updateActiveMobileIcon(windowId);
             });
         }
     });
@@ -318,22 +319,26 @@ function setupMobileWindowNavigation() {
             
             // Add new click event
             button.addEventListener('click', function() {
-                parentWindow.style.display = 'none';
-                parentWindow.classList.remove('active-mobile');
-                
-                // Show the about window when closing other windows
-                if (parentWindow.id !== 'about-window') {
-                    showMobileWindow('about-window');
-                } else {
-                    // If closing the about window, just hide it
-                    // This prevents repositioning issues when reopening
-                    parentWindow.style.display = 'none';
-                    
-                    // After a brief delay, show it again properly positioned
-                    setTimeout(() => {
-                        showMobileWindow('about-window');
-                    }, 100);
-                }
+                // When closing a window, show the welcome window by default
+                showMobileWindow('about-window');
+                updateActiveMobileIcon('about-window');
+            });
+        }
+    });
+    
+    // Add click event to minimize buttons
+    const minimizeButtons = document.querySelectorAll('.title-bar-controls button:first-child');
+    minimizeButtons.forEach(button => {
+        // Remove original onclick
+        const parentWindow = button.closest('.window');
+        if (parentWindow) {
+            button.removeAttribute('onclick');
+            
+            // Add new click event
+            button.addEventListener('click', function() {
+                // When minimizing a window, show the welcome window by default
+                showMobileWindow('about-window');
+                updateActiveMobileIcon('about-window');
             });
         }
     });
@@ -434,113 +439,33 @@ function showMobileWindow(windowId) {
         targetWindow.style.display = 'flex';
         targetWindow.style.flexDirection = 'column';
         
+        // Apply consistent styling for all windows
+        const commonStyles = {
+            position: 'fixed',
+            top: '26vh',
+            left: '0',
+            right: '0',
+            bottom: 'auto',
+            height: '48vh',
+            maxHeight: '48vh',
+            width: '84.64%',
+            margin: '0 auto',
+            padding: '0',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            border: '2.3px solid #F7C9C3'
+        };
+        
+        // Apply common styles
+        Object.assign(targetWindow.style, commonStyles);
+        
         // Special handling for winamp window
         if (windowId === 'winamp-window') {
             console.log('Applying special styling for winamp window');
-            // Apply specific styling for the earbuds window
-            targetWindow.style.position = 'fixed';
-            targetWindow.style.top = '0';
-            targetWindow.style.left = '0';
-            targetWindow.style.right = '0';
-            targetWindow.style.bottom = 'auto';
-            targetWindow.style.height = 'calc(100vh - 60px)';
-            targetWindow.style.maxHeight = 'calc(100vh - 60px)';
-            targetWindow.style.width = '100%';
-            targetWindow.style.margin = '0 auto';
-            targetWindow.style.padding = '0';
-            targetWindow.style.borderRadius = '0';
-            targetWindow.style.backgroundColor = '#f5f0e0';
-            targetWindow.style.border = '2px solid #d9d2c0';
-            targetWindow.style.zIndex = '1000';
-            targetWindow.style.overflow = 'auto';
-            targetWindow.style.boxSizing = 'border-box';
-            
-            // Ensure the title bar has the appropriate color
-            const titleBar = targetWindow.querySelector('.title-bar');
-            if (titleBar) {
-                titleBar.style.backgroundColor = '#d9d2c0';
-                titleBar.style.padding = '3px 8px';
-                titleBar.style.color = '#333';
-                titleBar.style.width = '100%';
-                titleBar.style.boxSizing = 'border-box';
-            }
-            
-            // Style the window content
-            const windowContent = targetWindow.querySelector('.window-content');
-            if (windowContent) {
-                windowContent.style.height = 'calc(100vh - 100px)';
-                windowContent.style.display = 'flex';
-                windowContent.style.flexDirection = 'column';
-                windowContent.style.alignItems = 'center';
-                windowContent.style.justifyContent = 'flex-start';
-                windowContent.style.padding = '15px';
-                windowContent.style.overflow = 'auto';
-                windowContent.style.width = '100%';
-                windowContent.style.boxSizing = 'border-box';
-            }
-            
-            // Ensure the music player controls are properly sized
-            const musicPlayer = targetWindow.querySelector('.music-player');
-            if (musicPlayer) {
-                musicPlayer.style.width = '100%';
-                musicPlayer.style.maxWidth = '100%';
-                musicPlayer.style.padding = '10px';
-                musicPlayer.style.boxSizing = 'border-box';
-            }
-            
-            const playerControls = targetWindow.querySelector('.player-controls');
-            if (playerControls) {
-                playerControls.style.display = 'flex';
-                playerControls.style.justifyContent = 'center';
-                playerControls.style.width = '100%';
-                playerControls.style.margin = '15px 0';
-                playerControls.style.flexWrap = 'wrap';
-            }
-            
-            // Make player control buttons more touch-friendly
-            const controlButtons = targetWindow.querySelectorAll('.player-controls button');
-            controlButtons.forEach(button => {
-                button.style.padding = '12px';
-                button.style.margin = '5px';
-                button.style.fontSize = '16px';
-                button.style.cursor = 'pointer';
-                button.style.minWidth = '44px';
-                button.style.minHeight = '44px';
-            });
-            
-            // Make playlist items more touch-friendly
-            const playlist = targetWindow.querySelector('.playlist');
-            if (playlist) {
-                playlist.style.width = '100%';
-                playlist.style.maxWidth = '100%';
-                playlist.style.margin = '10px 0';
-                playlist.style.padding = '0';
-                playlist.style.boxSizing = 'border-box';
-            }
-            
-            const playlistItems = targetWindow.querySelectorAll('.playlist-item');
-            playlistItems.forEach(item => {
-                item.style.padding = '12px 8px';
-                item.style.fontSize = '14px';
-                item.style.cursor = 'pointer';
-                item.style.margin = '5px 0';
-                item.style.borderRadius = '4px';
-                item.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-            });
-            
-            // Resize visualizer if present
-            const canvas = targetWindow.querySelector('#visualizer');
-            if (canvas) {
-                console.log('Resizing visualizer canvas');
-                setTimeout(() => {
-                    canvas.width = canvas.offsetWidth;
-                    canvas.height = canvas.offsetHeight;
-                    // Redraw visualization if needed
-                    if (typeof drawVisualization === 'function') {
-                        drawVisualization();
-                    }
-                }, 300);
-            }
+            // Ensure the winamp window has the same styling as the welcome window
+            // but with specific adjustments for its content
+            targetWindow.querySelector('.title-bar').style.backgroundColor = '#F7C9C3';
+            targetWindow.querySelector('.title-bar').style.color = '#333';
         }
         // Special handling for about window
         else if (windowId === 'about-window') {
