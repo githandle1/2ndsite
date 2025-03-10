@@ -28,6 +28,7 @@
             opacity: 1 !important;
             visibility: visible !important;
             transition: opacity 0.3s ease-in-out;
+            z-index: 1000 !important;
         }
         
         /* Ensure stalogy info is always visible by default */
@@ -35,38 +36,38 @@
             display: flex !important;
             opacity: 1 !important;
             visibility: visible !important;
+            z-index: 999 !important;
         }
         
-        /* Page turn transition effect */
+        body {
+            font-family: 'Libre Baskerville', serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0ece4;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        /* Page turn animation */
         .page-turn {
             position: fixed;
             top: 0;
             right: 0;
+            height: 100%;
             width: 0;
-            height: 100%;
             background-color: #f0ece4;
-            z-index: 9999;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
-            pointer-events: none;
-            transition: width 1.2s cubic-bezier(0.33, 0.1, 0.67, 1);
-            will-change: width, box-shadow, transform;
-            transform: translateZ(0);
-            backface-visibility: hidden;
-        }
-        
-        /* Grid pattern for the page turn */
-        .page-turn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
             background-image: 
                 linear-gradient(#ccc 1px, transparent 1px),
                 linear-gradient(90deg, #ccc 1px, transparent 1px);
             background-size: 20px 20px;
-            opacity: 0.5;
+            background-attachment: fixed;
+            z-index: 9999;
+            box-shadow: -5px 0 10px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            will-change: width;
+            transition: width 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform: none;
         }
         
         /* Mobile-specific styles for index page */
@@ -204,12 +205,6 @@
             body, .desktop {
                 min-height: 100vh;
             }
-            
-            /* Mobile-specific page turn adjustments */
-            .page-turn {
-                transition: width 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-                -webkit-transition: width 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-            }
         }
     </style>
 </head>
@@ -226,7 +221,7 @@
             <div class="welcome-text">
                 <h1>maya's sketchbook</h1>
                 <div class="enter-button">
-                    <a href="javascript:void(0);" onclick="pageTurn()">Enter here</a>
+                    <a href="desktop.html">Enter here</a>
                 </div>
             </div>
         </div>
@@ -255,132 +250,36 @@
     <!-- Hidden audio element for playing music -->
     <audio id="audio-player" style="display: none;"></audio>
     
-    <!-- Page turn effect element -->
-    <div class="page-turn" id="pageTurn"></div>
+    <!-- Page turn animation overlay -->
+    <div class="page-turn"></div>
     
     <script src="script.js"></script>
     <script src="mobile.js"></script>
     <script>
-        // Function to handle page turn effect
-        function pageTurn() {
-            console.log('Page turn initiated');
-            
-            // Get the page turn element
-            const pageTurnElement = document.getElementById('pageTurn');
-            if (!pageTurnElement) {
-                console.error('Page turn element not found!');
-                window.location.href = 'desktop.html';
-                return;
-            }
-            
-            // Force mobile detection
-            const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            console.log('Is mobile device:', isMobile, 'Screen width:', window.innerWidth);
-            
-            // Save audio state if playing
-            const audioPlayer = document.getElementById('audio-player');
-            if (audioPlayer && !audioPlayer.paused) {
-                sessionStorage.setItem('audioCurrentTime', audioPlayer.currentTime);
-                console.log('Saved audio time:', audioPlayer.currentTime);
-            }
-            
-            // Keep welcome window visible until animation completes
-            const welcomeWindow = document.querySelector('.welcome-window');
-            if (welcomeWindow) {
-                welcomeWindow.style.display = 'flex';
-                welcomeWindow.style.opacity = '1';
-                welcomeWindow.style.visibility = 'visible';
-            }
-            
-            // Ensure the page turn element is visible and properly styled
-            pageTurnElement.style.position = 'fixed';
-            pageTurnElement.style.top = '0';
-            pageTurnElement.style.right = '0';
-            pageTurnElement.style.height = '100%';
-            pageTurnElement.style.width = '0';
-            pageTurnElement.style.backgroundColor = '#f0ece4';
-            pageTurnElement.style.zIndex = '9999';
-            pageTurnElement.style.boxShadow = '-5px 0 15px rgba(0,0,0,0.2)';
-            pageTurnElement.style.pointerEvents = 'none';
-            pageTurnElement.style.display = 'block'; // Ensure it's visible
-            
-            // Add grid pattern to the page turn
-            pageTurnElement.style.backgroundImage = 'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)';
-            pageTurnElement.style.backgroundSize = '20px 20px';
-            
-            // Manually animate the page turn with JavaScript for better reliability
-            let width = 0;
-            // Speed up the animation by dividing duration by 1.25
-            // Base durations: 1500ms for mobile, 1800ms for desktop
-            // Speed up by 1.25x: 1200ms for mobile, 1440ms for desktop
-            const duration = isMobile ? 1000 : 1200; // Further reduced for smoother animation
-            const startTime = performance.now();
-            
-            console.log('Animation starting with duration:', duration, 'ms');
-            
-            // Create a full-screen overlay to prevent flashing
-            const overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
-            overlay.style.backgroundColor = '#f0ece4';
-            overlay.style.zIndex = '9998';
-            overlay.style.opacity = '0';
-            overlay.style.transition = 'opacity 0.2s ease-in';
-            overlay.style.pointerEvents = 'none';
-            overlay.style.willChange = 'opacity';
-            overlay.style.transform = 'translateZ(0)';
-            document.body.appendChild(overlay);
-            
-            // Use requestAnimationFrame with timestamp for smoother animation
-            function animate(currentTime) {
-                const elapsedTime = currentTime - startTime;
-                const progress = Math.min(elapsedTime / duration, 1);
+        // Force reload on back navigation to ensure content is displayed
+        window.addEventListener('load', function() {
+            // Check if we're coming back from another page
+            if (document.referrer.includes('desktop.html')) {
+                console.log('Coming back from desktop.html - forcing content visibility');
                 
-                // Enhanced easing function for ultra-smooth animation
-                // This creates a more natural page turning motion
-                const easedProgress = progress < 0.5 
-                    ? 4 * progress * progress * progress 
-                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                // Force welcome window to be visible
+                const welcomeWindow = document.querySelector('.welcome-window');
+                if (welcomeWindow) {
+                    welcomeWindow.style.display = 'flex';
+                    welcomeWindow.style.opacity = '1';
+                    welcomeWindow.style.visibility = 'visible';
+                }
                 
-                // For mobile, ensure we go beyond 100% to account for any potential viewport issues
-                // Increase the max width to 120% for mobile to ensure full coverage with the faster animation
-                const maxWidth = isMobile ? 120 : 105; 
-                width = easedProgress * maxWidth;
-                pageTurnElement.style.width = width + '%';
-                
-                // Add subtle shadow intensity based on progress for more depth
-                const shadowIntensity = Math.min(20, 5 + (15 * easedProgress));
-                pageTurnElement.style.boxShadow = `-${shadowIntensity}px 0 25px rgba(0,0,0,${0.1 + (easedProgress * 0.15)})`;
-                
-                // Use transform for better performance
-                pageTurnElement.style.transform = `translateZ(0)`; // Force GPU acceleration
-                pageTurnElement.style.willChange = 'width, box-shadow';
-                
-                if (progress < 1) {
-                    // Use high priority for the animation frame
-                    requestAnimationFrame(animate);
-                } else {
-                    console.log('Animation complete, navigating to desktop.html');
-                    // When animation is complete, fade in the overlay to prevent flash
-                    overlay.style.opacity = '1';
-                    
-                    // Then navigate to desktop.html after a very short delay
-                    // This ensures the overlay is visible before navigation
-                    setTimeout(() => {
-                        // Store a flag to indicate we're coming from a page turn
-                        sessionStorage.setItem('fromPageTurn', 'true');
-                        window.location.href = 'desktop.html';
-                    }, 100); // Slightly increased delay for mobile
+                // Force stalogy info to be visible
+                const stalogyInfo = document.querySelector('.stalogy-info');
+                if (stalogyInfo) {
+                    stalogyInfo.style.display = 'flex';
+                    stalogyInfo.style.opacity = '1';
+                    stalogyInfo.style.visibility = 'visible';
                 }
             }
-            
-            // Start the animation with high priority
-            window.requestAnimationFrame(animate);
-        }
-        
+        });
+
         // Function to play audio file
         function playAudio(audioFile) {
             const audioPlayer = document.getElementById('audio-player');
@@ -403,24 +302,43 @@
             }
         }
         
-        // Modify the Enter button to preserve audio state
+        // Page turn animation function
+        function pageTurn() {
+            const pageTurnElement = document.querySelector('.page-turn');
+            
+            // Simply expand the page turn element to full width
+            pageTurnElement.style.width = '100%';
+            
+            // Set flag in sessionStorage to indicate we're coming from a page turn
+            sessionStorage.setItem('fromPageTurn', 'true');
+            
+            // Store the current scroll position to maintain consistency
+            sessionStorage.setItem('scrollPosition', window.scrollY.toString());
+            
+            // Delay navigation to allow animation to complete
+            setTimeout(() => {
+                window.location.href = 'desktop.html';
+            }, 600); // Slightly shorter than the CSS transition to ensure smooth handoff
+            
+            return false; // Prevent default link behavior
+        }
+        
+        // Modify the Enter button to preserve audio state and trigger page turn
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded on index page');
             
+            // Update current date
+            const currentDateElement = document.getElementById('current-date');
+            if (currentDateElement) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                currentDateElement.textContent = now.toLocaleDateString('en-US', options);
+            }
+            
+            // Add page turn animation to enter button
             const enterButton = document.querySelector('.enter-button a');
             if (enterButton) {
-                // Remove any existing click handlers
-                const newEnterButton = enterButton.cloneNode(true);
-                enterButton.parentNode.replaceChild(newEnterButton, enterButton);
-                
-                // Add new click handler
-                newEnterButton.addEventListener('click', function(e) {
-                    e.preventDefault(); // Prevent default navigation
-                    console.log('Enter button clicked');
-                    pageTurn(); // Call our page turn function
-                });
-            } else {
-                console.error('Enter button not found!');
+                enterButton.onclick = pageTurn;
             }
             
             // Function to detect mobile devices and adjust UI
@@ -474,12 +392,6 @@
                     stalogyInfo.style.opacity = '1';
                 }
                 
-                // Reset page turn element
-                const pageTurnElement = document.getElementById('pageTurn');
-                if (pageTurnElement) {
-                    pageTurnElement.style.width = '0';
-                }
-                
                 // Re-apply mobile UI adjustments if needed
                 detectMobileAndAdjustUI();
             }
@@ -490,6 +402,13 @@
             // This triggers even when navigating back via browser history
             if (event.persisted) {
                 console.log('Page loaded from cache (back navigation) - ensuring content is displayed');
+                
+                // Force reload the page to ensure all content is properly displayed
+                if (document.referrer.includes('desktop.html')) {
+                    console.log('Coming back from desktop.html - forcing reload');
+                    window.location.reload();
+                    return;
+                }
                 
                 // Make sure welcome window is visible
                 const welcomeWindow = document.querySelector('.welcome-window');
@@ -505,16 +424,37 @@
                     stalogyInfo.style.opacity = '1';
                 }
                 
-                // Reset page turn element
-                const pageTurnElement = document.getElementById('pageTurn');
-                if (pageTurnElement) {
-                    pageTurnElement.style.width = '0';
-                }
-                
                 // Re-apply mobile UI adjustments
                 detectMobileAndAdjustUI();
+                
+                // Force a refresh if we're coming back from desktop.html
+                if (sessionStorage.getItem('navigatingBack')) {
+                    sessionStorage.removeItem('navigatingBack');
+                    window.location.reload();
+                }
             }
         });
+
+        // Check for navigatingBack flag on initial load
+        if (sessionStorage.getItem('navigatingBack')) {
+            console.log('Detected navigation back from desktop.html');
+            sessionStorage.removeItem('navigatingBack');
+            
+            // Force elements to be visible immediately
+            document.addEventListener('DOMContentLoaded', function() {
+                const welcomeWindow = document.querySelector('.welcome-window');
+                if (welcomeWindow) {
+                    welcomeWindow.style.display = 'flex';
+                    welcomeWindow.style.opacity = '1';
+                }
+                
+                const stalogyInfo = document.querySelector('.stalogy-info');
+                if (stalogyInfo) {
+                    stalogyInfo.style.display = 'flex';
+                    stalogyInfo.style.opacity = '1';
+                }
+            });
+        }
     </script>
 </body>
 </html> 

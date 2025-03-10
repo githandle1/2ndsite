@@ -40,7 +40,7 @@
             }
         }
         
-        /* Page entrance overlay */
+        /* Page entrance transition */
         .page-entrance {
             position: fixed;
             top: 0;
@@ -49,24 +49,21 @@
             height: 100%;
             background-color: #f0ece4;
             z-index: 9999;
-            pointer-events: none;
             opacity: 1;
-            background-image: 
-                linear-gradient(#ccc 1px, transparent 1px),
-                linear-gradient(90deg, #ccc 1px, transparent 1px);
-            background-size: 20px 20px;
-            transition: opacity 0.4s cubic-bezier(0.33, 0.1, 0.67, 1);
-            will-change: opacity, transform;
-            transform: translateZ(0);
-            backface-visibility: hidden;
+            pointer-events: none;
+            will-change: opacity;
+            transition: opacity 0.5s ease-out;
         }
         
         /* Special handling for page turn transition */
         .from-page-turn .page-entrance {
             opacity: 1;
-            left: 0;
-            width: 100%;
-            transition: opacity 0.5s cubic-bezier(0.33, 0.1, 0.67, 1);
+            background-image: 
+                linear-gradient(#d9d2c0 1px, transparent 1px),
+                linear-gradient(90deg, #d9d2c0 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-attachment: fixed;
+            transition: opacity 0.5s ease-out;
         }
         
         /* Mobile-specific adjustments */
@@ -76,6 +73,16 @@
                 -webkit-animation-duration: 0.4s;
             }
         }
+        
+        /* Immediate fix for Arc browser to show welcome window */
+        @media (max-width: 768px) {
+            html.mobile-view #about-window {
+                display: block !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                z-index: 10 !important;
+            }
+        }
     </style>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="mobile.css">
@@ -83,12 +90,6 @@
     <script>
         // This script runs immediately to ensure the welcome window is displayed on mobile
         (function() {
-            // Check if we're coming from a page turn
-            const fromPageTurn = sessionStorage.getItem('fromPageTurn') === 'true';
-            if (fromPageTurn) {
-                document.documentElement.classList.add('from-page-turn');
-            }
-            
             // Check if we're on mobile
             const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Arc/i.test(navigator.userAgent);
             
@@ -99,42 +100,11 @@
                 // Create a style element to ensure about-window is displayed immediately
                 const style = document.createElement('style');
                 style.textContent = `
-                    #about-window {
-                        display: flex !important;
-                        flex-direction: column !important;
-                        justify-content: flex-start !important;
-                        align-items: center !important;
-                        text-align: center !important;
-                        height: 60vh !important;
-                        max-height: 60vh !important;
-                        width: 80% !important;
-                        padding: 0 !important;
-                        box-sizing: border-box !important;
-                        top: 20vh !important;
-                        left: 0 !important;
-                        right: 0 !important;
-                        bottom: auto !important;
-                        margin: 0 auto !important;
-                        position: fixed !important;
-                        overflow-y: auto !important;
-                        z-index: 1000 !important;
-                        transform: none !important;
-                        border-radius: 8px !important;
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-                        background-color: #f5f0e0 !important;
-                        border: 2px solid #d9d2c0 !important;
-                    }
-                    
-                    #about-window .window-content {
-                        display: flex !important;
-                        flex-direction: column !important;
-                        justify-content: flex-start !important;
-                        align-items: center !important;
-                        height: calc(60vh - 30px) !important;
-                        padding: 15px !important;
-                        box-sizing: border-box !important;
-                        width: 100% !important;
-                        overflow-y: auto !important;
+                    html.mobile-view #about-window {
+                        display: block !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        z-index: 10 !important;
                     }
                 `;
                 document.head.appendChild(style);
@@ -212,12 +182,12 @@
             position: absolute;
             top: 10px;
             right: 10px; /* Move to right-hand corner */
-            font-size: 7px;
+            font-size: 8.4px; /* Increased by 20% from 7px */
             color: #777; /* Changed back to gray for regular dates */
             display: flex;
             flex-direction: column;
             background-color: rgba(245, 240, 224, 0.7); /* Changed back to semi-transparent background */
-            padding: 4px 8px;
+            padding: 4.8px 9.6px; /* Increased by 20% from 4px 8px */
             border-radius: 0;
             z-index: 10;
             font-family: 'Courier New', monospace;
@@ -229,14 +199,14 @@
         .month-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 3px;
-            font-size: 6px;
+            margin-bottom: 3.6px; /* Increased by 20% from 3px */
+            font-size: 7.2px; /* Increased by 20% from 6px */
             text-transform: uppercase;
-            gap: 2px;
+            gap: 2.4px; /* Increased by 20% from 2px */
         }
         
         .month {
-            width: 14px;
+            width: 16.8px; /* Increased by 20% from 14px */
             text-align: center;
             opacity: 0.6;
         }
@@ -248,16 +218,16 @@
         
         .day-row {
             display: grid;
-            grid-template-columns: repeat(31, 8px);
-            gap: 2px;
-            width: 310px;
+            grid-template-columns: repeat(31, 9.6px); /* Increased by 20% from 8px */
+            gap: 2.4px; /* Increased by 20% from 2px */
+            width: 372px; /* Increased by 20% from 310px */
         }
         
         .day {
-            width: 8px;
+            width: 9.6px; /* Increased by 20% from 8px */
             text-align: center;
             opacity: 0.6;
-            font-size: 6px;
+            font-size: 7.2px; /* Increased by 20% from 6px */
         }
         
         .current-day {
@@ -848,6 +818,9 @@
     </style>
 </head>
 <body>
+    <!-- Page entrance transition -->
+    <div class="page-entrance"></div>
+    
     <!-- Stalogy-style date header -->
     <div class="date-header">
         <div class="month-row">
@@ -1781,80 +1754,96 @@
             }
         });
 
+        // Check if user is on a mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        
+        // Add mobile-view class to html element if on mobile
+        if (isMobile) {
+            document.documentElement.classList.add('mobile-view');
+        }
+        
+        // Check if coming from a page turn
+        if (sessionStorage.getItem('fromPageTurn')) {
+            document.documentElement.classList.add('from-page-turn');
+            sessionStorage.removeItem('fromPageTurn'); // Clear the flag
+        }
+
         // Add this script at the end of the body
         document.addEventListener('DOMContentLoaded', function() {
             // Get the page entrance element
             const pageEntranceElement = document.querySelector('.page-entrance');
             if (!pageEntranceElement) return;
             
-            // Check if we're coming from a page turn
-            const fromPageTurn = sessionStorage.getItem('fromPageTurn') === 'true';
-            
-            // Clear the flag
-            sessionStorage.removeItem('fromPageTurn');
-            
-            // If coming from page turn, handle differently
-            if (fromPageTurn) {
-                // Start with opacity 1
-                pageEntranceElement.style.opacity = '1';
-                pageEntranceElement.style.transform = 'translateX(0)';
-                
-                // Apply GPU acceleration
-                pageEntranceElement.style.willChange = 'opacity';
-                pageEntranceElement.style.transform = 'translateZ(0)';
-                
-                // Fade out after a short delay to ensure continuity
-                setTimeout(() => {
-                    pageEntranceElement.style.opacity = '0';
-                    
-                    // Remove the element after the transition completes
-                    setTimeout(() => {
-                        if (pageEntranceElement.parentNode) {
-                            pageEntranceElement.parentNode.removeChild(pageEntranceElement);
-                        }
-                    }, 500); // Increased from 400ms for smoother fade
-                }, 50); // Reduced from 100ms for faster response
-                
-                return; // Skip the standard animation
-            }
-            
-            // Standard animation for non-page-turn navigation
-            // Manually animate the page entrance for better reliability
-            let opacity = 1;
-            const duration = window.innerWidth <= 768 ? 400 : 500;
-            const startTime = performance.now();
-            
             // Apply GPU acceleration
-            pageEntranceElement.style.willChange = 'opacity, transform';
-            pageEntranceElement.style.transform = 'translateZ(0)';
+            pageEntranceElement.style.willChange = 'opacity';
             
-            function animate(currentTime) {
-                const elapsedTime = currentTime - startTime;
-                const progress = Math.min(elapsedTime / duration, 1);
-                
-                // Use cubic bezier easing for smoother animation
-                const easedProgress = progress < 0.5 
-                    ? 4 * progress * progress * progress 
-                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-                
-                opacity = 1 - easedProgress;
-                pageEntranceElement.style.opacity = opacity.toString();
-                
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    // Remove the element when animation is complete
-                    if (pageEntranceElement.parentNode) {
-                        pageEntranceElement.parentNode.removeChild(pageEntranceElement);
-                    }
-                }
+            // Restore scroll position if coming from page turn
+            const savedScrollPosition = sessionStorage.getItem('scrollPosition');
+            if (savedScrollPosition) {
+                window.scrollTo(0, parseInt(savedScrollPosition));
+                sessionStorage.removeItem('scrollPosition');
             }
             
-            requestAnimationFrame(animate);
+            // Fade out after a short delay
+            setTimeout(() => {
+                // Simple fade out
+                pageEntranceElement.style.opacity = '0';
+                
+                // Remove the element after the transition completes
+                setTimeout(() => {
+                    pageEntranceElement.remove();
+                    document.documentElement.classList.remove('from-page-turn');
+                }, 500); // Match the transition duration
+            }, 200); // Short delay before starting the animation
+        });
+
+        // Handle back button navigation
+        window.addEventListener('pageshow', function(event) {
+            // This triggers even when navigating back via browser history
+            if (event.persisted) {
+                console.log('Page loaded from cache (back navigation)');
+                // Force a refresh of the page to ensure all elements are properly initialized
+                window.location.reload();
+            }
+        });
+
+        // Add a special handler for links back to index.html
+        document.addEventListener('click', function(e) {
+            // Find clicked element
+            let target = e.target;
+            
+            // Traverse up to find if a parent is a link to index.html
+            while (target && target !== document) {
+                if (target.tagName === 'A' && 
+                    (target.href.endsWith('index.html') || 
+                     target.href.endsWith('/') || 
+                     target.href === window.location.origin + '/')) {
+                    
+                    // Prevent default navigation
+                    e.preventDefault();
+                    
+                    // Set a flag to indicate we're navigating back
+                    sessionStorage.setItem('navigatingBack', 'true');
+                    
+                    // Force a reload of the index page
+                    window.location.href = target.href + '?refresh=' + new Date().getTime();
+                    return;
+                }
+                target = target.parentNode;
+            }
+        });
+
+        // Add a special handler for the back button
+        window.addEventListener('popstate', function(event) {
+            // If we're navigating back to index.html
+            if (document.referrer.includes('index.html') || 
+                document.referrer.endsWith('/') || 
+                document.referrer === window.location.origin + '/') {
+                
+                // Set a flag to indicate we're navigating back
+                sessionStorage.setItem('navigatingBack', 'true');
+            }
         });
     </script>
-    
-    <!-- Page entrance overlay for animation -->
-    <div class="page-entrance"></div>
 </body>
 </html> 
