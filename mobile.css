@@ -335,6 +335,63 @@
         min-height: 44px; /* Apple's recommended minimum touch target size */
         min-width: 44px;
     }
+    
+    /* Music player window - maintain consistent styling with welcome window */
+    #winamp-window .window-content {
+        padding: 10px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+    }
+    
+    /* Hide play controls on mobile - users will tap directly on songs */
+    #winamp-window .winamp-controls {
+        display: none !important;
+    }
+    
+    /* Make playlist items more tappable */
+    #winamp-window .playlist-item {
+        padding: 15px 10px !important;
+        margin: 8px 0 !important;
+        background-color: rgba(247, 201, 195, 0.1) !important;
+        border-radius: 8px !important;
+        font-size: 16px !important;
+        position: relative !important;
+        transition: background-color 0.2s ease !important;
+    }
+    
+    #winamp-window .playlist-item:active,
+    #winamp-window .playlist-item:hover {
+        background-color: rgba(247, 201, 195, 0.3) !important;
+    }
+    
+    #winamp-window .playlist-item.active {
+        background-color: rgba(247, 201, 195, 0.5) !important;
+        font-weight: bold !important;
+    }
+    
+    /* Add play icon indicator to playlist items */
+    #winamp-window .playlist-item::before {
+        content: '▶' !important;
+        display: inline-block !important;
+        margin-right: 8px !important;
+        font-size: 12px !important;
+        opacity: 0.5 !important;
+    }
+    
+    #winamp-window .playlist-item.active::before {
+        opacity: 1 !important;
+    }
+    
+    #winamp-window .music-player {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 10px !important;
+        margin: 0 auto !important;
+    }
 }
 
 /* Small phones */
@@ -380,24 +437,6 @@
         margin-right: 5px;
         margin-bottom: 0;
     }
-}
-
-/* Music player window - maintain consistent styling with welcome window */
-#winamp-window .window-content {
-    padding: 10px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    overflow-y: auto !important;
-}
-
-#winamp-window .music-player {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 10px !important;
-    margin: 0 auto !important;
 }
 
 /* Chat window */

@@ -419,37 +419,47 @@ function setupMobileWindowNavigation() {
  */
 function setupMobileMusicPlayer() {
     // Get music player elements
-    const playButton = document.querySelector('.winamp-controls button:nth-child(2)');
-    const stopButton = document.querySelector('.winamp-controls button:nth-child(3)');
-    const prevButton = document.querySelector('.winamp-controls button:nth-child(1)');
-    const nextButton = document.querySelector('.winamp-controls button:nth-child(4)');
     const playlistItems = document.querySelectorAll('.playlist-item');
     
-    if (!playButton || !stopButton || !prevButton || !nextButton) {
-        console.log('Music player controls not found');
+    if (!playlistItems || playlistItems.length === 0) {
+        console.log('Playlist items not found');
         return;
     }
     
-    // Make buttons larger and more touch-friendly
-    [playButton, stopButton, prevButton, nextButton].forEach(button => {
-        if (button) {
-            button.style.width = '40px';
-            button.style.height = '40px';
-            button.style.margin = '0 5px';
-            button.style.fontSize = '18px';
-        }
-    });
+    console.log('Setting up mobile music player with direct tap functionality');
     
-    // Make playlist items more touch-friendly
+    // Make playlist items more touch-friendly and enhance tap behavior
     playlistItems.forEach(item => {
-        item.style.padding = '12px 8px';
-        item.style.fontSize = '14px';
+        // Remove any existing event listeners
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
         
-        // Ensure click events work properly on mobile
-        item.addEventListener('touchend', function(e) {
+        // Add enhanced touch event handling
+        newItem.addEventListener('touchstart', function() {
+            this.style.backgroundColor = 'rgba(247, 201, 195, 0.5)';
+        });
+        
+        newItem.addEventListener('touchend', function(e) {
             e.preventDefault();
+            this.style.backgroundColor = '';
+            
             // Trigger the click event that's already set up in desktop.html
             this.click();
+            
+            // Add a visual feedback that the song is playing
+            setTimeout(() => {
+                // Remove active class from all items
+                playlistItems.forEach(i => {
+                    i.classList.remove('active');
+                });
+                
+                // Add active class to this item
+                this.classList.add('active');
+            }, 100);
+        });
+        
+        newItem.addEventListener('touchcancel', function() {
+            this.style.backgroundColor = '';
         });
     });
     
@@ -460,33 +470,6 @@ function setupMobileMusicPlayer() {
             window.audioContext.resume();
         }
     }, { once: true });
-    
-    // Add special handling for the music window
-    const winampWindow = document.getElementById('winamp-window');
-    if (winampWindow) {
-        // When the music window is shown, make sure it's properly sized
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.attributeName === 'style' && 
-                    winampWindow.style.display !== 'none') {
-                    // Ensure the visualizer canvas is properly sized
-                    const canvas = document.getElementById('visualizer');
-                    if (canvas) {
-                        setTimeout(() => {
-                            canvas.width = canvas.offsetWidth;
-                            canvas.height = canvas.offsetHeight;
-                            // Redraw visualization if needed
-                            if (typeof drawVisualization === 'function') {
-                                drawVisualization();
-                            }
-                        }, 100);
-                    }
-                }
-            });
-        });
-        
-        observer.observe(winampWindow, { attributes: true });
-    }
 }
 
 /**
