@@ -50,7 +50,6 @@
     html.mobile-view #winamp-window,
     #about-window,
     #winamp-window {
-        display: flex !important;
         flex-direction: column !important;
         justify-content: flex-start !important;
         align-items: center !important;

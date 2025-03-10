@@ -73,18 +73,64 @@ window.addEventListener('load', function() {
     
     if (isMobile && window.location.pathname.includes('desktop.html')) {
         console.log('Window load event - forcing welcome window on mobile');
+        
         // Force the welcome window to be shown and earbuds window to be hidden
-        setTimeout(() => {
-            showMobileWindow('about-window');
-            updateActiveMobileIcon('about-window');
+        // Use a more aggressive approach with multiple attempts
+        function forceWelcomeWindow() {
+            // Hide all windows first
+            document.querySelectorAll('.window').forEach(window => {
+                window.classList.remove('active-mobile');
+                window.style.display = 'none';
+                // Remove any inline styles that might be overriding our display: none
+                window.style.removeProperty('display');
+            });
             
-            // Hide all other windows explicitly
+            // Explicitly hide the winamp window with !important inline style
             const winampWindow = document.getElementById('winamp-window');
             if (winampWindow) {
-                winampWindow.style.display = 'none';
+                winampWindow.style.setProperty('display', 'none', 'important');
                 winampWindow.classList.remove('active-mobile');
             }
-        }, 500); // Slightly longer delay to ensure it runs after other scripts
+            
+            // Show the welcome window
+            const aboutWindow = document.getElementById('about-window');
+            if (aboutWindow) {
+                aboutWindow.style.setProperty('display', 'flex', 'important');
+                aboutWindow.classList.add('active-mobile');
+                
+                // Apply consistent styling
+                const commonStyles = {
+                    position: 'fixed',
+                    top: '26vh',
+                    left: '0',
+                    right: '0',
+                    bottom: 'auto',
+                    height: '48vh',
+                    maxHeight: '48vh',
+                    width: '84.64%',
+                    margin: '0 auto',
+                    padding: '0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    border: '2.3px solid #F7C9C3'
+                };
+                
+                // Apply common styles
+                Object.assign(aboutWindow.style, commonStyles);
+            }
+            
+            // Update the active icon
+            updateActiveMobileIcon('about-window');
+        }
+        
+        // Call immediately
+        forceWelcomeWindow();
+        
+        // And also with a delay to ensure it happens after any other scripts
+        setTimeout(forceWelcomeWindow, 500);
+        
+        // And one more time after a longer delay
+        setTimeout(forceWelcomeWindow, 1000);
     }
 });
 
