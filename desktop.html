@@ -890,6 +890,10 @@
             <div class="filled-dot">🔖</div>
             <div class="icon-label">what i'm<br>saving</div>
         </div>
+        <div class="icon" onclick="toggleWindow('moodboard-window'); showNextMoodboardImage();">
+            <div class="filled-dot">🔖</div>
+            <div class="icon-label">moodboard</div>
+        </div>
         <div class="icon" onclick="window.location.href='mailto:mayabakir38@gmail.com'">
             <div class="filled-dot">🔖</div>
             <div class="icon-label">say hi</div>
@@ -914,6 +918,10 @@
             <div class="mobile-icon" onclick="window.open('https://www.cosmos.so/babka/fashion', '_blank')">
                 <div class="filled-dot">🔖</div>
                 <div>saving</div>
+            </div>
+            <div class="mobile-icon" onclick="showMobileWindow('moodboard-window'); updateActiveMobileIcon('moodboard-window'); showNextMoodboardImage();">
+                <div class="filled-dot">🔖</div>
+                <div>moodboard</div>
             </div>
             <div class="mobile-icon" onclick="window.location.href='mailto:mayabakir38@gmail.com'">
                 <div class="filled-dot">🔖</div>
@@ -1023,6 +1031,118 @@
         <div class="resize-handle nw"></div>
     </div>
     
+    <!-- Add the moodboard window before the closing body tag -->
+    <div id="moodboard-window" class="window">
+        <div class="title-bar">
+            <div class="title-bar-text">C://moodboard</div>
+            <div class="title-bar-controls">
+                <button>_</button>
+                <button>□</button>
+                <button onclick="toggleWindow('moodboard-window')">×</button>
+            </div>
+        </div>
+        <div class="window-content moodboard-content" onclick="showNextMoodboardImage()">
+            <div class="moodboard-container">
+                <img id="moodboard-image" src="" alt="Moodboard Image">
+            </div>
+            <div class="moodboard-instructions">Click anywhere for next image</div>
+        </div>
+        <div class="resize-handle se"></div>
+        <div class="resize-handle sw"></div>
+    </div>
+
+    <style>
+        /* Moodboard Styles */
+        #moodboard-window {
+            width: 500px;
+            height: 500px;
+            top: 100px;
+            left: 200px;
+            display: none;
+        }
+        
+        .moodboard-content {
+            background-color: #f5f0e0;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .moodboard-container {
+            position: relative;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        #moodboard-image {
+            max-width: 85%;
+            max-height: 85%;
+            object-fit: contain;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: rotate(var(--random-rotation));
+        }
+        
+        .moodboard-instructions {
+            position: relative;
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            background-color: #f5f0e0;
+            border-top: 1px solid #e0dbd0;
+            margin-top: auto;
+        }
+    </style>
+
+    <script>
+        // Moodboard functionality
+        const moodboardImages = [
+            'inspo board/a703ae15-bbdf-4e6e-befa-7200455f34b8.jpeg',
+            'inspo board/a345aaca-e835-440f-aca2-106a1e510ee9.jpg',
+            'inspo board/d6722d65-d5a3-47bc-a552-70d34dc1a009.jpg',
+            'inspo board/e2a1ac3f-0994-4cb7-a544-f0bc1421a8f3.jpg',
+            'inspo board/f4518efc-8f42-4fef-8919-f853ab8fd0c1.jpg',
+            'inspo board/0fe49316-cbed-457f-9c68-2e69d26345fb.jpg',
+            'inspo board/10ae61f8-2fb4-4821-af6c-2845d06c9654.jpg',
+            'inspo board/6db6b60f-a068-4eea-a414-534329a6a7a2.jpg',
+            'inspo board/0828d955-4cc1-40e7-b485-9ab1154107a3.jpg',
+            'inspo board/4baf0dc6-13c4-405b-a1ec-3b25d420236c.jpg',
+            'inspo board/a4e7da0b-efa0-447d-8c95-0c00f9a6c72e.jpg',
+            'inspo board/82aeccf3-2c60-4b08-a344-83a7c1b59bd0.jpg'
+        ];
+        
+        let currentImageIndex = -1;
+        
+        function showNextMoodboardImage() {
+            const moodboardImage = document.getElementById('moodboard-image');
+            const moodboardContainer = document.querySelector('.moodboard-container');
+            
+            // Move to next image (or loop back to first)
+            currentImageIndex = (currentImageIndex + 1) % moodboardImages.length;
+            
+            // Set the image source
+            moodboardImage.src = moodboardImages[currentImageIndex];
+            
+            // Generate random rotation for the image (-3 to 3 degrees for subtlety)
+            const rotation = (Math.random() * 6 - 3).toFixed(1);
+            
+            // Apply the random rotation
+            moodboardContainer.style.setProperty('--random-rotation', `${rotation}deg`);
+            
+            // Preload the next image
+            if (moodboardImages.length > 1) {
+                const nextIndex = (currentImageIndex + 1) % moodboardImages.length;
+                const preloadImage = new Image();
+                preloadImage.src = moodboardImages[nextIndex];
+            }
+        }
+    </script>
+
     <!-- Include JavaScript files -->
     <script src="script.js"></script>
     <script src="mobile.js"></script>

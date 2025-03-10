@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
         optimizeImagesForMobile();
         setupMobileWindowBehavior();
         setupMobileMusicPlayer();
+        setupMobileMoodboard();
         
         // Delay showing the earbuds window to ensure DOM is fully ready
         setTimeout(() => {
@@ -784,4 +785,47 @@ function closeWindow(windowId) {
     // Hide the window
     window.classList.remove('active-mobile');
     window.style.display = 'none';
+}
+
+/**
+ * Sets up mobile moodboard functionality
+ */
+function setupMobileMoodboard() {
+    const moodboardWindow = document.getElementById('moodboard-window');
+    
+    if (!moodboardWindow) {
+        console.log('Moodboard window not found');
+        return;
+    }
+    
+    console.log('Setting up mobile moodboard');
+    
+    // Ensure the moodboard is properly sized on mobile
+    function adjustMoodboardSize() {
+        if (window.innerWidth <= 768) {
+            const windowHeight = window.innerHeight;
+            const mobileMenuHeight = document.querySelector('.mobile-menu')?.offsetHeight || 60;
+            moodboardWindow.style.height = `${windowHeight - mobileMenuHeight}px`;
+        }
+    }
+    
+    // Adjust size on orientation change
+    window.addEventListener('resize', adjustMoodboardSize);
+    window.addEventListener('orientationchange', adjustMoodboardSize);
+    
+    // Initial adjustment
+    adjustMoodboardSize();
+    
+    // Enhance touch experience for moodboard
+    const moodboardContent = moodboardWindow.querySelector('.moodboard-content');
+    if (moodboardContent) {
+        // Add touch feedback
+        moodboardContent.addEventListener('touchstart', function() {
+            this.style.opacity = '0.9';
+        });
+        
+        moodboardContent.addEventListener('touchend', function() {
+            this.style.opacity = '1';
+        });
+    }
 } 

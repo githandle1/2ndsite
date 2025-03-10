@@ -395,6 +395,35 @@
         padding: 10px !important;
         margin: 0 auto !important;
     }
+    
+    /* Mobile Moodboard Styles */
+    #moodboard-window {
+        width: 100% !important;
+        height: calc(100% - 60px) !important;
+        top: 0 !important;
+        left: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+    
+    .moodboard-content {
+        padding: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .moodboard-container {
+        flex: 1 !important;
+        padding: 10px !important;
+    }
+    
+    .moodboard-instructions {
+        font-size: 14px !important;
+        padding: 12px !important;
+        background-color: #f5f0e0 !important;
+        border-top: 1px solid #e0dbd0 !important;
+        position: relative !important;
+    }
 }
 
 /* Small phones */
