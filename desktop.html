@@ -1005,11 +1005,12 @@
                     <button>⏭</button>
                 </div>
                 <div class="winamp-playlist">
-                    <div class="playlist-item active">1. Careless Whisper - George Michael</div>
-                    <div class="playlist-item">2. Final Credits - Midland</div>
-                    <div class="playlist-item">3. Get It Together - Drake, Black Coffee, Jorja Smith</div>
-                    <div class="playlist-item">4. Opal - Four Tet Remix - BICEP, Four Tet</div>
-                    <div class="playlist-item">5. Thousand Finger Man - Candido</div>
+                    <div class="playlist-item active">1. I Love Video - New Paradise</div>
+                    <div class="playlist-item">2. Careless Whisper - George Michael</div>
+                    <div class="playlist-item">3. Final Credits - Midland</div>
+                    <div class="playlist-item">4. Get It Together - Drake, Black Coffee, Jorja Smith</div>
+                    <div class="playlist-item">5. Opal - Four Tet Remix - BICEP, Four Tet</div>
+                    <div class="playlist-item">6. Thousand Finger Man - Candido</div>
                 </div>
                 <div class="winamp-equalizer">
                     <canvas id="visualizer"></canvas>
@@ -1381,6 +1382,7 @@
             
             // Music files
             const musicFiles = [
+                'music/SpotiDownloader.com - I Love Video - New Paradise.mp3',
                 'music/SpotiDown.App - Careless Whisper - George Michael.mp3',
                 'music/SpotiDown.App - Final Credits - Midland.mp3',
                 'music/SpotiDown.App - Get It Together - Drake, Black Coffee, Jorja Smith.mp3',
@@ -1393,6 +1395,10 @@
             let isPlaying = false;
             let audio = new Audio();
             audio.load(); // Ensure audio is loaded
+            
+            // Make audio and currentTrack globally accessible for mobile.js
+            window.audio = audio;
+            window.currentTrack = currentTrack;
             
             // Initialize audio visualization
             let audioContext = null;
@@ -1498,6 +1504,7 @@
                 try {
                     // Update current track index
                     currentTrack = index;
+                    window.currentTrack = index; // Update global reference for mobile.js
                     
                     // Update UI
                     playlistItems.forEach((item, i) => {

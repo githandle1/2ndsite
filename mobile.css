@@ -352,15 +352,26 @@
         display: none !important;
     }
     
+    /* Style the winamp header consistently */
+    #winamp-window .winamp-header {
+        padding: 15px 10px !important;
+        font-size: 16px !important;
+        font-weight: normal !important;
+        text-align: center !important;
+        background-color: rgba(247, 201, 195, 0.1) !important;
+        margin-bottom: 10px !important;
+    }
+    
     /* Make playlist items more tappable */
     #winamp-window .playlist-item {
         padding: 15px 10px !important;
         margin: 8px 0 !important;
         background-color: rgba(247, 201, 195, 0.1) !important;
         border-radius: 8px !important;
-        font-size: 16px !important;
+        font-size: 16px !important; /* Same size as the header */
         position: relative !important;
         transition: background-color 0.2s ease !important;
+        border-bottom: none !important;
     }
     
     #winamp-window .playlist-item:active,
@@ -373,17 +384,9 @@
         font-weight: bold !important;
     }
     
-    /* Add play icon indicator to playlist items */
+    /* Remove play icon indicator from playlist items */
     #winamp-window .playlist-item::before {
-        content: '▶' !important;
-        display: inline-block !important;
-        margin-right: 8px !important;
-        font-size: 12px !important;
-        opacity: 0.5 !important;
-    }
-    
-    #winamp-window .playlist-item.active::before {
-        opacity: 1 !important;
+        content: none !important;
     }
     
     #winamp-window .music-player {

@@ -426,10 +426,10 @@ function setupMobileMusicPlayer() {
         return;
     }
     
-    console.log('Setting up mobile music player with direct tap functionality');
+    console.log('Setting up mobile music player with tap-to-play/pause functionality');
     
     // Make playlist items more touch-friendly and enhance tap behavior
-    playlistItems.forEach(item => {
+    playlistItems.forEach((item, itemIndex) => {
         // Remove any existing event listeners
         const newItem = item.cloneNode(true);
         item.parentNode.replaceChild(newItem, item);
@@ -443,10 +443,29 @@ function setupMobileMusicPlayer() {
             e.preventDefault();
             this.style.backgroundColor = '';
             
-            // Trigger the click event that's already set up in desktop.html
-            this.click();
+            // Get the current audio and player state
+            const audio = window.audio || document.querySelector('audio');
+            const isPlaying = !audio.paused;
+            const currentTrack = window.currentTrack !== undefined ? window.currentTrack : 0;
             
-            // Add a visual feedback that the song is playing
+            // If this is the currently playing track, toggle play/pause
+            if (itemIndex === currentTrack) {
+                if (isPlaying) {
+                    // Pause the current track
+                    audio.pause();
+                    console.log('Paused track:', itemIndex);
+                } else {
+                    // Resume the current track
+                    audio.play().catch(err => console.error('Error resuming playback:', err));
+                    console.log('Resumed track:', itemIndex);
+                }
+            } else {
+                // Play a different track - use the existing click handler
+                this.click();
+                console.log('Playing new track:', itemIndex);
+            }
+            
+            // Add visual feedback
             setTimeout(() => {
                 // Remove active class from all items
                 playlistItems.forEach(i => {
