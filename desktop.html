@@ -1038,7 +1038,14 @@
         
         // Show windows by default to match the image
         document.getElementById('about-window').style.display = 'block';
-        document.getElementById('winamp-window').style.display = 'block';
+        
+        // Only show winamp window by default on desktop, not on mobile
+        if (!(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768)) {
+            document.getElementById('winamp-window').style.display = 'block';
+        } else {
+            document.getElementById('winamp-window').style.display = 'none';
+        }
+        
         document.getElementById('chat-window').style.display = 'none';
         
         // Make windows draggable
