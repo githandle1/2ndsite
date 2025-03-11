@@ -383,34 +383,65 @@ function setupMobileWindowNavigation() {
     // Add click event to close buttons
     const closeButtons = document.querySelectorAll('.title-bar-controls button:last-child');
     closeButtons.forEach(button => {
-        // Remove original onclick
-        const parentWindow = button.closest('.window');
-        if (parentWindow) {
-            button.removeAttribute('onclick');
-            
-            // Add new click event
-            button.addEventListener('click', function() {
-                // When closing a window, show the welcome window by default
-                showMobileWindow('about-window');
-                updateActiveMobileIcon('about-window');
-            });
+        // Only override onclick for mobile view
+        if (isMobile) {
+            // Remove original onclick
+            const parentWindow = button.closest('.window');
+            if (parentWindow) {
+                const windowId = parentWindow.id;
+                button.removeAttribute('onclick');
+                
+                // Add new click event with improved handling
+                button.addEventListener('click', function(e) {
+                    // Prevent default behavior and stop propagation immediately
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // First close the current window
+                    console.log('Mobile close button clicked for:', windowId);
+                    closeWindow(windowId);
+                    
+                    // Then show the welcome window by default
+                    showMobileWindow('about-window');
+                    updateActiveMobileIcon('about-window');
+                    
+                    // Return false to prevent any additional event handling
+                    return false;
+                });
+                
+                // Also handle mousedown/touchstart to prevent any window movement
+                button.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                });
+                
+                button.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                });
+            }
         }
     });
     
     // Add click event to minimize buttons
     const minimizeButtons = document.querySelectorAll('.title-bar-controls button:first-child');
     minimizeButtons.forEach(button => {
-        // Remove original onclick
-        const parentWindow = button.closest('.window');
-        if (parentWindow) {
-            button.removeAttribute('onclick');
-            
-            // Add new click event
-            button.addEventListener('click', function() {
-                // When minimizing a window, show the welcome window by default
-                showMobileWindow('about-window');
-                updateActiveMobileIcon('about-window');
-            });
+        // Only override onclick for mobile view
+        if (isMobile) {
+            // Remove original onclick
+            const parentWindow = button.closest('.window');
+            if (parentWindow) {
+                button.removeAttribute('onclick');
+                
+                // Add new click event
+                button.addEventListener('click', function() {
+                    // When minimizing a window, show the welcome window by default
+                    showMobileWindow('about-window');
+                    updateActiveMobileIcon('about-window');
+                });
+            }
         }
     });
 }
@@ -806,6 +837,20 @@ function setupMobileMoodboard() {
             const windowHeight = window.innerHeight;
             const mobileMenuHeight = document.querySelector('.mobile-menu')?.offsetHeight || 60;
             moodboardWindow.style.height = `${windowHeight - mobileMenuHeight}px`;
+            
+            // Apply consistent mobile styling
+            moodboardWindow.style.width = '100%';
+            moodboardWindow.style.top = '0';
+            moodboardWindow.style.left = '0';
+            moodboardWindow.style.margin = '0';
+            moodboardWindow.style.borderRadius = '0';
+            
+            // Style the title bar consistently
+            const titleBar = moodboardWindow.querySelector('.title-bar');
+            if (titleBar) {
+                titleBar.style.borderRadius = '0';
+                titleBar.style.padding = '10px 15px';
+            }
         }
     }
     
@@ -820,12 +865,27 @@ function setupMobileMoodboard() {
     const moodboardContent = moodboardWindow.querySelector('.moodboard-content');
     if (moodboardContent) {
         // Add touch feedback
-        moodboardContent.addEventListener('touchstart', function() {
+        moodboardContent.addEventListener('touchstart', function(e) {
             this.style.opacity = '0.9';
         });
         
-        moodboardContent.addEventListener('touchend', function() {
+        moodboardContent.addEventListener('touchend', function(e) {
             this.style.opacity = '1';
+            
+            // Prevent default to avoid any unwanted behaviors
+            e.preventDefault();
         });
+        
+        // Ensure proper tap handling
+        moodboardContent.addEventListener('click', function(e) {
+            // Make sure the click event propagates properly
+            e.stopPropagation();
+            showNextMoodboardImage();
+        });
+    }
+    
+    // Add the moodboard window to the mobile windows list
+    if (!mobileWindows.includes('moodboard-window')) {
+        mobileWindows.push('moodboard-window');
     }
 } 

@@ -406,23 +406,49 @@
         border-radius: 0 !important;
     }
     
+    #moodboard-window .window-content {
+        padding: 10px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+    }
+    
     .moodboard-content {
         padding: 0 !important;
         display: flex !important;
         flex-direction: column !important;
+        background-color: #f5f0e0 !important;
     }
     
     .moodboard-container {
         flex: 1 !important;
-        padding: 10px !important;
+        padding: 15px !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        min-height: 300px !important;
+    }
+    
+    #moodboard-image {
+        max-width: 90% !important;
+        max-height: 90% !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+        border-radius: 4px !important;
     }
     
     .moodboard-instructions {
         font-size: 14px !important;
-        padding: 12px !important;
-        background-color: #f5f0e0 !important;
+        padding: 15px !important;
+        background-color: rgba(247, 201, 195, 0.1) !important;
         border-top: 1px solid #e0dbd0 !important;
         position: relative !important;
+        text-align: center !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin-top: auto !important;
     }
 }
 

@@ -454,6 +454,19 @@
             align-items: center;
             cursor: pointer;
             color: black;
+            position: relative;
+            z-index: 10; /* Ensure buttons are above other elements */
+        }
+        
+        /* Add a pseudo-element to increase the clickable area without changing appearance */
+        .title-bar-controls button:last-child::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            z-index: -1; /* Behind the button but still part of it for clicks */
         }
         
         .window-content {
@@ -815,6 +828,35 @@
             color: #f9e04c; /* Yellow color for the current date */
             font-weight: bold;
         }
+        
+        /* Minimized window styles */
+        .window.minimized {
+            height: 30px !important;
+            overflow: hidden;
+            transition: height 0.2s ease-out;
+        }
+        
+        .window.minimized .window-content {
+            display: none;
+        }
+        
+        .window.minimized .resize-handle {
+            display: none;
+        }
+        
+        /* Maximized window styles */
+        .window.maximized {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            transition: all 0.2s ease-out;
+            z-index: 100 !important;
+        }
+        
+        .window.maximized .resize-handle {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -935,9 +977,9 @@
         <div class="title-bar">
             <div class="title-bar-text">C://welcome</div>
             <div class="title-bar-controls">
-                <button>_</button>
-                <button>□</button>
-                <button onclick="toggleWindow('about-window')">×</button>
+                <button onclick="minimizeWindow('about-window')">_</button>
+                <button onclick="maximizeWindow('about-window')">□</button>
+                <button onclick="closeWindow('about-window')">×</button>
             </div>
         </div>
         <div class="window-content">
@@ -967,9 +1009,9 @@
         <div class="title-bar">
             <div class="title-bar-text">C://chat_with_maya</div>
             <div class="title-bar-controls">
-                <button>_</button>
-                <button>□</button>
-                <button onclick="toggleWindow('chat-window')">×</button>
+                <button onclick="minimizeWindow('chat-window')">_</button>
+                <button onclick="maximizeWindow('chat-window')">□</button>
+                <button onclick="closeWindow('chat-window')">×</button>
             </div>
         </div>
         <div class="window-content">
@@ -996,9 +1038,9 @@
         <div class="title-bar">
             <div class="title-bar-text">maya's earbuds</div>
             <div class="title-bar-controls">
-                <button>_</button>
-                <button>□</button>
-                <button onclick="toggleWindow('winamp-window')">×</button>
+                <button onclick="minimizeWindow('winamp-window')">_</button>
+                <button onclick="maximizeWindow('winamp-window')">□</button>
+                <button onclick="closeWindow('winamp-window')">×</button>
             </div>
         </div>
         <div class="window-content" style="padding: 0;">
@@ -1019,6 +1061,7 @@
                     <div class="playlist-item">4. Get It Together - Drake, Black Coffee, Jorja Smith</div>
                     <div class="playlist-item">5. Opal - Four Tet Remix - BICEP, Four Tet</div>
                     <div class="playlist-item">6. Thousand Finger Man - Candido</div>
+                    <div class="playlist-item">7. 24 Préludes, Op. 28: No. 24 in D Minor - Frédéric Chopin</div>
                 </div>
                 <div class="winamp-equalizer">
                     <canvas id="visualizer"></canvas>
@@ -1036,9 +1079,9 @@
         <div class="title-bar">
             <div class="title-bar-text">C://moodboard</div>
             <div class="title-bar-controls">
-                <button>_</button>
-                <button>□</button>
-                <button onclick="toggleWindow('moodboard-window')">×</button>
+                <button onclick="minimizeWindow('moodboard-window')">_</button>
+                <button onclick="maximizeWindow('moodboard-window')">□</button>
+                <button onclick="closeWindow('moodboard-window')">×</button>
             </div>
         </div>
         <div class="window-content moodboard-content" onclick="showNextMoodboardImage()">
@@ -1097,6 +1140,35 @@
             border-top: 1px solid #e0dbd0;
             margin-top: auto;
         }
+        
+        /* Minimized window styles */
+        .window.minimized {
+            height: 30px !important;
+            overflow: hidden;
+            transition: height 0.2s ease-out;
+        }
+        
+        .window.minimized .window-content {
+            display: none;
+        }
+        
+        .window.minimized .resize-handle {
+            display: none;
+        }
+        
+        /* Maximized window styles */
+        .window.maximized {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            transition: all 0.2s ease-out;
+            z-index: 100 !important;
+        }
+        
+        .window.maximized .resize-handle {
+            display: none;
+        }
     </style>
 
     <script>
@@ -1154,6 +1226,119 @@
                 window.style.display = 'block';
             } else {
                 window.style.display = 'none';
+            }
+        }
+        
+        // Function to close a window
+        function closeWindow(windowId) {
+            console.log('Closing window:', windowId);
+            const window = document.getElementById(windowId);
+            
+            if (!window) {
+                console.error('Window not found:', windowId);
+                return;
+            }
+            
+            // Remove any classes that might interfere with display
+            window.classList.remove('minimized');
+            window.classList.remove('maximized');
+            
+            // Ensure the display property is set to 'none'
+            window.style.display = 'none';
+            
+            console.log('Window closed, display set to:', window.style.display);
+        }
+        
+        // Ensure all close buttons work by adding direct event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeButtons = document.querySelectorAll('.title-bar-controls button:last-child');
+            closeButtons.forEach(button => {
+                const parentWindow = button.closest('.window');
+                if (parentWindow) {
+                    const windowId = parentWindow.id;
+                    
+                    // Remove the inline onclick attribute to prevent double execution
+                    button.removeAttribute('onclick');
+                    
+                    // Add more robust click event listener
+                    button.addEventListener('click', function(e) {
+                        console.log('Close button clicked for:', windowId);
+                        // Prevent default behavior and stop propagation immediately
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Close the window
+                        closeWindow(windowId);
+                        
+                        // Return false to prevent any additional event handling
+                        return false;
+                    });
+                    
+                    // Also handle mousedown to prevent any window movement
+                    button.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    });
+                }
+            });
+        });
+        
+        // Function to minimize a window
+        function minimizeWindow(windowId) {
+            const window = document.getElementById(windowId);
+            
+            // If window is already minimized, restore it
+            if (window.classList.contains('minimized')) {
+                window.classList.remove('minimized');
+                const windowContent = window.querySelector('.window-content');
+                if (windowContent) {
+                    windowContent.style.display = 'block';
+                }
+                window.style.height = window.dataset.originalHeight || 'auto';
+            } else {
+                // Save current height
+                window.dataset.originalHeight = window.style.height;
+                
+                // Add minimized class
+                window.classList.add('minimized');
+                
+                // Hide content
+                const windowContent = window.querySelector('.window-content');
+                if (windowContent) {
+                    windowContent.style.display = 'none';
+                }
+                
+                // Reduce height to just the title bar
+                window.style.height = '30px';
+            }
+        }
+        
+        // Function to maximize a window
+        function maximizeWindow(windowId) {
+            const window = document.getElementById(windowId);
+            
+            // If window is already maximized, restore it
+            if (window.classList.contains('maximized')) {
+                // Restore original position and size
+                window.classList.remove('maximized');
+                window.style.top = window.dataset.originalTop || '50px';
+                window.style.left = window.dataset.originalLeft || '50px';
+                window.style.width = window.dataset.originalWidth || '500px';
+                window.style.height = window.dataset.originalHeight || '400px';
+            } else {
+                // Save current position and size
+                window.dataset.originalTop = window.style.top;
+                window.dataset.originalLeft = window.style.left;
+                window.dataset.originalWidth = window.style.width;
+                window.dataset.originalHeight = window.style.height;
+                
+                // Maximize window
+                window.classList.add('maximized');
+                window.style.top = '0';
+                window.style.left = '0';
+                window.style.width = '100%';
+                window.style.height = '100%';
             }
         }
         
@@ -1361,11 +1546,13 @@
         makeWindowDraggable('about-window');
         makeWindowDraggable('winamp-window');
         makeWindowDraggable('chat-window');
+        makeWindowDraggable('moodboard-window');
         
         // Initialize resizable windows
         makeWindowResizable('about-window');
         makeWindowResizable('winamp-window');
         makeWindowResizable('chat-window');
+        makeWindowResizable('moodboard-window');
         
         // Chat functionality
         function sendMessage() {
@@ -1507,7 +1694,8 @@
                 'music/SpotiDown.App - Final Credits - Midland.mp3',
                 'music/SpotiDown.App - Get It Together - Drake, Black Coffee, Jorja Smith.mp3',
                 'music/SpotiDown.App - Opal - Four Tet Remix - BICEP, Four Tet.mp3',
-                'music/SpotiDown.App - Thousand Finger Man - Candido.mp3'
+                'music/SpotiDown.App - Thousand Finger Man - Candido.mp3',
+                'music/SpotiDownloader.com - 24 Préludes, Op. 28_ No. 24 in D Minor. Allegro appassionato - Frédéric Chopin.mp3'
             ];
             
             // Player state
