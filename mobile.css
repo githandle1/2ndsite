@@ -11,7 +11,12 @@
         height: 100%;
         margin: 0;
         padding: 0;
-        background-color: #f0f0f0;
+        background-color: #f0ece4;
+        background-image: 
+            linear-gradient(#ccc 1px, transparent 1px),
+            linear-gradient(90deg, #ccc 1px, transparent 1px);
+        background-size: 20px 20px;
+        background-attachment: fixed;
     }
     
     /* Add yellow bar for mobile */

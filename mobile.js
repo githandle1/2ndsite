@@ -250,7 +250,7 @@ function setupMobileWindowBehavior() {
                 width: 100% !important;
                 box-sizing: border-box !important;
             `);
-            
+
             // Style title text
             const titleText = titleBar.querySelector('.title-bar-text');
             if (titleText) {
@@ -318,6 +318,36 @@ function setupMobileWindowBehavior() {
                         });
                     } else if (index === 2) {
                         // Third button - Close
+                        // Remove onclick attribute
+                        button.removeAttribute('onclick');
+                        
+                        // Add touch events for mobile
+                        button.addEventListener('touchstart', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.style.opacity = '0.7';
+                        });
+
+                        button.addEventListener('touchend', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.style.opacity = '1';
+                            
+                            const windowElement = this.closest('.window');
+                            const windowId = windowElement.id;
+                            
+                            console.log('Mobile close button touched for window:', windowId);
+                            
+                            // Hide the window
+                            windowElement.style.setProperty('display', 'none', 'important');
+                            windowElement.classList.remove('active-mobile');
+                            
+                            // Show the welcome window
+                            showMobileWindow('about-window');
+                            updateActiveMobileIcon('about-window');
+                        });
+
+                        // Keep click handler for non-touch devices
                         button.addEventListener('click', function(e) {
                             e.stopPropagation();
                             const parentWindow = this.closest('.window');
