@@ -113,7 +113,7 @@ window.addEventListener('load', function() {
                     padding: '0',
                     borderRadius: '8px',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    border: '2.3px solid #F7C9C3'
+                    border: '2.3px solid #6F8FAF'
                 };
                 
                 // Apply common styles
@@ -498,7 +498,7 @@ function setupMobileMusicPlayer() {
         
         // Add enhanced touch event handling
         newItem.addEventListener('touchstart', function() {
-            this.style.backgroundColor = 'rgba(247, 201, 195, 0.5)';
+            this.style.backgroundColor = 'rgba(111, 143, 175, 0.5)';
         });
         
         newItem.addEventListener('touchend', function(e) {
@@ -587,7 +587,7 @@ function showMobileWindow(windowId) {
             padding: '0',
             borderRadius: '8px',
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            border: '2.3px solid #F7C9C3'
+            border: '2.3px solid #6F8FAF'
         };
         
         // Apply common styles
@@ -598,7 +598,7 @@ function showMobileWindow(windowId) {
             console.log('Applying special styling for winamp window');
             // Ensure the winamp window has the same styling as the welcome window
             // but with specific adjustments for its content
-            targetWindow.querySelector('.title-bar').style.backgroundColor = '#F7C9C3';
+            targetWindow.querySelector('.title-bar').style.backgroundColor = '#6F8FAF';
             targetWindow.querySelector('.title-bar').style.color = '#333';
         }
         // Special handling for about window
@@ -614,12 +614,12 @@ function showMobileWindow(windowId) {
             targetWindow.style.borderRadius = '8px';
             targetWindow.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
             targetWindow.style.backgroundColor = '#ffffff';
-            targetWindow.style.border = '2.3px solid #F7C9C3';
+            targetWindow.style.border = '2.3px solid #6F8FAF';
             
             // Ensure the title bar has the pale pink color
             const titleBar = targetWindow.querySelector('.title-bar');
             if (titleBar) {
-                titleBar.style.backgroundColor = '#F7C9C3';
+                titleBar.style.backgroundColor = '#6F8FAF';
                 titleBar.style.padding = '3px 8px';
                 titleBar.style.color = '#333';
             }

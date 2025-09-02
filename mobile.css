@@ -76,13 +76,13 @@
         border-radius: 8px !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
         background-color: #ffffff !important;
-        border: 2.3px solid #F7C9C3 !important;
+        border: 2.3px solid #6F8FAF !important;
     }
     
     /* Add pale pink title bar for all windows */
     #about-window .title-bar,
     #winamp-window .title-bar {
-        background-color: #F7C9C3 !important;
+        background-color: #6F8FAF !important;
         padding: 3px 8px !important;
         display: flex !important;
         justify-content: space-between !important;
@@ -363,7 +363,7 @@
         font-size: 16px !important;
         font-weight: normal !important;
         text-align: center !important;
-        background-color: rgba(247, 201, 195, 0.1) !important;
+        background-color: rgba(111, 143, 175, 0.1) !important;
         margin-bottom: 10px !important;
     }
     
@@ -371,7 +371,7 @@
     #winamp-window .playlist-item {
         padding: 15px 10px !important;
         margin: 8px 0 !important;
-        background-color: rgba(247, 201, 195, 0.1) !important;
+        background-color: rgba(111, 143, 175, 0.1) !important;
         border-radius: 8px !important;
         font-size: 16px !important; /* Same size as the header */
         position: relative !important;
@@ -381,11 +381,11 @@
     
     #winamp-window .playlist-item:active,
     #winamp-window .playlist-item:hover {
-        background-color: rgba(247, 201, 195, 0.3) !important;
+        background-color: rgba(111, 143, 175, 0.3) !important;
     }
     
     #winamp-window .playlist-item.active {
-        background-color: rgba(247, 201, 195, 0.5) !important;
+        background-color: rgba(111, 143, 175, 0.5) !important;
         font-weight: bold !important;
     }
     
@@ -447,7 +447,7 @@
     .moodboard-instructions {
         font-size: 14px !important;
         padding: 15px !important;
-        background-color: rgba(247, 201, 195, 0.1) !important;
+        background-color: rgba(111, 143, 175, 0.1) !important;
         border-top: 1px solid #e0dbd0 !important;
         position: relative !important;
         text-align: center !important;
