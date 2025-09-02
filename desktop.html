@@ -397,7 +397,7 @@
             position: absolute;
             background-color: #c0c0c0;
             border: 2px solid;
-            border-color: #ffffff #BFD7EA #BFD7EA #ffffff;
+            border-color: #ffffff #E6F1FA #E6F1FA #ffffff;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
             min-width: 300px;
             min-height: 200px;
@@ -423,7 +423,7 @@
         }
         
         .title-bar {
-            background-color: #BFD7EA; /* Pastel dreamy blue */
+            background-color: #E6F1FA; /* Cloud-like light blue */
             padding: 3px;
             display: flex;
             justify-content: space-between;
@@ -645,7 +645,7 @@
         }
         
         .playlist-item.active {
-            background-color: #BFD7EA; /* Pastel dreamy blue for active item to match title bar */
+            background-color: #E6F1FA; /* Cloud-like light blue for active item to match title bar */
             color: #333;
         }
         
@@ -812,16 +812,16 @@
         }
         
         .window-button:active {
-            border-color: #ffffff #BFD7EA #BFD7EA #ffffff;
+            border-color: #ffffff #E6F1FA #E6F1FA #ffffff;
         }
         
         .nav-item.active {
-            background-color: #BFD7EA; /* Pastel dreamy blue for active item to match title bar */
+            background-color: #E6F1FA; /* Cloud-like light blue for active item to match title bar */
             font-weight: bold;
         }
         
         .music-player-controls button:active {
-            background-color: #BFD7EA;
+            background-color: #E6F1FA;
         }
         
         /* Add styling for the current date to be highlighted in yellow */
@@ -995,7 +995,7 @@
                         </div>
                     </div>
                     <div class="content-section">
-                        <p class="intro-text">Hi, I'm Maya.<br><br>I'm building product and brand marketing at Graphite 🖍️<br><br>Some things I love:<br><br>→ <a href="https://open.spotify.com/playlist/1lUaZ2N7y7mlpPp80sapK4?si=a7c119b33dc340bf" target="_blank" style="color: inherit; text-decoration: none;" class="highlight-link">Music</a><br>→ <a href="https://x.com/SnoopyPhotos/status/1898505018279448643" target="_blank" style="color: inherit; text-decoration: none;" class="highlight-link">Fashion</a><br>→ <span class="highlight-link" style="cursor: pointer;">Stalogy notebooks</span><br><br><a href="mailto:mayabakir38@gmail.com" style="color: inherit; text-decoration: none;">Say hi :~)</a></p>
+                        <p class="intro-text">Hi, I'm Maya.<br><br>I'm building product and brand marketing at Graphite. 🖍️<br><br>Some things I love:<br><br>→ <a href="https://open.spotify.com/playlist/1lUaZ2N7y7mlpPp80sapK4?si=a7c119b33dc340bf" target="_blank" style="color: inherit; text-decoration: none;" class="highlight-link">Music</a><br>→ <a href="https://x.com/SnoopyPhotos/status/1898505018279448643" target="_blank" style="color: inherit; text-decoration: none;" class="highlight-link">Fashion</a><br>→ <span class="highlight-link" style="cursor: pointer;">Stalogy notebooks</span><br><br><a href="mailto:mayabakir38@gmail.com" style="color: inherit; text-decoration: none;">Say hi :~)</a></p>
                     </div>
                 </div>
             </div>
@@ -1757,7 +1757,7 @@
                 canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
                 
                 // Draw static line
-                canvasCtx.fillStyle = '#BFD7EA';
+                canvasCtx.fillStyle = '#E6F1FA';
                 canvasCtx.fillRect(0, canvas.height / 2, canvas.width, 2);
             }
             
@@ -1786,7 +1786,7 @@
                 
                 // Draw waveform
                 canvasCtx.lineWidth = 2;
-                canvasCtx.strokeStyle = '#BFD7EA';
+                canvasCtx.strokeStyle = '#E6F1FA';
                 canvasCtx.beginPath();
                 
                 const sliceWidth = canvas.width / dataArray.length;
@@ -2036,8 +2036,8 @@
                     // Store original color
                     const originalColor = this.style.color || 'inherit';
                     
-                    // Change to pastel dreamy blue
-                    this.style.color = '#BFD7EA';
+                    // Change to cloud-like light blue
+                    this.style.color = '#E6F1FA';
                     
                     // Revert back after 500ms
                     setTimeout(() => {
