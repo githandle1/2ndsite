@@ -397,7 +397,7 @@
             position: absolute;
             background-color: #c0c0c0;
             border: 2px solid;
-            border-color: #ffffff #6F8FAF #6F8FAF #ffffff;
+            border-color: #ffffff #BFD7EA #BFD7EA #ffffff;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
             min-width: 300px;
             min-height: 200px;
@@ -423,7 +423,7 @@
         }
         
         .title-bar {
-            background-color: #6F8FAF; /* Denim blue */
+            background-color: #BFD7EA; /* Pastel dreamy blue */
             padding: 3px;
             display: flex;
             justify-content: space-between;
@@ -645,7 +645,7 @@
         }
         
         .playlist-item.active {
-            background-color: #6F8FAF; /* Denim blue for active item to match title bar */
+            background-color: #BFD7EA; /* Pastel dreamy blue for active item to match title bar */
             color: #333;
         }
         
@@ -812,16 +812,16 @@
         }
         
         .window-button:active {
-            border-color: #ffffff #6F8FAF #6F8FAF #ffffff;
+            border-color: #ffffff #BFD7EA #BFD7EA #ffffff;
         }
         
         .nav-item.active {
-            background-color: #6F8FAF; /* Denim blue for active item to match title bar */
+            background-color: #BFD7EA; /* Pastel dreamy blue for active item to match title bar */
             font-weight: bold;
         }
         
         .music-player-controls button:active {
-            background-color: #6F8FAF;
+            background-color: #BFD7EA;
         }
         
         /* Add styling for the current date to be highlighted in yellow */
@@ -1757,7 +1757,7 @@
                 canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
                 
                 // Draw static line
-                canvasCtx.fillStyle = '#6F8FAF';
+                canvasCtx.fillStyle = '#BFD7EA';
                 canvasCtx.fillRect(0, canvas.height / 2, canvas.width, 2);
             }
             
@@ -1786,7 +1786,7 @@
                 
                 // Draw waveform
                 canvasCtx.lineWidth = 2;
-                canvasCtx.strokeStyle = '#6F8FAF';
+                canvasCtx.strokeStyle = '#BFD7EA';
                 canvasCtx.beginPath();
                 
                 const sliceWidth = canvas.width / dataArray.length;
@@ -2036,8 +2036,8 @@
                     // Store original color
                     const originalColor = this.style.color || 'inherit';
                     
-                    // Change to denim blue
-                    this.style.color = '#6F8FAF';
+                    // Change to pastel dreamy blue
+                    this.style.color = '#BFD7EA';
                     
                     // Revert back after 500ms
                     setTimeout(() => {
