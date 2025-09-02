@@ -129,7 +129,7 @@ body {
     align-items: center;
     position: relative;
     z-index: 2;
-    border: 1px solid #BFD7EA; /* Pastel dreamy blue border */
+    border: 1.1px solid #BFD7EA; /* 10% thicker border */
 }
 
 .windows-logo-img {
