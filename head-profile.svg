@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Background -->
+  <rect width="100" height="100" fill="#f0ece4"/>
+  
+  <!-- Matisse-style head profile - fluid, expressive lines -->
+  <path d="M20 25 Q20 15 30 12 Q40 10 50 12 Q60 10 70 12 Q80 15 80 25 Q80 35 78 45 Q75 55 70 60 Q60 65 50 65 Q40 65 30 60 Q25 55 22 45 Q20 35 20 25 Z" 
+        fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Eye - Matisse almond shape -->
+  <path d="M45 35 Q50 32 55 35 Q50 38 45 35" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="50" cy="35" r="1.5" fill="#000"/>
+  
+  <!-- Nose - flowing Matisse line -->
+  <path d="M50 45 Q52 48 50 52 Q48 48 50 45" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Mouth - expressive Matisse curves -->
+  <path d="M42 58 Q50 62 58 58" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42 60 Q50 64 58 60" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Ear - organic Matisse shape -->
+  <path d="M68 30 Q72 32 70 38 Q68 35 68 30" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Hair - flowing Matisse style -->
+  <path d="M30 15 Q25 10 20 15 Q25 20 30 15" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M35 12 Q32 8 28 12" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Neck - organic Matisse line -->
+  <path d="M42 65 Q50 68 58 65 Q58 75 50 78 Q42 75 42 65" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Decorative Matisse flourishes -->
+  <path d="M15 40 Q18 42 15 44" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M85 45 Q88 47 85 49" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

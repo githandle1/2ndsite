@@ -7,8 +7,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
-    <link rel="shortcut icon" sizes="any" href="favicon.svg?v=5">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=7">
+    <link rel="shortcut icon" sizes="any" href="favicon.svg?v=7">
+    <link rel="apple-touch-icon" href="favicon.svg?v=7">
     <!-- Preload critical background images -->
     <link rel="preload" as="image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0h20v1H0zM0 0h1v20H0z' fill='%23d9d2c0'/%3E%3C/svg%3E">
     <style>
@@ -415,12 +416,6 @@
             height: 550px;
         }
         
-        .winamp-window {
-            top: 50px;
-            right: 50px;
-            width: 275px;
-            height: 400px;
-        }
         
         .title-bar {
             background-color: #E6F1FA; /* Cloud-like light blue */
@@ -597,72 +592,6 @@
             text-decoration: underline;
         }
         
-        /* Winamp styling */
-        .winamp-player {
-            width: 100%;
-            height: 100%;
-            background-color: #f5f2e8; /* Pale beige background */
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .winamp-header {
-            background-color: #f5f2e8; /* Pale beige background */
-            padding: 5px;
-            color: #333; /* Darker text for contrast */
-            font-size: 12px; /* Smaller than the title-bar-text (14px) */
-            font-family: monospace;
-        }
-        
-        .winamp-controls {
-            display: flex;
-            background-color: #ebe6d9; /* Slightly darker beige for controls */
-            padding: 5px;
-        }
-        
-        .winamp-controls button {
-            width: 20px;
-            height: 20px;
-            margin-right: 5px;
-            background-color: #e0daca; /* Button background */
-            border: 1px solid #ccc;
-            color: #333; /* Darker text for contrast */
-            font-size: 10px;
-        }
-        
-        .winamp-playlist {
-            flex: 1;
-            background-color: #f5f2e8; /* Pale beige background */
-            color: #333; /* Darker text for contrast */
-            font-size: 10px;
-            padding: 5px;
-            overflow-y: auto;
-        }
-        
-        .playlist-item {
-            padding: 2px 5px;
-            border-bottom: 1px solid #e0daca;
-        }
-        
-        .playlist-item.active {
-            background-color: #E6F1FA; /* Cloud-like light blue for active item to match title bar */
-            color: #333;
-        }
-        
-        .winamp-equalizer {
-            height: 60px;
-            background-color: #e0daca;
-            border-top: 1px solid #ccc;
-            padding: 5px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        #visualizer {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
         
         /* Chat Window Styling */
         .chat-window {
@@ -926,10 +855,6 @@
             <div class="filled-dot">🔖</div>
             <div class="icon-label">working<br>on</div>
         </div>
-        <div class="icon" onclick="toggleWindow('winamp-window')">
-            <div class="filled-dot">🔖</div>
-            <div class="icon-label">maya's<br>earbuds</div>
-        </div>
         <div class="icon" onclick="window.open('https://www.cosmos.so/babka/fashion', '_blank')">
             <div class="filled-dot">🔖</div>
             <div class="icon-label">what i'm<br>saving</div>
@@ -938,13 +863,13 @@
             <div class="filled-dot">🔖</div>
             <div class="icon-label">moodboard</div>
         </div>
-        <div class="icon" onclick="javascript:void(0);">
-            <div class="filled-dot">🔖</div>
-            <div class="icon-label">field<br>notes</div>
-        </div>
         <div class="icon" onclick="toggleWindow('journal-window')">
             <div class="filled-dot">🔖</div>
-            <div class="icon-label">journal</div>
+            <div class="icon-label">field notes</div>
+        </div>
+        <div class="icon" onclick="toggleWindow('youtube-window')">
+            <div class="filled-dot">🔖</div>
+            <div class="icon-label">listening bar</div>
         </div>
         <div class="icon" onclick="window.location.href='mailto:mayabakir38@gmail.com'">
             <div class="filled-dot">🔖</div>
@@ -962,10 +887,6 @@
             <div class="mobile-icon" onclick="window.open('https://graphite.dev', '_blank')">
                 <div class="filled-dot">🔖</div>
                 <div>working on</div>
-            </div>
-            <div class="mobile-icon" onclick="showMobileWindow('winamp-window'); updateActiveMobileIcon('winamp-window')">
-                <div class="filled-dot">🔖</div>
-                <div>earbuds</div>
             </div>
             <div class="mobile-icon" onclick="window.open('https://www.cosmos.so/babka/fashion', '_blank')">
                 <div class="filled-dot">🔖</div>
@@ -1043,47 +964,6 @@
         <div class="resize-handle nw"></div>
     </div>
     
-    <!-- Winamp Window -->
-    <div id="winamp-window" class="window winamp-window">
-        <div class="title-bar">
-            <div class="title-bar-text">maya's earbuds</div>
-            <div class="title-bar-controls">
-                <button onclick="minimizeWindow('winamp-window')">_</button>
-                <button onclick="maximizeWindow('winamp-window')">□</button>
-                <button onclick="closeWindow('winamp-window')">×</button>
-            </div>
-        </div>
-        <div class="window-content" style="padding: 0;">
-            <div class="winamp-player">
-                <div class="winamp-header">
-                    fall tunes
-                </div>
-                <div class="winamp-controls">
-                    <button>⏮</button>
-                    <button>▶</button>
-                    <button>⏹</button>
-                    <button>⏭</button>
-                </div>
-                <div class="winamp-playlist">
-                    <div class="playlist-item active">1. I Love Video - New Paradise</div>
-                    <div class="playlist-item">2. Careless Whisper - George Michael</div>
-                    <div class="playlist-item">3. Final Credits - Midland</div>
-                    <div class="playlist-item">4. Get It Together - Drake, Black Coffee, Jorja Smith</div>
-                    <div class="playlist-item">5. Opal - Four Tet Remix - BICEP, Four Tet</div>
-                    <div class="playlist-item">6. Thousand Finger Man - Candido</div>
-                    <div class="playlist-item">7. 24 Préludes, Op. 28: No. 24 in D Minor - Frédéric Chopin</div>
-                </div>
-                <div class="winamp-equalizer">
-                    <canvas id="visualizer"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="resize-handle se"></div>
-        <div class="resize-handle sw"></div>
-        <div class="resize-handle ne"></div>
-        <div class="resize-handle nw"></div>
-    </div>
-    
     <!-- Add the moodboard window before the closing body tag -->
     <div id="moodboard-window" class="window">
         <div class="title-bar">
@@ -1107,7 +987,7 @@
     <!-- Journal Window -->
     <div id="journal-window" class="window">
         <div class="title-bar">
-            <div class="title-bar-text">C://journal</div>
+            <div class="title-bar-text">C://field notes</div>
             <div class="title-bar-controls">
                 <button onclick="minimizeWindow('journal-window')">_</button>
                 <button onclick="maximizeWindow('journal-window')">□</button>
@@ -1118,6 +998,42 @@
             <div class="journal-container">
                 <div class="journal-editor">
                     <textarea id="journal-textarea" placeholder="draft a note here"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="resize-handle se"></div>
+        <div class="resize-handle sw"></div>
+        <div class="resize-handle ne"></div>
+        <div class="resize-handle nw"></div>
+    </div>
+    
+    <!-- YouTube Player Window -->
+    <div id="youtube-window" class="window">
+        <div class="title-bar">
+            <div class="title-bar-text">C://listening bar</div>
+            <div class="title-bar-controls">
+                <button onclick="minimizeWindow('youtube-window')">_</button>
+                <button onclick="maximizeWindow('youtube-window')">□</button>
+                <button onclick="closeWindow('youtube-window')">×</button>
+            </div>
+        </div>
+        <div class="window-content youtube-content">
+            <div class="youtube-container">
+                <div class="youtube-player">
+                    <iframe id="youtube-iframe" 
+                            width="100%" 
+                            height="315" 
+                            src="https://www.youtube.com/embed/VTASffPQGhY" 
+                            title="YouTube video player" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen>
+                    </iframe>
+                </div>
+                <div class="youtube-controls">
+                    <div class="playlist-nav">
+                        <button onclick="nextVideo()" class="nav-button">→</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1255,6 +1171,177 @@
             font-style: italic;
         }
         
+        /* YouTube Player Styles */
+        #youtube-window {
+            width: 500px;
+            height: 400px;
+            top: 150px;
+            left: 250px;
+            display: none;
+        }
+        
+        /* Mobile responsiveness for YouTube player */
+        @media (max-width: 768px) {
+            #youtube-window {
+                width: 90vw;
+                height: 60vh;
+                top: 10vh;
+                left: 5vw;
+                max-width: 500px;
+                max-height: 400px;
+            }
+            
+            .youtube-player iframe {
+                height: 250px !important;
+                transform: scale(1.2) translateY(-8%);
+                clip-path: inset(12% 0 18% 0);
+            }
+            
+            .nav-button {
+                padding: 12px 16px;
+                font-size: 16px;
+                border-radius: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #youtube-window {
+                width: 95vw;
+                height: 65vh;
+                top: 5vh;
+                left: 2.5vw;
+            }
+            
+            .youtube-player iframe {
+                height: 200px !important;
+                transform: scale(1.1) translateY(-6%);
+                clip-path: inset(10% 0 16% 0);
+            }
+            
+            .nav-button {
+                padding: 14px 18px;
+                font-size: 18px;
+                border-radius: 25px;
+            }
+        }
+        
+        .youtube-content {
+            background-color: #f0ece4;
+            overflow: auto;
+            padding: 10px;
+        }
+        
+        .youtube-container {
+            max-width: 100%;
+            margin: 0 auto;
+            height: 100%;
+        }
+        
+        .youtube-player {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .youtube-player iframe {
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: scale(1.4) translateY(-12%);
+            clip-path: inset(15% 0 20% 0);
+        }
+        
+        .youtube-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0px;
+            margin-top: 0px;
+        }
+        
+        .playlist-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .nav-button {
+            padding: 8px 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'MS Sans Serif', monospace;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 4px 15px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .nav-button:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.15) 100%);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(0,0,0,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+        
+        .nav-button:hover::before {
+            left: 100%;
+        }
+        
+        .nav-button:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 2px 10px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        
+        
+        .url-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .url-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-family: 'MS Sans Serif', monospace;
+            font-size: 12px;
+        }
+        
+        .url-input button {
+            padding: 8px 15px;
+            background-color: #E6F1FA;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: 'MS Sans Serif', monospace;
+            font-size: 12px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .url-input button:hover {
+            background-color: #d0e7f7;
+        }
+        
         /* Link hover effects */
         a:hover {
             color: #E6F1FA !important;
@@ -1312,6 +1399,65 @@
                 preloadImage.src = moodboardImages[nextIndex];
             }
         }
+        
+        // YouTube Playlist functionality
+        let currentTrackIndex = 0;
+        
+        // Playlist array - add your song links here
+        const playlist = [
+            'VTASffPQGhY', // SHINee - Replay (current default)
+            // Add more video IDs here as you provide them
+        ];
+        
+        function updateTrackInfo() {
+            // Track info display removed
+        }
+        
+        function loadTrack(index) {
+            if (index >= 0 && index < playlist.length) {
+                currentTrackIndex = index;
+                const iframe = document.getElementById('youtube-iframe');
+                iframe.src = `https://www.youtube.com/embed/${playlist[index]}`;
+                updateTrackInfo();
+            }
+        }
+        
+        function nextVideo() {
+            const nextIndex = (currentTrackIndex + 1) % playlist.length;
+            loadTrack(nextIndex);
+        }
+        
+        function previousVideo() {
+            const prevIndex = currentTrackIndex === 0 ? playlist.length - 1 : currentTrackIndex - 1;
+            loadTrack(prevIndex);
+        }
+        
+        function loadYouTubeVideo() {
+            const urlInput = document.getElementById('youtube-url');
+            const iframe = document.getElementById('youtube-iframe');
+            let videoId = urlInput.value.trim();
+            
+            // Extract video ID from various YouTube URL formats
+            if (videoId.includes('youtube.com/watch?v=')) {
+                videoId = videoId.split('v=')[1].split('&')[0];
+            } else if (videoId.includes('youtu.be/')) {
+                videoId = videoId.split('youtu.be/')[1].split('?')[0];
+            } else if (videoId.includes('youtube.com/embed/')) {
+                videoId = videoId.split('embed/')[1].split('?')[0];
+            }
+            
+            if (videoId) {
+                iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                urlInput.value = ''; // Clear input after loading
+            } else {
+                alert('Please enter a valid YouTube URL or video ID');
+            }
+        }
+        
+        // Initialize playlist on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTrackInfo();
+        });
         
         // Journal text editor functionality
         function initializeJournal() {
@@ -1468,12 +1614,6 @@
         // Show windows by default to match the image
         document.getElementById('about-window').style.display = 'block';
         
-        // Only show winamp window by default on desktop, not on mobile
-        if (!(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768)) {
-            document.getElementById('winamp-window').style.display = 'block';
-        } else {
-            document.getElementById('winamp-window').style.display = 'none';
-        }
         
         document.getElementById('chat-window').style.display = 'none';
         
@@ -1667,17 +1807,17 @@
         
         // Initialize draggable windows
         makeWindowDraggable('about-window');
-        makeWindowDraggable('winamp-window');
         makeWindowDraggable('chat-window');
         makeWindowDraggable('moodboard-window');
         makeWindowDraggable('journal-window');
+        makeWindowDraggable('youtube-window');
         
         // Initialize resizable windows
         makeWindowResizable('about-window');
-        makeWindowResizable('winamp-window');
         makeWindowResizable('chat-window');
         makeWindowResizable('moodboard-window');
         makeWindowResizable('journal-window');
+        makeWindowResizable('youtube-window');
         
         // Chat functionality
         function sendMessage() {
@@ -1801,290 +1941,6 @@
             return randomResponse;
         }
         
-        // Music player functionality - Simplified implementation
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded - initializing music player');
-            
-            // Get UI elements
-            const playlistItems = document.querySelectorAll('.playlist-item');
-            const playButton = document.querySelector('.winamp-controls button:nth-child(2)');
-            const stopButton = document.querySelector('.winamp-controls button:nth-child(3)');
-            const prevButton = document.querySelector('.winamp-controls button:nth-child(1)');
-            const nextButton = document.querySelector('.winamp-controls button:nth-child(4)');
-            
-            // Music files
-            const musicFiles = [
-                'music/SpotiDownloader.com - I Love Video - New Paradise.mp3',
-                'music/SpotiDown.App - Careless Whisper - George Michael.mp3',
-                'music/SpotiDown.App - Final Credits - Midland.mp3',
-                'music/SpotiDown.App - Get It Together - Drake, Black Coffee, Jorja Smith.mp3',
-                'music/SpotiDown.App - Opal - Four Tet Remix - BICEP, Four Tet.mp3',
-                'music/SpotiDown.App - Thousand Finger Man - Candido.mp3',
-                'music/SpotiDownloader.com - 24 Préludes, Op. 28_ No. 24 in D Minor. Allegro appassionato - Frédéric Chopin.mp3'
-            ];
-            
-            // Player state
-            let currentTrack = 0;
-            let isPlaying = false;
-            let audio = new Audio();
-            audio.load(); // Ensure audio is loaded
-            
-            // Make audio and currentTrack globally accessible for mobile.js
-            window.audio = audio;
-            window.currentTrack = currentTrack;
-            
-            // Initialize audio visualization
-            let audioContext = null;
-            let analyser = null;
-            let dataArray = null;
-            let animationId = null;
-            
-            // Get canvas for visualization
-            const canvas = document.getElementById('visualizer');
-            const canvasCtx = canvas.getContext('2d');
-            
-            // Set canvas dimensions
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
-            
-            // Function to initialize audio context and analyzer
-            function setupAudioContext() {
-                try {
-                    // Create audio context if it doesn't exist
-                    if (!audioContext) {
-                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        analyser = audioContext.createAnalyser();
-                        analyser.fftSize = 256; // Power of 2, affects visualization detail
-                        
-                        // Connect audio to analyser
-                        const source = audioContext.createMediaElementSource(audio);
-                        source.connect(analyser);
-                        analyser.connect(audioContext.destination);
-                        
-                        // Create data array for visualization
-                        dataArray = new Uint8Array(analyser.frequencyBinCount);
-                        
-                        console.log('Audio context initialized successfully');
-                    }
-                    return true;
-                } catch (error) {
-                    console.error('Error setting up audio context:', error);
-                    return false;
-                }
-            }
-            
-            // Draw static visualization (when not playing)
-            function drawStaticVisualization() {
-                // Clear canvas
-                canvasCtx.fillStyle = '#e0daca';
-                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw static line
-                canvasCtx.fillStyle = '#E6F1FA';
-                canvasCtx.fillRect(0, canvas.height / 2, canvas.width, 2);
-            }
-            
-            // Draw waveform visualization
-            function drawWaveform() {
-                // Cancel any existing animation
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                }
-                
-                // If not playing or no audio context, show static visualization
-                if (!isPlaying || !audioContext || !analyser) {
-                    drawStaticVisualization();
-                    return;
-                }
-                
-                // Request next animation frame
-                animationId = requestAnimationFrame(drawWaveform);
-                
-                // Get time domain data
-                analyser.getByteTimeDomainData(dataArray);
-                
-                // Clear canvas
-                canvasCtx.fillStyle = '#e0daca';
-                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw waveform
-                canvasCtx.lineWidth = 2;
-                canvasCtx.strokeStyle = '#E6F1FA';
-                canvasCtx.beginPath();
-                
-                const sliceWidth = canvas.width / dataArray.length;
-                let x = 0;
-                
-                for (let i = 0; i < dataArray.length; i++) {
-                    const v = dataArray[i] / 128.0;
-                    const y = v * canvas.height / 2;
-                    
-                    if (i === 0) {
-                        canvasCtx.moveTo(x, y);
-                    } else {
-                        canvasCtx.lineTo(x, y);
-                    }
-                    
-                    x += sliceWidth;
-                }
-                
-                canvasCtx.lineTo(canvas.width, canvas.height / 2);
-                canvasCtx.stroke();
-            }
-            
-            // Enhanced audio player implementation
-            function loadAndPlayTrack(index) {
-                try {
-                    // Update current track index
-                    currentTrack = index;
-                    window.currentTrack = index; // Update global reference for mobile.js
-                    
-                    // Update UI
-                    playlistItems.forEach((item, i) => {
-                        item.classList.toggle('active', i === index);
-                    });
-                    
-                    // Set audio source
-                    audio.src = musicFiles[index];
-                    
-                    // Ensure audio is loaded before playing
-                    audio.load();
-                    
-                    // Setup audio context if not already done
-                    if (!audioContext) {
-                        setupAudioContext();
-                    }
-                    
-                    // Play audio with proper error handling
-                    const playPromise = audio.play();
-                    
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            console.log('Playing track:', musicFiles[index]);
-                            isPlaying = true;
-                            playButton.innerHTML = '⏸';
-                            
-                            // Ensure the audio context is running (needed for Chrome)
-                            if (audioContext && audioContext.state === 'suspended') {
-                                audioContext.resume().then(() => {
-                                    console.log('AudioContext resumed successfully');
-                                    // Start visualization
-                                    drawWaveform();
-                                });
-                            } else {
-                                // Start visualization
-                                drawWaveform();
-                            }
-                        }).catch(error => {
-                            console.error('Error playing audio:', error);
-                            isPlaying = false;
-                            playButton.innerHTML = '▶';
-                            
-                            // Show user-friendly error message
-                            if (error.name === 'NotAllowedError') {
-                                alert('Please interact with the page first to enable audio playback');
-                            } else {
-                                alert('Error playing audio: ' + error.message);
-                            }
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error in loadAndPlayTrack:', error);
-                    alert('Error: ' + error.message);
-                }
-            }
-            
-            // Initialize first track
-            audio.src = musicFiles[0];
-            
-            // Draw initial static visualization
-            drawStaticVisualization();
-            
-            // Event listeners
-            playButton.addEventListener('click', function() {
-                console.log('Play button clicked');
-                
-                // Setup audio context on first click if not already done
-                if (!audioContext) {
-                    setupAudioContext();
-                }
-                
-                if (isPlaying) {
-                    audio.pause();
-                    isPlaying = false;
-                    playButton.innerHTML = '▶';
-                    console.log('Audio paused');
-                    
-                    // Stop visualization
-                    if (animationId) {
-                        cancelAnimationFrame(animationId);
-                        drawStaticVisualization();
-                    }
-                } else {
-                    loadAndPlayTrack(currentTrack);
-                }
-            });
-            
-            stopButton.addEventListener('click', function() {
-                audio.pause();
-                audio.currentTime = 0;
-                isPlaying = false;
-                playButton.innerHTML = '▶';
-                console.log('Audio stopped');
-                
-                // Stop visualization
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                    drawStaticVisualization();
-                }
-            });
-            
-            nextButton.addEventListener('click', function() {
-                let next = currentTrack + 1;
-                if (next >= musicFiles.length) next = 0;
-                loadAndPlayTrack(next);
-            });
-            
-            prevButton.addEventListener('click', function() {
-                let prev = currentTrack - 1;
-                if (prev < 0) prev = musicFiles.length - 1;
-                loadAndPlayTrack(prev);
-            });
-            
-            // Playlist item click
-            playlistItems.forEach((item, index) => {
-                item.addEventListener('click', function() {
-                    loadAndPlayTrack(index);
-                });
-            });
-            
-            // When track ends, play next
-            audio.addEventListener('ended', function() {
-                let next = currentTrack + 1;
-                if (next >= musicFiles.length) next = 0;
-                loadAndPlayTrack(next);
-            });
-            
-            // Debug events
-            audio.addEventListener('error', function(e) {
-                console.error('Audio error:', e);
-                alert('Error with audio: ' + (e.target.error ? e.target.error.message : 'Unknown error'));
-            });
-            
-            audio.addEventListener('canplay', function() {
-                console.log('Audio can play now');
-            });
-            
-            audio.addEventListener('playing', function() {
-                console.log('Audio is now playing');
-                isPlaying = true;
-            });
-            
-            audio.addEventListener('pause', function() {
-                console.log('Audio is now paused');
-                isPlaying = false;
-            });
-        });
         
         // Add click handling for desktop icons
         document.addEventListener('DOMContentLoaded', function() {
