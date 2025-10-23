@@ -181,6 +181,70 @@
             0%, 100% { opacity: 0.3; }
             50% { opacity: 1; }
         }
+
+        /* Door overlay */
+        .door-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 400ms ease;
+            z-index: 20;
+        }
+
+        .door-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .door {
+            position: relative;
+            width: min(50vw, 520px);
+            height: min(70vh, 680px);
+            max-width: 92vmin;
+            max-height: 92vmin;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.15) inset;
+        }
+
+        .door-frame {
+            position: absolute;
+            inset: 0;
+            border: 6px solid rgba(255, 215, 0, 0.6);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.25) inset;
+            pointer-events: none;
+        }
+
+        .door-panel {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 50%;
+            transition: transform 900ms ease-in-out;
+            background: linear-gradient(135deg, #2d2a57 0%, #0f3460 100%);
+            box-shadow: 0 0 30px rgba(0,0,0,0.35) inset;
+        }
+
+        .door-left { left: 0; border-right: 1px solid rgba(255,255,255,0.15); }
+        .door-right { right: 0; border-left: 1px solid rgba(255,255,255,0.15); }
+
+        .door.open .door-left { transform: translateX(-100%); }
+        .door.open .door-right { transform: translateX(100%); }
+
+        .door-label {
+            margin-top: 16px;
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(14px, 3.4vmin, 26px);
+            color: rgba(255,255,255,0.85);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -208,6 +272,16 @@
         </div>
         
         <div class="stars" id="stars"></div>
+
+        <!-- Door overlay that opens to a Little Prince page -->
+        <div class="door-overlay" id="doorOverlay" aria-hidden="true">
+            <div class="door" id="door">
+                <div class="door-panel door-left"></div>
+                <div class="door-panel door-right"></div>
+                <div class="door-frame"></div>
+            </div>
+            <div class="door-label">the little prince</div>
+        </div>
     </div>
 
     <script>
@@ -317,6 +391,17 @@
         let shootingStars = [];
         let asteroids = [];
         let stars = [];
+
+        // Door sequence variables
+        let doorSequenceRunning = false;
+        let selectedAsteroid = null;
+        let sequenceState = 'idle'; // 'idle' | 'movingToCenter' | 'pause' | 'doorOpen'
+        let sequenceStartTime = 0;
+        const moveToCenterDuration = 1800; // ms
+        const pauseDuration = 900; // ms
+        const doorOpenDuration = 1200; // ms
+        let startX = 0, startY = 0, startSize = 0;
+        let targetSize = 70; // larger when centered
         
         // Interaction variables
         let isDragging = false;
@@ -398,6 +483,8 @@
         // Draw asteroid
         function drawAsteroid(asteroid) {
             ctx.save();
+            const alpha = (typeof asteroid.alpha === 'number') ? asteroid.alpha : 1;
+            ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
             ctx.translate(asteroid.x, asteroid.y);
             ctx.rotate(asteroid.rotation);
             
@@ -436,19 +523,24 @@
         
         // Update animation
         function update() {
-            // Update asteroids only
+            // Update asteroids (skip selected one during sequence)
             asteroids.forEach(asteroid => {
-                asteroid.x -= asteroid.speed;
-                asteroid.rotation += asteroid.rotationSpeed;
-                asteroid.twinklePhase += asteroid.twinkleSpeed;
-                
-                // Reset asteroid position when it goes off screen
-                if (asteroid.x < -asteroid.size * 2) {
-                    asteroid.x = canvas.width + asteroid.size * 2;
-                    asteroid.y = Math.random() * canvas.height;
-                    asteroid.twinklePhase = Math.random() * Math.PI * 2;
+                const isSelectedAndLocked = doorSequenceRunning && selectedAsteroid === asteroid && (sequenceState === 'movingToCenter' || sequenceState === 'pause' || sequenceState === 'doorOpen');
+                if (!isSelectedAndLocked) {
+                    asteroid.x -= asteroid.speed;
+                    asteroid.rotation += asteroid.rotationSpeed;
+                    asteroid.twinklePhase += asteroid.twinkleSpeed;
+                    
+                    // Reset asteroid position when it goes off screen
+                    if (asteroid.x < -asteroid.size * 2) {
+                        asteroid.x = canvas.width + asteroid.size * 2;
+                        asteroid.y = Math.random() * canvas.height;
+                        asteroid.twinklePhase = Math.random() * Math.PI * 2;
+                    }
                 }
             });
+
+            updateDoorSequence();
         }
         
         // Draw everything
@@ -457,6 +549,90 @@
             
             // Draw asteroids (stars) only
             asteroids.forEach(drawAsteroid);
+        }
+
+        function easeInOutQuad(t) {
+            return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        }
+
+        function startDoorSequence() {
+            if (doorSequenceRunning || isDragging || asteroids.length === 0) return;
+            doorSequenceRunning = true;
+            sequenceState = 'movingToCenter';
+            sequenceStartTime = performance.now();
+
+            // Pick a random asteroid
+            selectedAsteroid = asteroids[Math.floor(Math.random() * asteroids.length)];
+            startX = selectedAsteroid.x;
+            startY = selectedAsteroid.y;
+            startSize = selectedAsteroid.size;
+            // Lock star visual state
+            selectedAsteroid.rotationSpeed = 0;
+            selectedAsteroid.speed = 0;
+        }
+
+        function updateDoorSequence() {
+            if (!doorSequenceRunning || !selectedAsteroid) return;
+
+            const now = performance.now();
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            if (sequenceState === 'movingToCenter') {
+                const t = Math.min(1, (now - sequenceStartTime) / moveToCenterDuration);
+                const eased = easeInOutQuad(t);
+                selectedAsteroid.x = startX + (cx - startX) * eased;
+                selectedAsteroid.y = startY + (cy - startY) * eased;
+                selectedAsteroid.size = startSize + (targetSize - startSize) * eased;
+
+                if (t >= 1) {
+                    sequenceState = 'pause';
+                    sequenceStartTime = now;
+                }
+            } else if (sequenceState === 'pause') {
+                // Hold briefly at center
+                if (now - sequenceStartTime >= pauseDuration) {
+                    sequenceState = 'doorOpen';
+                    // Fade the star while door appears
+                    selectedAsteroid.alpha = 0;
+                    openDoorAndNavigate();
+                }
+            }
+        }
+
+        const littlePrincePages = [
+            'https://en.wikisource.org/wiki/The_Little_Prince/Chapter_1',
+            'https://en.wikisource.org/wiki/The_Little_Prince/Chapter_2',
+            'https://en.wikisource.org/wiki/The_Little_Prince/Chapter_3',
+            'https://en.wikisource.org/wiki/The_Little_Prince/Chapter_4',
+            'https://en.wikisource.org/wiki/The_Little_Prince/Chapter_5',
+            'https://en.wikisource.org/wiki/The_Little_Prince/Chapter_6',
+            'https://en.wikisource.org/wiki/The_Little_Prince/Chapter_7',
+            'https://en.wikisource.org/wiki/The_Little_Prince/Chapter_8',
+            'https://en.wikisource.org/wiki/The_Little_Prince/Chapter_9',
+            'https://en.wikisource.org/wiki/The_Little_Prince/Chapter_10'
+        ];
+        let nextPrincePageIndex = 0;
+
+        function openDoorAndNavigate() {
+            const overlay = document.getElementById('doorOverlay');
+            const door = document.getElementById('door');
+            if (!overlay || !door) return;
+
+            // Reveal overlay
+            overlay.classList.add('active');
+
+            // Allow a tick so CSS transition can apply, then open
+            setTimeout(() => {
+                door.classList.add('open');
+
+                // After the door is open, navigate
+                setTimeout(() => {
+                    const targetUrl = littlePrincePages[nextPrincePageIndex % littlePrincePages.length];
+                    nextPrincePageIndex++;
+                    window.location.href = targetUrl;
+                }, doorOpenDuration);
+            }, 50);
         }
         
         // Mouse/Touch interaction functions
@@ -573,6 +749,9 @@
         isPlaying = true;
         playBtn.textContent = '⏸';
         animate();
+
+        // Trigger the door sequence every minute
+        setInterval(startDoorSequence, 60_000);
         
         // Handle window resize
         window.addEventListener('resize', () => {
