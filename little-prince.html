@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Little Prince Star Field</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -31,134 +30,21 @@
             border: none;
             background: transparent;
             z-index: 1;
-        }
-
-        .music-player {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            width: 200px;
-            height: 60px;
-            background: transparent;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 0 20px;
-        }
-
-        .music-player:hover {
-            transform: scale(1.02);
-        }
-
-        .youtube-player {
-            position: absolute;
-            top: -1000px;
-            left: -1000px;
-            opacity: 0;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .youtube-player iframe {
-            width: 1px;
-            height: 1px;
-            border: none;
-        }
-
-        .playlist-controls {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin: 0;
             width: 100%;
             height: 100%;
+            display: block;
+            opacity: 1;
+            transition: opacity 1.5s ease-in-out;
         }
 
-        .playlist-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.9);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
+        #stormCanvas {
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
         }
 
-        .playlist-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-
-        .play-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255, 255, 255, 0.25);
-            color: rgba(255, 255, 255, 0.9);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            margin: 0;
-            backdrop-filter: blur(5px);
-        }
-
-        .play-btn:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transform: scale(1.15);
-        }
-
-        .song-info {
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-family: 'Dancing Script', cursive;
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-            white-space: nowrap;
-            opacity: 0.8;
-            letter-spacing: 0.5px;
-        }
-
-        .sign {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            font-family: 'Dancing Script', cursive;
-            font-size: 14px;
-            font-weight: 400;
-            color: rgba(255, 255, 255, 0.3);
-            text-shadow: 
-                1px 1px 0px rgba(0, 0, 0, 0.8),
-                -1px -1px 0px rgba(255, 255, 255, 0.1),
-                0px 0px 2px rgba(0, 0, 0, 0.6);
-            z-index: 10;
-            letter-spacing: 0.5px;
-            transform: rotate(-1deg);
-            transition: all 0.3s ease;
-            opacity: 0.6;
-        }
-
-        .sign:hover {
-            transform: rotate(0deg) scale(1.1);
-            opacity: 0.8;
-            color: rgba(255, 255, 255, 0.4);
+        #canvas {
+            opacity: 1;
+            transition: opacity 1.5s ease-in-out;
         }
 
         .stars {
@@ -166,6 +52,8 @@
             width: 100%;
             height: 100%;
             z-index: 0;
+            opacity: 1;
+            transition: opacity 1.5s ease-in-out;
         }
 
         .star {
@@ -181,136 +69,129 @@
             0%, 100% { opacity: 0.3; }
             50% { opacity: 1; }
         }
+
+        .black-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            pointer-events: none;
+        }
+
+        .black-overlay.active {
+            opacity: 1;
+        }
+
+        .light-switch {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 25px;
+            background: linear-gradient(to bottom, rgba(42, 42, 42, 0.5) 0%, rgba(26, 26, 26, 0.5) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            z-index: 200;
+            cursor: pointer;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            pointer-events: all;
+            backdrop-filter: blur(5px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .light-switch::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 16px;
+            height: 17px;
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            transition: transform 0.2s ease, background 0.2s ease;
+            box-shadow: 
+                inset 0 1px 2px rgba(255, 255, 255, 0.2),
+                0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .light-switch.on::before {
+            transform: translateX(14px);
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: 
+                inset 0 1px 2px rgba(255, 255, 255, 0.3),
+                0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .light-switch::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 6px;
+            width: 2px;
+            height: 13px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 1px;
+            transition: opacity 0.2s ease;
+        }
+
+        .light-switch.on::after {
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="sign">maya's 27th</div>
-        <canvas id="canvas" width="1200" height="800"></canvas>
-        
-        <div class="music-player">
-            <div class="youtube-player">
-                <iframe id="youtubePlayer" 
-                        width="300" 
-                        height="200" 
-                        src="https://www.youtube.com/embed/lpCJKgEnE84?autoplay=0&controls=1&showinfo=0&rel=0&modestbranding=1"
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                </iframe>
-            </div>
-            <div class="playlist-controls">
-                <button class="playlist-btn" id="prevBtn">⏮</button>
-                <button class="play-btn" id="playBtn">▶</button>
-                <button class="playlist-btn" id="nextBtn">⏭</button>
-            </div>
-            <div class="song-info" id="songInfo">Loading...</div>
-        </div>
-        
+        <canvas id="canvas"></canvas>
+        <canvas id="stormCanvas"></canvas>
         <div class="stars" id="stars"></div>
+        <div class="black-overlay" id="blackOverlay"></div>
+        <div class="light-switch" id="lightSwitch"></div>
     </div>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const stormCanvas = document.getElementById('stormCanvas');
+        const stormCtx = stormCanvas.getContext('2d');
+        const blackOverlay = document.getElementById('blackOverlay');
+        const lightSwitch = document.getElementById('lightSwitch');
         
-        // YouTube playlist
-        const playlist = [
-            { id: 'lpCJKgEnE84' },
-            { id: 'QwhkvO_hCOM' },
-            { id: 'Yl0awrtbQO4' },
-            { id: 'smdYRCo5v8U' },
-            { id: '7N5JpeKRP3I' },
-            { id: '4OtouIGhwkU' },
-            { id: 'K0HSD_i2DvA' },
-            { id: '3-W2IfwhBK8' },
-            { id: 'nnN_96SnVRE' },
-            { id: 'QiYOkmrI1jg' }
-        ];
+        // Light switch state - starts OFF (original view)
+        let switchOn = false;
         
-        // Function to fetch YouTube video title
-        async function fetchVideoTitle(videoId) {
-            try {
-                const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-                const data = await response.json();
-                return data.title;
-            } catch (error) {
-                console.log('Error fetching video title:', error);
-                return `Song ${playlist.findIndex(song => song.id === videoId) + 1}`;
-            }
+        // Set canvas size to match window
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            stormCanvas.width = window.innerWidth;
+            stormCanvas.height = window.innerHeight;
         }
+        resizeCanvas();
         
-        // Function to parse title into song and artist
-        function parseTitle(title) {
-            // Just return the full title as the song
-            return {
-                song: title
-            };
-        }
+        // Storm canvas styling
+        stormCanvas.style.position = 'absolute';
+        stormCanvas.style.top = '0';
+        stormCanvas.style.left = '0';
+        stormCanvas.style.width = '100%';
+        stormCanvas.style.height = '100%';
+        stormCanvas.style.zIndex = '101';
+        stormCanvas.style.pointerEvents = 'none';
+        stormCanvas.style.opacity = '0';
+        stormCanvas.style.display = 'block';
         
-        // Function to load video titles
-        async function loadVideoTitles() {
-            for (let i = 0; i < playlist.length; i++) {
-                const title = await fetchVideoTitle(playlist[i].id);
-                const parsed = parseTitle(title);
-                playlist[i].title = parsed.song;
-            }
-            updateCurrentSong();
-        }
-        
-        let currentSongIndex = 0;
-        let isPlaying = false;
-        const youtubePlayer = document.getElementById('youtubePlayer');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const playBtn = document.getElementById('playBtn');
-        
-        // Update current song display
-        function updateCurrentSong() {
-            const currentSong = playlist[currentSongIndex];
-            const songInfo = document.getElementById('songInfo');
-            songInfo.textContent = currentSong.title || `Song ${currentSongIndex + 1}`;
-        }
-        
-        // Load YouTube video
-        function loadVideo(videoId, autoplay = false) {
-            const autoplayParam = autoplay ? '1' : '0';
-            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=${autoplayParam}&controls=1&showinfo=0&rel=0&modestbranding=1`;
-            youtubePlayer.src = embedUrl;
-            updateCurrentSong();
-        }
-        
-        // Play/Pause functionality
-        playBtn.addEventListener('click', () => {
-            if (!isPlaying) {
-                loadVideo(playlist[currentSongIndex].id, true);
-                playBtn.textContent = '⏸';
-                isPlaying = true;
-            } else {
-                playBtn.textContent = '▶';
-                isPlaying = false;
-            }
-        });
-        
-        // Previous song
-        prevBtn.addEventListener('click', () => {
-            currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
-            if (isPlaying) {
-                loadVideo(playlist[currentSongIndex].id, true);
-            } else {
-                loadVideo(playlist[currentSongIndex].id, false);
-            }
-        });
-        
-        // Next song
-        nextBtn.addEventListener('click', () => {
-            currentSongIndex = (currentSongIndex + 1) % playlist.length;
-            if (isPlaying) {
-                loadVideo(playlist[currentSongIndex].id, true);
-            } else {
-                loadVideo(playlist[currentSongIndex].id, false);
-            }
-        });
+        // Storm state
+        let stormActive = false;
+        let stormStars = [];
         
         // Animation variables
         let animationId;
@@ -434,29 +315,139 @@
             ctx.restore();
         }
         
-        // Update animation
-        function update() {
-            // Update asteroids only
-            asteroids.forEach(asteroid => {
-                asteroid.x -= asteroid.speed;
-                asteroid.rotation += asteroid.rotationSpeed;
-                asteroid.twinklePhase += asteroid.twinkleSpeed;
+        // Toggle between storm and original view
+        function toggleView() {
+            switchOn = !switchOn;
+            
+            if (switchOn) {
+                // Switch ON = Activate star storm
+                initStarStorm();
                 
-                // Reset asteroid position when it goes off screen
-                if (asteroid.x < -asteroid.size * 2) {
-                    asteroid.x = canvas.width + asteroid.size * 2;
-                    asteroid.y = Math.random() * canvas.height;
-                    asteroid.twinklePhase = Math.random() * Math.PI * 2;
+                // Smooth transitions
+                setTimeout(() => {
+                    stormCanvas.style.opacity = '1';
+                    canvas.style.opacity = '0';
+                    document.getElementById('stars').style.opacity = '0';
+                }, 50);
+            } else {
+                // Switch OFF = Return to original view
+                document.body.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
+                document.body.style.transition = 'background 1.5s ease-in-out';
+                blackOverlay.classList.remove('active');
+                
+                // Smooth transitions
+                stormCanvas.style.opacity = '0';
+                canvas.style.opacity = '1';
+                document.getElementById('stars').style.opacity = '1';
+                
+                stormActive = false;
+            }
+            
+            lightSwitch.classList.toggle('on', switchOn);
+        }
+        
+        // Initialize star storm
+        function initStarStorm() {
+            // Reset and create stars
+            stormStars = [];
+            for (let i = 0; i < 500; i++) {
+                stormStars.push({
+                    x: Math.random() * stormCanvas.width + stormCanvas.width, // Start from right
+                    y: Math.random() * stormCanvas.height,
+                    size: Math.random() * 3 + 1, // Small stars (1-4px)
+                    speed: Math.random() * 8 + 4, // Fast movement right to left
+                    opacity: Math.random() * 0.6 + 0.3, // Translucent (0.3-0.9)
+                    twinklePhase: Math.random() * Math.PI * 2,
+                    twinkleSpeed: Math.random() * 0.1 + 0.05, // Fast scintillation
+                    glowSize: Math.random() * 4 + 2 // Glow radius for scintillation
+                });
+            }
+            
+            // Activate black overlay and change background
+            document.body.style.background = '#000000';
+            document.body.style.transition = 'background 1.5s ease-in-out';
+            blackOverlay.classList.add('active');
+            stormActive = true;
+        }
+        
+        // Update star storm
+        function updateStarStorm() {
+            stormStars.forEach((star, index) => {
+                // Move from right to left
+                star.x -= star.speed;
+                star.twinklePhase += star.twinkleSpeed;
+                
+                // Reset when off screen
+                if (star.x < -star.size - star.glowSize) {
+                    star.x = stormCanvas.width + star.size + star.glowSize;
+                    star.y = Math.random() * stormCanvas.height;
                 }
             });
         }
         
+        // Draw star storm
+        function drawStarStorm() {
+            stormCtx.clearRect(0, 0, stormCanvas.width, stormCanvas.height);
+            
+            stormStars.forEach(star => {
+                // Calculate scintillation effect
+                const twinkle = Math.sin(star.twinklePhase) * 0.4 + 0.6;
+                const currentOpacity = star.opacity * twinkle;
+                
+                // Create scintillating glow effect
+                const gradient = stormCtx.createRadialGradient(
+                    star.x, star.y, 0,
+                    star.x, star.y, star.glowSize * twinkle
+                );
+                gradient.addColorStop(0, `rgba(255, 255, 255, ${currentOpacity})`);
+                gradient.addColorStop(0.5, `rgba(255, 255, 255, ${currentOpacity * 0.5})`);
+                gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+                
+                stormCtx.fillStyle = gradient;
+                stormCtx.beginPath();
+                stormCtx.arc(star.x, star.y, star.glowSize * twinkle, 0, Math.PI * 2);
+                stormCtx.fill();
+                
+                // Core bright point
+                stormCtx.fillStyle = `rgba(255, 255, 255, ${currentOpacity * 1.2})`;
+                stormCtx.beginPath();
+                stormCtx.arc(star.x, star.y, star.size * twinkle * 0.5, 0, Math.PI * 2);
+                stormCtx.fill();
+            });
+        }
+        
+        // Update animation
+        function update() {
+            if (stormActive && switchOn) {
+                // Update storm when active and switch is ON
+                updateStarStorm();
+            } else {
+                // Update asteroids only
+                asteroids.forEach(asteroid => {
+                    asteroid.x -= asteroid.speed;
+                    asteroid.rotation += asteroid.rotationSpeed;
+                    asteroid.twinklePhase += asteroid.twinkleSpeed;
+                    
+                    // Reset asteroid position when it goes off screen
+                    if (asteroid.x < -asteroid.size * 2) {
+                        asteroid.x = canvas.width + asteroid.size * 2;
+                        asteroid.y = Math.random() * canvas.height;
+                        asteroid.twinklePhase = Math.random() * Math.PI * 2;
+                    }
+                });
+            }
+        }
+        
         // Draw everything
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw asteroids (stars) only
-            asteroids.forEach(drawAsteroid);
+            if (stormActive && switchOn) {
+                // Draw storm when active and switch is ON
+                drawStarStorm();
+            } else {
+                // Original view when switch is OFF
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                asteroids.forEach(drawAsteroid);
+            }
         }
         
         // Mouse/Touch interaction functions
@@ -564,20 +555,26 @@
             animationId = requestAnimationFrame(animate);
         }
         
+        // Light switch click handler
+        lightSwitch.addEventListener('click', toggleView);
+        
         // Initialize everything
         createStars();
         initShootingStars();
         initAsteroids();
-        loadVideoTitles(); // Load actual YouTube titles
-        loadVideo(playlist[currentSongIndex].id, true); // Autoplay on load
-        isPlaying = true;
-        playBtn.textContent = '⏸';
         animate();
         
         // Handle window resize
         window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            resizeCanvas();
+            // Reinitialize asteroids to match new canvas size
+            asteroids = [];
+            initAsteroids();
+            // Reset storm stars if active
+            if (stormActive && switchOn) {
+                stormStars = [];
+                initStarStorm();
+            }
         });
     </script>
 </body>
