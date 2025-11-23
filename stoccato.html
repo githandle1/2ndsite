@@ -10,6 +10,39 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=7">
     <link rel="shortcut icon" sizes="any" href="favicon.svg?v=7">
     <link rel="apple-touch-icon" href="favicon.svg?v=7">
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // Firebase configuration - REPLACE WITH YOUR FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Make db available globally
+        window.firestoreDb = db;
+        window.firestoreFunctions = {
+            collection,
+            addDoc,
+            getDocs,
+            doc,
+            updateDoc,
+            deleteDoc,
+            onSnapshot,
+            query,
+            orderBy
+        };
+    </script>
     <style>
         * {
             margin: 0;
@@ -29,6 +62,15 @@
             height: 100vh;
             width: 100vw;
             cursor: crosshair;
+            outline: none;
+        }
+        
+        body:focus {
+            outline: none;
+        }
+        
+        body:active {
+            outline: none;
         }
 
         #canvas {
@@ -38,6 +80,76 @@
             width: 100%;
             height: 100%;
             z-index: 1;
+            outline: none;
+            border: none;
+        }
+        
+        #canvas:focus {
+            outline: none;
+        }
+        
+        #canvas:active {
+            outline: none;
+        }
+        
+        *:focus {
+            outline: none;
+        }
+
+        .note-content-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .note-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .keyword-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Libre Baskerville', serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: transparent;
+            padding: 20px;
+            margin: 0;
+            overflow: hidden;
+            box-sizing: border-box;
+            border: none;
+            background: transparent;
+        }
+
+        .keyword-link {
+            color: #f9e04c;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 500;
+            pointer-events: auto;
+            position: relative;
+        }
+
+        .keyword-link::after {
+            content: '↗';
+            color: #f9e04c;
+            margin-left: 0.2em;
+            font-size: 0.7em;
+            display: inline-block;
+            vertical-align: baseline;
+        }
+
+        .keyword-link:hover {
+            text-decoration: underline;
+            opacity: 0.8;
         }
 
         .note {
@@ -55,6 +167,15 @@
             z-index: 10;
             transform-origin: center;
             transition: box-shadow 0.2s ease;
+            outline: none;
+        }
+        
+        .note:focus {
+            outline: none;
+        }
+        
+        .note *:focus {
+            outline: none;
         }
 
         .note:hover {
@@ -83,6 +204,8 @@
             color: #333;
             resize: none;
             overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .note-content::placeholder {
@@ -161,46 +284,433 @@
 </head>
 <body>
     <div id="canvas"></div>
-    <div class="instructions">Click anywhere to leave a note</div>
 
     <script>
         let noteIdCounter = 0;
         let isDragging = false;
         let currentNote = null;
         let dragOffset = { x: 0, y: 0 };
+        let notesCollection = 'stoccato-notes';
+        let useFirebase = false;
+        let notesMap = new Map(); // Track notes by their Firestore ID
+        let keywordIndex = new Map(); // Track which notes contain which keywords
+        let keywordLinks = []; // Store keyword-based links
+        let isCreatingNote = false; // Prevent double note creation
+        let recentlyCreatedNotes = new Map(); // Track recently created notes by position
+        let isLocalCreation = false; // Flag to prevent Firebase listener from creating duplicates
 
-        // Load notes from localStorage
-        function loadNotes() {
-            const savedNotes = localStorage.getItem('stoccato-notes');
-            if (savedNotes) {
-                const notes = JSON.parse(savedNotes);
-                notes.forEach(noteData => {
-                    createNote(noteData.x, noteData.y, noteData.content, noteData.id, noteData.rotation);
+        // Check if Firebase is configured
+        function checkFirebase() {
+            if (window.firestoreDb && window.firestoreFunctions) {
+                const { collection, getDocs, onSnapshot, query, orderBy } = window.firestoreFunctions;
+                useFirebase = true;
+                
+                // Set up real-time listener for notes
+                const notesRef = collection(window.firestoreDb, notesCollection);
+                const q = query(notesRef, orderBy('createdAt', 'desc'));
+                
+                onSnapshot(q, (snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        const data = change.doc.data();
+                        const noteId = change.doc.id;
+                        
+                        if (change.type === 'added') {
+                            // New note added - only create if we don't already have it and it's not a local creation
+                            if (!notesMap.has(noteId) && !isLocalCreation) {
+                                const existing = document.querySelector(`.note[data-firestore-id="${noteId}"]`);
+                                if (!existing) {
+                                    // Check if this is a duplicate by position
+                                    const positionKey = `${Math.round(data.x/10)}_${Math.round(data.y/10)}`;
+                                    const recentNote = recentlyCreatedNotes.get(positionKey);
+                                    if (!recentNote || Date.now() - recentNote > 1000) {
+                                        createNote(data.x, data.y, data.content, noteId, data.rotation, noteId);
+                                        notesMap.set(noteId, noteId);
+                                    } else {
+                                        console.log('Skipping duplicate note from Firebase at position:', positionKey);
+                                    }
+                                }
+                            } else if (isLocalCreation) {
+                                // This is our own creation, just mark it in the map
+                                notesMap.set(noteId, noteId);
+                            }
+                        } else if (change.type === 'modified') {
+                            // Note updated
+                            const existingNote = document.querySelector(`.note[data-firestore-id="${noteId}"]`);
+                            if (existingNote) {
+                                const textarea = existingNote.querySelector('.note-content');
+                                if (textarea.value !== data.content) {
+                                    textarea.value = data.content;
+                                    textarea.style.height = 'auto';
+                                    textarea.style.height = textarea.scrollHeight + 'px';
+                                }
+                                existingNote.style.left = `${data.x}px`;
+                                existingNote.style.top = `${data.y}px`;
+                                if (data.rotation) {
+                                    existingNote.style.transform = `rotate(${data.rotation})`;
+                                }
+                                // Update keyword index
+                                updateKeywordIndex(existingNote);
+                            }
+                        } else if (change.type === 'removed') {
+                            // Note deleted
+                            const existingNote = document.querySelector(`.note[data-firestore-id="${noteId}"]`);
+                            if (existingNote) {
+                                existingNote.remove();
+                                notesMap.delete(noteId);
+                                // Update keyword index
+                                updateKeywordIndex(existingNote);
+                            }
+                        }
+                    });
                 });
+                
+                // Load existing notes
+                loadNotesFromFirebase();
+                return true;
+            }
+            return false;
+        }
+
+        // Load notes from Firebase
+        async function loadNotesFromFirebase() {
+            if (!useFirebase) {
+                loadNotesFromLocalStorage();
+                return;
+            }
+            
+            try {
+                const { collection, getDocs, query, orderBy } = window.firestoreFunctions;
+                const notesRef = collection(window.firestoreDb, notesCollection);
+                const q = query(notesRef, orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                console.log('Loading', snapshot.size, 'notes from Firebase');
+                
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const noteId = docSnap.id;
+                    
+                    // Only create if it doesn't already exist
+                    if (!notesMap.has(noteId)) {
+                        const note = createNote(data.x, data.y, data.content, noteId, data.rotation, noteId);
+                        notesMap.set(noteId, noteId);
+                    }
+                });
+                
+                // Update all keyword links after loading
+                setTimeout(() => {
+                    document.querySelectorAll('.note').forEach(note => {
+                        updateKeywordIndex(note);
+                    });
+                    console.log('All notes loaded and keyword index updated');
+                }, 800);
+            } catch (error) {
+                console.error('Error loading notes from Firebase:', error);
+                // Fallback to localStorage
+                console.log('Falling back to localStorage');
+                loadNotesFromLocalStorage();
             }
         }
 
-        // Save notes to localStorage
-        function saveNotes() {
-            const notes = [];
+        // Load notes from localStorage (fallback)
+        function loadNotesFromLocalStorage() {
+            try {
+                const savedNotes = localStorage.getItem('stoccato-notes');
+                if (savedNotes) {
+                    const notes = JSON.parse(savedNotes);
+                    console.log('Loading', notes.length, 'notes from localStorage');
+                    notes.forEach(noteData => {
+                        if (noteData.id) {
+                            // Update noteIdCounter to avoid ID conflicts
+                            const idNum = parseInt(noteData.id.replace('note-', '')) || 0;
+                            if (idNum >= noteIdCounter) {
+                                noteIdCounter = idNum + 1;
+                            }
+                            const note = createNote(noteData.x, noteData.y, noteData.content, noteData.id, noteData.rotation);
+                            updateKeywordIndex(note);
+                        }
+                    });
+                    
+                    // Update keyword links after loading
+                    setTimeout(() => {
+                        updateKeywordLinks();
+                        console.log('All notes loaded from localStorage');
+                    }, 300);
+                } else {
+                    console.log('No notes found in localStorage');
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+            }
+        }
+
+        // Extract keywords from text (words that appear in multiple notes)
+        function extractKeywords(text) {
+            // Remove punctuation and split into words
+            const words = text.toLowerCase()
+                .replace(/[^\w\s]/g, ' ')
+                .split(/\s+/)
+                .filter(word => word.length > 3); // Only words longer than 3 characters
+            
+            // Count word frequency
+            const wordCount = new Map();
+            words.forEach(word => {
+                wordCount.set(word, (wordCount.get(word) || 0) + 1);
+            });
+            
+            return Array.from(wordCount.keys());
+        }
+
+        // Update keyword index for a note
+        function updateKeywordIndex(noteElement) {
+            const firestoreId = noteElement.dataset.firestoreId || noteElement.dataset.id;
+            const content = noteElement.querySelector('.note-content').value;
+            const keywords = extractKeywords(content);
+            
+            // Remove old keywords for this note
+            keywordIndex.forEach((noteIds, keyword) => {
+                noteIds.delete(firestoreId);
+                if (noteIds.size === 0) {
+                    keywordIndex.delete(keyword);
+                }
+            });
+            
+            // Add new keywords
+            keywords.forEach(keyword => {
+                if (!keywordIndex.has(keyword)) {
+                    keywordIndex.set(keyword, new Set());
+                }
+                keywordIndex.get(keyword).add(firestoreId);
+            });
+            
+            // Update keyword links and overlays for all notes
+            updateKeywordLinks();
+        }
+
+        // Update keyword links in text (no visual lines, just clickable keywords)
+        function updateKeywordLinks() {
+            keywordLinks = [];
+            
+            // Find all pairs of notes that share keywords
+            keywordIndex.forEach((noteIds, keyword) => {
+                if (noteIds.size >= 2) {
+                    const noteArray = Array.from(noteIds);
+                    // Store links between all pairs
+                    for (let i = 0; i < noteArray.length; i++) {
+                        for (let j = i + 1; j < noteArray.length; j++) {
+                            keywordLinks.push({ from: noteArray[i], to: noteArray[j], keyword: keyword });
+                        }
+                    }
+                }
+            });
+            
+            // Update keyword overlays in all notes
             document.querySelectorAll('.note').forEach(note => {
-                const rect = note.getBoundingClientRect();
-                notes.push({
-                    id: note.dataset.id,
-                    x: rect.left,
-                    y: rect.top,
-                    content: note.querySelector('.note-content').value,
-                    rotation: note.style.transform.match(/rotate\(([^)]+)\)/) ? note.style.transform.match(/rotate\(([^)]+)\)/)[1] : '0deg'
+                updateKeywordOverlay(note);
+            });
+        }
+
+        // Update keyword overlay to show clickable keywords
+        function updateKeywordOverlay(noteElement) {
+            const textarea = noteElement.querySelector('.note-content');
+            const overlay = noteElement.querySelector('.keyword-overlay');
+            if (!textarea || !overlay) return;
+            
+            const content = textarea.value;
+            const firestoreId = noteElement.dataset.firestoreId || noteElement.dataset.id;
+            
+            // Find all keywords that appear in this note and other notes
+            const keywordsToLink = [];
+            keywordIndex.forEach((noteIds, keyword) => {
+                if (noteIds.has(firestoreId) && noteIds.size >= 2) {
+                    // This keyword appears in multiple notes
+                    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+                    if (regex.test(content)) {
+                        keywordsToLink.push(keyword);
+                    }
+                }
+            });
+            
+            // Only show overlay when not editing
+            if (document.activeElement === textarea) {
+                overlay.innerHTML = '';
+                overlay.style.display = 'none';
+                return;
+            }
+            
+            overlay.style.display = 'block';
+            
+            // Create overlay content with clickable keywords
+            let overlayContent = content;
+            keywordsToLink.forEach(keyword => {
+                const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+                const linkedNoteIds = Array.from(keywordIndex.get(keyword)).filter(id => id !== firestoreId);
+                
+                overlayContent = overlayContent.replace(regex, (match, p1) => {
+                    const keywordLower = keyword.toLowerCase();
+                    return `<span class="keyword-link" data-keyword="${keywordLower}" data-linked-notes="${linkedNoteIds.join(',')}">${match}</span>`;
                 });
             });
-            localStorage.setItem('stoccato-notes', JSON.stringify(notes));
+            
+            overlay.innerHTML = overlayContent;
+            
+            // Make keyword links clickable
+            overlay.querySelectorAll('.keyword-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const linkedNoteIds = this.dataset.linkedNotes.split(',').filter(id => id);
+                    jumpToLinkedNotes(linkedNoteIds);
+                });
+            });
+        }
+        
+        // Jump to linked notes when keyword is clicked
+        function jumpToLinkedNotes(noteIds) {
+            // Remove previous highlights
+            document.querySelectorAll('.note').forEach(n => {
+                n.style.outline = '';
+                n.style.outlineOffset = '';
+            });
+            
+            // Highlight and scroll to linked notes
+            noteIds.forEach(noteId => {
+                const note = document.querySelector(`.note[data-firestore-id="${noteId}"], .note[data-id="${noteId}"]`);
+                if (note) {
+                    note.style.outline = '2px solid #f9e04c';
+                    note.style.outlineOffset = '2px';
+                    
+                    // Scroll note into view
+                    note.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+            
+            // Remove highlights after 3 seconds
+            setTimeout(() => {
+                document.querySelectorAll('.note').forEach(n => {
+                    n.style.outline = '';
+                    n.style.outlineOffset = '';
+                });
+            }, 3000);
+        }
+
+        // Save note to Firebase (permanent archive)
+        async function saveNoteToFirebase(noteElement, isNew = false) {
+            if (!useFirebase) {
+                saveNotesToLocalStorage();
+                updateKeywordIndex(noteElement);
+                return;
+            }
+            
+            try {
+                const { collection, addDoc, doc, updateDoc } = window.firestoreFunctions;
+                const rect = noteElement.getBoundingClientRect();
+                const content = noteElement.querySelector('.note-content').value;
+                const rotation = noteElement.style.transform.match(/rotate\(([^)]+)\)/) ? 
+                    noteElement.style.transform.match(/rotate\(([^)]+)\)/)[1] : '0deg';
+                
+                const noteData = {
+                    x: rect.left,
+                    y: rect.top,
+                    content: content,
+                    rotation: rotation,
+                    updatedAt: new Date(),
+                    archived: true // Mark as archived
+                };
+                
+                const firestoreId = noteElement.dataset.firestoreId;
+                
+                if (isNew && !firestoreId) {
+                    // Create new note - permanently saved to archive
+                    noteData.createdAt = new Date();
+                    const docRef = await addDoc(collection(window.firestoreDb, notesCollection), noteData);
+                    noteElement.dataset.firestoreId = docRef.id;
+                    notesMap.set(docRef.id, docRef.id);
+                } else if (firestoreId) {
+                    // Update existing note in archive
+                    const noteRef = doc(window.firestoreDb, notesCollection, firestoreId);
+                    await updateDoc(noteRef, noteData);
+                }
+                
+                // Update keyword index after saving
+                updateKeywordIndex(noteElement);
+            } catch (error) {
+                console.error('Error saving note to Firebase:', error);
+                // Fallback to localStorage
+                saveNotesToLocalStorage();
+                updateKeywordIndex(noteElement);
+            }
+        }
+
+        // Save notes to localStorage (fallback)
+        function saveNotesToLocalStorage() {
+            try {
+                const notes = [];
+                document.querySelectorAll('.note').forEach(note => {
+                    const rect = note.getBoundingClientRect();
+                    const noteId = note.dataset.id;
+                    if (noteId) {
+                        notes.push({
+                            id: noteId,
+                            x: rect.left,
+                            y: rect.top,
+                            content: note.querySelector('.note-content').value,
+                            rotation: note.style.transform.match(/rotate\(([^)]+)\)/) ? note.style.transform.match(/rotate\(([^)]+)\)/)[1] : '0deg'
+                        });
+                    }
+                });
+                localStorage.setItem('stoccato-notes', JSON.stringify(notes));
+                console.log('Saved', notes.length, 'notes to localStorage');
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+            }
+        }
+
+        // Delete note from Firebase
+        async function deleteNoteFromFirebase(firestoreId) {
+            if (!useFirebase) return;
+            
+            try {
+                const { doc, deleteDoc } = window.firestoreFunctions;
+                const noteRef = doc(window.firestoreDb, notesCollection, firestoreId);
+                await deleteDoc(noteRef);
+                notesMap.delete(firestoreId);
+            } catch (error) {
+                console.error('Error deleting note from Firebase:', error);
+            }
         }
 
         // Create a new note
-        function createNote(x, y, content = '', id = null, rotation = null) {
+        function createNote(x, y, content = '', id = null, rotation = null, firestoreId = null) {
+            // Check if note already exists by firestoreId
+            if (firestoreId) {
+                const existing = document.querySelector(`.note[data-firestore-id="${firestoreId}"]`);
+                if (existing) {
+                    console.log('Note already exists with firestoreId:', firestoreId);
+                    return existing;
+                }
+            }
+            
+            // Check if note already exists at this position (prevent duplicates from same click)
+            const positionKey = `${Math.round(x/10)}_${Math.round(y/10)}`;
+            const existingAtPosition = Array.from(document.querySelectorAll('.note')).find(note => {
+                const rect = note.getBoundingClientRect();
+                const distance = Math.sqrt(Math.pow(rect.left - x, 2) + Math.pow(rect.top - y, 2));
+                return distance < 100; // If there's a note within 100px, it's likely a duplicate
+            });
+            if (existingAtPosition && !firestoreId) {
+                console.log('Note already exists at this position, distance:', 
+                    Math.sqrt(Math.pow(existingAtPosition.getBoundingClientRect().left - x, 2) + 
+                             Math.pow(existingAtPosition.getBoundingClientRect().top - y, 2)));
+                return existingAtPosition;
+            }
+            
             const note = document.createElement('div');
             note.className = 'note';
             note.dataset.id = id || `note-${noteIdCounter++}`;
+            if (firestoreId) {
+                note.dataset.firestoreId = firestoreId;
+            }
             
             // Random rotation between -5 and 5 degrees for natural look
             const randomRotation = rotation || `${(Math.random() * 10 - 5).toFixed(1)}deg`;
@@ -216,7 +726,10 @@
                     <span class="note-date">${dateStr}</span>
                     <button class="note-delete" onclick="deleteNote(this)">×</button>
                 </div>
-                <textarea class="note-content" placeholder="write something...">${content}</textarea>
+                <div class="note-content-wrapper">
+                    <textarea class="note-content" placeholder="write something...">${content}</textarea>
+                    <div class="keyword-overlay"></div>
+                </div>
             `;
 
             const canvas = document.getElementById('canvas');
@@ -227,16 +740,42 @@
 
             // Auto-resize textarea
             const textarea = note.querySelector('.note-content');
+            let saveTimeout;
             textarea.addEventListener('input', function() {
                 this.style.height = 'auto';
                 this.style.height = this.scrollHeight + 'px';
-                saveNotes();
+                
+                // Debounce saves
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    if (useFirebase) {
+                        saveNoteToFirebase(note, false);
+                    } else {
+                        saveNotesToLocalStorage();
+                    }
+                }, 500);
             });
 
             // Save on blur
             textarea.addEventListener('blur', function() {
                 note.classList.remove('editing');
-                saveNotes();
+                if (useFirebase) {
+                    saveNoteToFirebase(note, false);
+                } else {
+                    saveNotesToLocalStorage();
+                }
+                updateKeywordOverlay(note);
+            });
+            
+            // Show/hide overlay based on focus
+            textarea.addEventListener('focus', function() {
+                const overlay = note.querySelector('.keyword-overlay');
+                if (overlay) overlay.style.display = 'none';
+            });
+            
+            textarea.addEventListener('input', function() {
+                // Update overlay when content changes
+                setTimeout(() => updateKeywordOverlay(note), 100);
             });
 
             // Focus on click
@@ -253,9 +792,24 @@
                 setTimeout(() => textarea.focus(), 10);
             }
 
-            saveNotes();
+            // Save new note immediately
+            if (!firestoreId && useFirebase) {
+                // Save to Firebase
+                saveNoteToFirebase(note, true);
+            } else if (!useFirebase) {
+                // Save to localStorage immediately (even if empty)
+                setTimeout(() => {
+                    saveNotesToLocalStorage();
+                    updateKeywordIndex(note);
+                }, 100);
+            } else {
+                // Existing note loaded from Firebase
+                updateKeywordIndex(note);
+            }
+            
             return note;
         }
+
 
         // Make note draggable
         function makeNoteDraggable(note) {
@@ -282,6 +836,7 @@
                 e.preventDefault();
             });
 
+            let dragSaveTimeout;
             function dragNote(e) {
                 if (!isDragging) return;
 
@@ -290,14 +845,24 @@
 
                 note.style.left = `${initialX + deltaX}px`;
                 note.style.top = `${initialY + deltaY}px`;
-                updateConnections();
+                
+                // Debounce saves during drag
+                clearTimeout(dragSaveTimeout);
+                dragSaveTimeout = setTimeout(() => {
+                    saveNoteToFirebase(note, false);
+                }, 300);
             }
 
             function stopDrag() {
                 if (isDragging) {
                     isDragging = false;
                     note.style.cursor = 'move';
-                    saveNotes();
+                    clearTimeout(dragSaveTimeout);
+                    if (useFirebase) {
+                        saveNoteToFirebase(note, false);
+                    } else {
+                        saveNotesToLocalStorage();
+                    }
                 }
                 document.removeEventListener('mousemove', dragNote);
                 document.removeEventListener('mouseup', stopDrag);
@@ -322,6 +887,7 @@
                 e.preventDefault();
             });
 
+            let touchDragSaveTimeout;
             function dragNoteTouch(e) {
                 if (!isDragging) return;
                 const touch = e.touches[0];
@@ -330,12 +896,23 @@
 
                 note.style.left = `${initialX + deltaX}px`;
                 note.style.top = `${initialY + deltaY}px`;
+                
+                // Debounce saves during drag
+                clearTimeout(touchDragSaveTimeout);
+                touchDragSaveTimeout = setTimeout(() => {
+                    saveNoteToFirebase(note, false);
+                }, 300);
             }
 
             function stopDragTouch() {
                 if (isDragging) {
                     isDragging = false;
-                    saveNotes();
+                    clearTimeout(touchDragSaveTimeout);
+                    if (useFirebase) {
+                        saveNoteToFirebase(note, false);
+                    } else {
+                        saveNotesToLocalStorage();
+                    }
                 }
                 document.removeEventListener('touchmove', dragNoteTouch);
                 document.removeEventListener('touchend', stopDragTouch);
@@ -345,43 +922,112 @@
         // Delete note
         function deleteNote(button) {
             const note = button.closest('.note');
+            const firestoreId = note.dataset.firestoreId;
+            
             note.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
             note.style.opacity = '0';
             note.style.transform = note.style.transform + ' scale(0.8)';
             
             setTimeout(() => {
                 note.remove();
-                saveNotes();
+                if (firestoreId && useFirebase) {
+                    deleteNoteFromFirebase(firestoreId);
+                } else {
+                    saveNotesToLocalStorage();
+                }
             }, 300);
         }
 
         // Click on canvas to create note
         document.getElementById('canvas').addEventListener('click', function(e) {
-            // Don't create note if clicking on an existing note
-            if (e.target.closest('.note')) {
+            // Don't create note if clicking on an existing note or keyword overlay
+            if (e.target.closest('.note') || e.target.closest('.keyword-overlay') || e.target.classList.contains('keyword-link')) {
                 return;
             }
-
-            const x = e.clientX - 75; // Offset to center the note
+            
+            // Prevent double creation
+            if (isCreatingNote) {
+                return;
+            }
+            
+            // Check if we recently created a note at this position (within 1 second)
+            const x = e.clientX - 75;
             const y = e.clientY - 50;
+            const positionKey = `${Math.round(x/10)}_${Math.round(y/10)}`;
+            const recentNote = recentlyCreatedNotes.get(positionKey);
+            if (recentNote && Date.now() - recentNote < 1000) {
+                return;
+            }
+            
+            isCreatingNote = true;
+            isLocalCreation = true;
+            
             createNote(x, y);
+            
+            // Mark this position as recently used
+            recentlyCreatedNotes.set(positionKey, Date.now());
+            
+            // Clean up old entries
+            setTimeout(() => {
+                recentlyCreatedNotes.delete(positionKey);
+            }, 2000);
+            
+            // Reset flags
+            setTimeout(() => {
+                isCreatingNote = false;
+                isLocalCreation = false;
+            }, 1000);
         });
 
         // Touch support for mobile
         document.getElementById('canvas').addEventListener('touchend', function(e) {
-            if (e.target.closest('.note')) {
+            if (e.target.closest('.note') || e.target.closest('.keyword-overlay') || e.target.classList.contains('keyword-link')) {
                 return;
             }
-
+            
+            // Prevent double creation
+            if (isCreatingNote) {
+                return;
+            }
+            
+            isCreatingNote = true;
             const touch = e.changedTouches[0];
             const x = touch.clientX - 75;
             const y = touch.clientY - 50;
             createNote(x, y);
+            
+            // Reset flag after a short delay
+            setTimeout(() => {
+                isCreatingNote = false;
+            }, 300);
+            
             e.preventDefault();
+            e.stopPropagation();
         });
 
-        // Load saved notes on page load
-        loadNotes();
+        // Initialize: Check Firebase and load notes
+        window.addEventListener('DOMContentLoaded', function() {
+            // Wait a bit for Firebase to initialize
+            setTimeout(() => {
+                const firebaseConfigured = checkFirebase();
+                if (!firebaseConfigured) {
+                    // Firebase not configured, use localStorage
+                    console.log('Firebase not configured, using localStorage');
+                    loadNotesFromLocalStorage();
+                } else {
+                    console.log('Firebase configured, loading notes from Firestore');
+                    // loadNotesFromFirebase is called inside checkFirebase
+                }
+            }, 500);
+            
+            // Also try loading after a longer delay in case Firebase takes time
+            setTimeout(() => {
+                if (useFirebase && document.querySelectorAll('.note').length === 0) {
+                    console.log('No notes loaded yet, retrying Firebase load');
+                    loadNotesFromFirebase();
+                }
+            }, 2000);
+        });
     </script>
 </body>
 </html>
