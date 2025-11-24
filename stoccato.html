@@ -80,20 +80,46 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            outline: none;
-            border: none;
+            outline: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+        
+        #canvas::before,
+        #canvas::after {
+            display: none !important;
+            content: none !important;
         }
         
         #canvas:focus {
-            outline: none;
+            outline: none !important;
+            border: none !important;
+            box-shadow: none !important;
         }
         
         #canvas:active {
-            outline: none;
+            outline: none !important;
+            border: none !important;
+            box-shadow: none !important;
         }
         
         *:focus {
-            outline: none;
+            outline: none !important;
+        }
+        
+        *:focus-visible {
+            outline: none !important;
+        }
+        
+        html, body {
+            -webkit-tap-highlight-color: transparent;
+            -moz-tap-highlight-color: transparent;
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -moz-tap-highlight-color: transparent;
         }
 
         .note-content-wrapper {
@@ -283,7 +309,7 @@
     </style>
 </head>
 <body>
-    <div id="canvas"></div>
+    <div id="canvas" tabindex="-1"></div>
 
     <script>
         let noteIdCounter = 0;
@@ -419,23 +445,38 @@
                 if (savedNotes) {
                     const notes = JSON.parse(savedNotes);
                     console.log('Loading', notes.length, 'notes from localStorage');
-                    notes.forEach(noteData => {
-                        if (noteData.id) {
+                    
+                    if (notes.length === 0) {
+                        console.log('No notes in localStorage array');
+                        return;
+                    }
+                    
+                    notes.forEach((noteData, index) => {
+                        if (noteData && noteData.id) {
                             // Update noteIdCounter to avoid ID conflicts
                             const idNum = parseInt(noteData.id.replace('note-', '')) || 0;
                             if (idNum >= noteIdCounter) {
                                 noteIdCounter = idNum + 1;
                             }
-                            const note = createNote(noteData.x, noteData.y, noteData.content, noteData.id, noteData.rotation);
-                            updateKeywordIndex(note);
+                            
+                            // Ensure we have valid position data
+                            const x = noteData.x || 100 + (index * 20);
+                            const y = noteData.y || 100 + (index * 20);
+                            const content = noteData.content || '';
+                            const rotation = noteData.rotation || '0deg';
+                            
+                            const note = createNote(x, y, content, noteData.id, rotation);
+                            if (note) {
+                                updateKeywordIndex(note);
+                            }
                         }
                     });
                     
                     // Update keyword links after loading
                     setTimeout(() => {
                         updateKeywordLinks();
-                        console.log('All notes loaded from localStorage');
-                    }, 300);
+                        console.log('All notes loaded from localStorage, total notes:', document.querySelectorAll('.note').length);
+                    }, 500);
                 } else {
                     console.log('No notes found in localStorage');
                 }
@@ -649,18 +690,23 @@
                 document.querySelectorAll('.note').forEach(note => {
                     const rect = note.getBoundingClientRect();
                     const noteId = note.dataset.id;
-                    if (noteId) {
+                    const textarea = note.querySelector('.note-content');
+                    if (noteId && textarea) {
                         notes.push({
                             id: noteId,
                             x: rect.left,
                             y: rect.top,
-                            content: note.querySelector('.note-content').value,
+                            content: textarea.value || '',
                             rotation: note.style.transform.match(/rotate\(([^)]+)\)/) ? note.style.transform.match(/rotate\(([^)]+)\)/)[1] : '0deg'
                         });
                     }
                 });
-                localStorage.setItem('stoccato-notes', JSON.stringify(notes));
-                console.log('Saved', notes.length, 'notes to localStorage');
+                if (notes.length > 0) {
+                    localStorage.setItem('stoccato-notes', JSON.stringify(notes));
+                    console.log('Saved', notes.length, 'notes to localStorage');
+                } else {
+                    console.log('No notes to save');
+                }
             } catch (error) {
                 console.error('Error saving to localStorage:', error);
             }
@@ -794,18 +840,25 @@
 
             // Save new note immediately
             if (!firestoreId && useFirebase) {
-                // Save to Firebase
+                // Save to Firebase immediately
                 saveNoteToFirebase(note, true);
             } else if (!useFirebase) {
                 // Save to localStorage immediately (even if empty)
-                setTimeout(() => {
-                    saveNotesToLocalStorage();
-                    updateKeywordIndex(note);
-                }, 100);
+                saveNotesToLocalStorage();
+                updateKeywordIndex(note);
             } else {
                 // Existing note loaded from Firebase
                 updateKeywordIndex(note);
             }
+            
+            // Ensure note is saved after a short delay (catches any missed saves)
+            setTimeout(() => {
+                if (useFirebase && note.dataset.firestoreId) {
+                    saveNoteToFirebase(note, false);
+                } else if (!useFirebase) {
+                    saveNotesToLocalStorage();
+                }
+            }, 1000);
             
             return note;
         }
@@ -1005,6 +1058,37 @@
             e.stopPropagation();
         });
 
+        // Auto-save all notes periodically
+        function autoSaveAllNotes() {
+            if (useFirebase) {
+                // Save all notes to Firebase
+                document.querySelectorAll('.note').forEach(note => {
+                    const firestoreId = note.dataset.firestoreId;
+                    if (firestoreId) {
+                        saveNoteToFirebase(note, false);
+                    }
+                });
+            } else {
+                // Save all notes to localStorage
+                saveNotesToLocalStorage();
+            }
+        }
+
+        // Periodic autosave every 5 seconds
+        setInterval(autoSaveAllNotes, 5000);
+
+        // Save notes before page unload
+        window.addEventListener('beforeunload', function() {
+            autoSaveAllNotes();
+        });
+        
+        // Also save on page visibility change (when tab becomes hidden)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                autoSaveAllNotes();
+            }
+        });
+
         // Initialize: Check Firebase and load notes
         window.addEventListener('DOMContentLoaded', function() {
             // Wait a bit for Firebase to initialize
@@ -1025,6 +1109,9 @@
                 if (useFirebase && document.querySelectorAll('.note').length === 0) {
                     console.log('No notes loaded yet, retrying Firebase load');
                     loadNotesFromFirebase();
+                } else if (!useFirebase && document.querySelectorAll('.note').length === 0) {
+                    console.log('No notes loaded yet, retrying localStorage load');
+                    loadNotesFromLocalStorage();
                 }
             }, 2000);
         });
