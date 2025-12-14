@@ -169,22 +169,49 @@
         }
         
         body {
-            overflow: hidden;
+            overflow-y: auto;
             background-color: #f5f0e0; /* Beige background for notebook paper */
             background-image: 
                 linear-gradient(#d9d2c0 1px, transparent 1px),
                 linear-gradient(90deg, #d9d2c0 1px, transparent 1px);
             background-size: 20px 20px; /* Grid size */
-            height: 100vh;
+            min-height: 100vh;
+            height: auto;
             width: 100vw;
             position: relative;
+            padding-bottom: 100px; /* Add padding to ensure all icons are scrollable */
+        }
+        
+        /* Custom yellow scrollbar - thin and serif-y */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f5f0e0; /* Match the beige background */
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #f9e04c; /* Stalogy yellow */
+            border-radius: 0; /* Sharp corners for serif aesthetic */
+            border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border for definition */
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f0d83d; /* Slightly darker yellow on hover */
+        }
+        
+        /* Firefox scrollbar styling */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #f9e04c #f5f0e0;
         }
         
         /* Stalogy-style date header */
         .date-header {
             position: absolute;
             top: 10px;
-            right: 10px; /* Move to right-hand corner */
+            right: 0; /* Snap to right edge of viewport */
             font-size: 8.4px; /* Increased by 20% from 7px */
             color: #777; /* Changed back to gray for regular dates */
             display: flex;
@@ -277,8 +304,9 @@
         }
         
         .mobile-icons {
-            display: flex;
-            justify-content: space-around;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
             align-items: center;
         }
         
