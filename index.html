@@ -321,6 +321,8 @@
             sessionStorage.setItem('fromPageTurn', 'true');
             sessionStorage.setItem('scrollPosition', window.scrollY.toString());
             
+            // Replace index in history with mayabakir.com so browser back goes to home
+            history.replaceState(null, '', 'https://mayabakir.com');
             // Navigate exactly when animation completes (550ms matches CSS transition)
             setTimeout(() => {
                 window.location.href = 'desktop.html';
