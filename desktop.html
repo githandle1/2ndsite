@@ -12,11 +12,11 @@
     <link rel="apple-touch-icon" href="favicon.svg?v=7">
     <link rel="preload" as="image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0h20v1H0zM0 0h1v20H0z' fill='%23d9d2c0'/%3E%3C/svg%3E">
     <style>
-        body{background-color:#f5f0e0!important;background-image:linear-gradient(#d9d2c0 1px,transparent 1px),linear-gradient(90deg,#d9d2c0 1px,transparent 1px)!important;background-size:20px 20px!important;background-attachment:fixed!important;animation:fadeIn .5s ease-out}
+        body{background-color:#f5f0e0!important;background-image:linear-gradient(#d9d2c0 1px,transparent 1px),linear-gradient(90deg,#d9d2c0 1px,transparent 1px)!important;background-size:20px 20px!important;background-attachment:fixed!important;animation:fadeIn .35s ease-out}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        .page-entrance{position:fixed;top:0;left:0;width:100%;height:100%;background-color:#f0ece4;z-index:9999;opacity:1;pointer-events:none;will-change:opacity;transition:opacity .5s ease-out}
-        .from-page-turn .page-entrance{opacity:1;background-image:linear-gradient(#d9d2c0 1px,transparent 1px),linear-gradient(90deg,#d9d2c0 1px,transparent 1px);background-size:20px 20px;background-attachment:fixed;transition:opacity .5s ease-out}
-        @media (max-width:768px){.page-entrance{animation-duration:.4s}html.mobile-view #about-window{display:block!important;opacity:1!important;visibility:visible!important;z-index:10!important}}
+        .page-entrance{position:fixed;top:0;left:0;width:100%;height:100%;background-color:#f0ece4;z-index:9999;opacity:1;pointer-events:none;will-change:opacity;transform:translateZ(0);backface-visibility:hidden;transition:opacity .4s cubic-bezier(0.25,0.1,0.25,1)}
+        .from-page-turn .page-entrance{opacity:1;background-image:linear-gradient(#d9d2c0 1px,transparent 1px),linear-gradient(90deg,#d9d2c0 1px,transparent 1px);background-size:20px 20px;background-attachment:fixed;transition:opacity .4s cubic-bezier(0.25,0.1,0.25,1)}
+        @media (max-width:768px){.page-entrance{animation-duration:.3s}html.mobile-view #about-window{display:block!important;opacity:1!important;visibility:visible!important;z-index:10!important}}
     </style>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="mobile.css">
@@ -829,13 +829,16 @@
                     window.scrollTo(0, parseInt(savedScrollPosition));
                     sessionStorage.removeItem('scrollPosition');
                 }
-                setTimeout(() => {
-                    pageEntranceElement.style.opacity = '0';
-                    setTimeout(() => {
-                        pageEntranceElement.remove();
-                        document.documentElement.classList.remove('from-page-turn');
-                    }, 500);
-                }, 200);
+                // Start fade immediately - no artificial delay for snappy feel
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        pageEntranceElement.style.opacity = '0';
+                        setTimeout(() => {
+                            pageEntranceElement.remove();
+                            document.documentElement.classList.remove('from-page-turn');
+                        }, 400);
+                    });
+                });
             }
         });
         

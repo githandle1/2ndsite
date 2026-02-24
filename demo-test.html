@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transition Demo - Maya's Sketchbook</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #f5f0e0;
+        }
+        h1 { margin-bottom: 24px; font-size: 24px; }
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        .card h2 { font-size: 16px; margin-bottom: 12px; color: #333; }
+        .card p { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 16px; }
+        a {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #f0e68c;
+            color: #000;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        a:hover { background: #e6d97a; }
+        .metrics {
+            font-family: monospace;
+            font-size: 12px;
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 12px;
+        }
+        .metrics span { margin-right: 16px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Transition Demo</h1>
+        <p>Click the button below to test the "Enter here" → desktop transition. The flow should feel smooth with no noticeable latency.</p>
+        <a href="index.html">Start Demo (opens index)</a>
+    </div>
+    <div class="card">
+        <h2>What to look for</h2>
+        <ul style="margin-left: 20px; color: #666; font-size: 14px; line-height: 1.8;">
+            <li>Page turn sweeps right smoothly (~550ms)</li>
+            <li>Desktop appears immediately after (no long blank pause)</li>
+            <li>Welcome window fades in quickly on index load</li>
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Improvements made</h2>
+        <p><strong>Prefetch:</strong> desktop.html is preloaded when index loads</p>
+        <p><strong>Timing:</strong> Navigation synced to animation (550ms)</p>
+        <p><strong>Desktop entrance:</strong> 200ms delay removed; fade starts immediately</p>
+        <p><strong>GPU acceleration:</strong> transform/backface-visibility for smoother animations</p>
+    </div>
+</body>
+</html>

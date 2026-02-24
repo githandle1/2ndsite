@@ -14,6 +14,8 @@
     <link rel="apple-touch-icon" href="favicon.svg?v=7">
     <!-- Preload critical background images -->
     <link rel="preload" as="image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0h20v1H0zM0 0h1v20H0z' fill='%23ccc'/%3E%3C/svg%3E">
+    <!-- Prefetch desktop page for instant navigation when user hovers Enter -->
+    <link rel="prefetch" href="desktop.html">
     <style>
         /* Critical CSS for immediate background grid rendering */
         body, .desktop {
@@ -68,9 +70,10 @@
             z-index: 9999;
             box-shadow: -5px 0 10px rgba(0, 0, 0, 0.2);
             pointer-events: none;
-            will-change: width;
-            transition: width 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
-            transform: none;
+            will-change: width, transform;
+            transition: width 0.55s cubic-bezier(0.25, 0.1, 0.25, 1);
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
         
         /* Mobile-specific styles for index page */
@@ -305,25 +308,27 @@
             }
         }
         
-        // Page turn animation function
-        function pageTurn() {
+        // Page turn animation function - navigation timed to match CSS transition
+        function pageTurn(e) {
+            if (e) e.preventDefault();
             const pageTurnElement = document.querySelector('.page-turn');
             
-            // Simply expand the page turn element to full width
+            // Trigger reflow for animation to start immediately
+            pageTurnElement.offsetHeight;
             pageTurnElement.style.width = '100%';
             
             // Set flag in sessionStorage to indicate we're coming from a page turn
             sessionStorage.setItem('fromPageTurn', 'true');
-            
-            // Store the current scroll position to maintain consistency
             sessionStorage.setItem('scrollPosition', window.scrollY.toString());
             
-            // Delay navigation to allow animation to complete
+            // Replace index in history with mayabakir.com so browser back goes to home
+            history.replaceState(null, '', 'https://mayabakir.com');
+            // Navigate exactly when animation completes (550ms matches CSS transition)
             setTimeout(() => {
                 window.location.href = 'desktop.html';
-            }, 600); // Slightly shorter than the CSS transition to ensure smooth handoff
+            }, 550);
             
-            return false; // Prevent default link behavior
+            return false;
         }
         
         // Modify the Enter button to preserve audio state and trigger page turn
@@ -338,10 +343,13 @@
                 currentDateElement.textContent = now.toLocaleDateString('en-US', options);
             }
             
-            // Add page turn animation to enter button
+            // Add page turn animation to enter button (use addEventListener for proper event handling)
             const enterButton = document.querySelector('.enter-button a');
             if (enterButton) {
-                enterButton.onclick = pageTurn;
+                enterButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    pageTurn(e);
+                }, { passive: false });
             }
             
             // Function to detect mobile devices and adjust UI

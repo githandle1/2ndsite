@@ -2,6 +2,8 @@
  * Mobile-specific JavaScript for Maya's Website
  */
 
+let mobileWindows = ['about-window', 'chat-window', 'moodboard-window', 'journal-window'];
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Mobile.js loaded - checking for mobile device');
     
