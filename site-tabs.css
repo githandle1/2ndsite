@@ -23,6 +23,16 @@
     text-decoration: none;
     border-right: 1px solid #d9d2c0;
     letter-spacing: 0.02em;
+    background: transparent;
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    font: inherit;
+    cursor: pointer;
+}
+
+button.site-tab {
+    text-align: left;
 }
 
 .site-tab:hover {
