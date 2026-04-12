@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>photo album — stalogy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=7">
+    <link rel="shortcut icon" sizes="any" href="favicon.svg?v=7">
+    <style>
+        :root {
+            --paper: #f5f0e0;
+            --grid: #d9d2c0;
+            --ink: #2a2824;
+            --muted: #6b6560;
+            --stalogy-yellow: #f9e04c;
+            --accent-line: #c45c5c;
+            --rail: 36px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Libre Baskerville', Georgia, serif;
+            background-color: var(--paper);
+            background-image:
+                linear-gradient(var(--grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-attachment: fixed;
+            color: var(--ink);
+            min-height: 100vh;
+            padding-bottom: 120px;
+        }
+
+        /* Left margin + red rule (Editor's Series cue) */
+        .notebook-frame {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .left-margin {
+            width: var(--rail);
+            flex-shrink: 0;
+            border-right: 2px solid var(--stalogy-yellow);
+            position: relative;
+            background: linear-gradient(90deg, rgba(249, 224, 76, 0.12), transparent);
+        }
+
+        .left-margin::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 10px;
+            width: 1px;
+            height: 100%;
+            background: var(--accent-line);
+            opacity: 0.55;
+        }
+
+        .month-pill {
+            position: sticky;
+            top: 24px;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 12px 0;
+            margin: 0 auto;
+            max-height: 70vh;
+            text-align: center;
+        }
+
+        main {
+            flex: 1;
+            padding: 20px 20px 32px 16px;
+            max-width: 920px;
+        }
+
+        .stalogy-label {
+            display: inline-flex;
+            border: 1px solid var(--grid);
+            background: rgba(255, 255, 255, 0.35);
+            padding: 6px 12px;
+            font-size: 10px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+
+        .page-sub {
+            font-size: 13px;
+            font-style: italic;
+            color: var(--muted);
+            margin-bottom: 28px;
+            max-width: 36em;
+            line-height: 1.55;
+        }
+
+        /* Mini calendar strip */
+        .date-strip {
+            margin-bottom: 32px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 9px;
+            color: var(--muted);
+        }
+
+        .date-strip .months {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .date-strip .months span {
+            flex: 1;
+            text-align: center;
+            opacity: 0.45;
+        }
+
+        .date-strip .months span.is-current {
+            opacity: 1;
+            font-weight: bold;
+            color: #b8860b;
+        }
+
+        .date-strip .days {
+            display: grid;
+            grid-template-columns: repeat(31, minmax(0, 1fr));
+            gap: 2px;
+        }
+
+        .date-strip .days span {
+            text-align: center;
+            opacity: 0.4;
+            min-width: 0;
+        }
+
+        .date-strip .days span.is-current {
+            opacity: 1;
+            font-weight: bold;
+            color: #b8860b;
+        }
+
+        .album-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 36px;
+        }
+
+        .photo-entry {
+            position: relative;
+        }
+
+        .photo-entry:nth-child(even) {
+            margin-left: clamp(0px, 4vw, 32px);
+        }
+
+        .polaroid {
+            background: #fffef8;
+            border: 1px solid #c8c2b4;
+            padding: 12px 12px 40px;
+            box-shadow:
+                2px 3px 0 rgba(0, 0, 0, 0.04),
+                8px 14px 28px rgba(42, 40, 36, 0.08);
+            max-width: min(100%, 420px);
+            transform: rotate(var(--tilt, 0deg));
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .photo-entry:nth-child(1) .polaroid { --tilt: -0.6deg; }
+        .photo-entry:nth-child(2) .polaroid { --tilt: 0.8deg; }
+        .photo-entry:nth-child(3) .polaroid { --tilt: -0.4deg; }
+        .photo-entry:nth-child(4) .polaroid { --tilt: 0.5deg; }
+        .photo-entry:nth-child(5) .polaroid { --tilt: -0.7deg; }
+        .photo-entry:nth-child(6) .polaroid { --tilt: 0.3deg; }
+
+        .polaroid:hover {
+            transform: rotate(0deg) translateY(-2px);
+            box-shadow:
+                2px 3px 0 rgba(0, 0, 0, 0.05),
+                12px 22px 36px rgba(42, 40, 36, 0.12);
+        }
+
+        .polaroid button {
+            display: block;
+            width: 100%;
+            padding: 0;
+            border: none;
+            background: none;
+            cursor: zoom-in;
+            font: inherit;
+            color: inherit;
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: auto;
+            aspect-ratio: var(--ar, 4 / 3);
+            object-fit: cover;
+            display: block;
+            background: #e8e4dc;
+        }
+
+        .caption-block {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid #e0dcd0;
+        }
+
+        .caption-meta {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 9px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .caption-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--ink);
+        }
+
+        .tape {
+            position: absolute;
+            width: 52px;
+            height: 18px;
+            background: rgba(249, 224, 76, 0.45);
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-2deg);
+            pointer-events: none;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Bottom yellow band */
+        .stalogy-band {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            min-height: 44px;
+            background: var(--stalogy-yellow);
+            z-index: 50;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch;
+            justify-content: space-around;
+            gap: 8px;
+            padding: 10px 12px 12px;
+            padding-left: calc(var(--rail) + 12px);
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .band-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-width: 72px;
+            text-align: center;
+        }
+
+        .band-k {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #3d3a33;
+        }
+
+        .band-v {
+            font-size: 11px;
+            color: #555045;
+            max-width: 140px;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 60;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+            text-decoration: none;
+            color: var(--ink);
+            background: rgba(245, 240, 224, 0.92);
+            border: 1px solid var(--grid);
+            padding: 6px 10px;
+        }
+
+        .back-link:hover {
+            background: #fffef8;
+        }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(42, 40, 36, 0.88);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            cursor: zoom-out;
+        }
+
+        .lightbox.is-open {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.35);
+            cursor: default;
+        }
+
+        .lightbox figcaption {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #f5f0e0;
+            font-size: 13px;
+            text-align: center;
+            max-width: 90vw;
+        }
+
+        @media (max-width: 640px) {
+            :root {
+                --rail: 28px;
+            }
+
+            .photo-entry:nth-child(even) {
+                margin-left: 0;
+            }
+
+            .stalogy-band {
+                padding-left: 12px;
+            }
+
+            .band-item {
+                width: 46%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="back-link" href="desktop.html">← desktop</a>
+
+    <div class="notebook-frame">
+        <aside class="left-margin" aria-hidden="true">
+            <div class="month-pill" id="spine-month">—</div>
+        </aside>
+
+        <main>
+            <div class="stalogy-label">018 Editor's Series · 365 Days Notebook</div>
+            <h1 class="page-title">Photo album</h1>
+            <p class="page-sub">A quiet spread of moments, laid out like grid paper and soft margins. Swap the entries in the script block for your own images and lines.</p>
+
+            <div class="date-strip" aria-label="Calendar strip">
+                <div class="months" id="month-row"></div>
+                <div class="days" id="day-row"></div>
+            </div>
+
+            <div class="album-grid" id="album"></div>
+        </main>
+    </div>
+
+    <footer class="stalogy-band">
+        <div class="band-item">
+            <span class="band-k">date</span>
+            <span class="band-v" id="band-date">—</span>
+        </div>
+        <div class="band-item">
+            <span class="band-k">place</span>
+            <span class="band-v" id="band-place">wherever the light was good</span>
+        </div>
+        <div class="band-item">
+            <span class="band-k">film</span>
+            <span class="band-v" id="band-film">remembered, not perfect</span>
+        </div>
+        <div class="band-item">
+            <span class="band-k">listening</span>
+            <span class="band-v" id="band-listen">the room tone</span>
+        </div>
+    </footer>
+
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged photo">
+        <figure style="position: relative; margin: 0; max-height: 90vh;">
+            <img src="" alt="" id="lightbox-img">
+            <figcaption id="lightbox-cap"></figcaption>
+        </figure>
+    </div>
+
+    <script>
+        /**
+         * Edit this list with your own photos (local paths or URLs).
+         * aspect: optional CSS aspect-ratio like "3 / 4" or "1 / 1"
+         */
+        const PHOTOS = [
+            { src: 'https://picsum.photos/seed/stalogy-a/800/640', caption: 'Soft morning, coffee still too hot.', date: 'Apr 12', aspect: '5 / 4' },
+            { src: 'https://picsum.photos/seed/stalogy-b/720/900', caption: 'Sidewalk rhythm; everyone late in the same beautiful way.', date: 'Apr 8', aspect: '3 / 4' },
+            { src: 'https://picsum.photos/seed/stalogy-c/880/600', caption: 'Window light on the desk — the grid lines finally make sense.', date: 'Mar 22', aspect: '4 / 3' },
+            { src: 'https://picsum.photos/seed/stalogy-d/760/760', caption: 'One frame, squared like a stamp.', date: 'Mar 3', aspect: '1 / 1' },
+            { src: 'https://picsum.photos/seed/stalogy-e/700/1000', caption: 'Late afternoon, long shadows, short notes in the margin.', date: 'Feb 19', aspect: '2 / 3' },
+            { src: 'https://picsum.photos/seed/stalogy-f/840/560', caption: 'Golden hour bleeding into the yellow band.', date: 'Jan 30', aspect: '3 / 2' }
+        ];
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const now = new Date();
+        const monthRow = document.getElementById('month-row');
+        const dayRow = document.getElementById('day-row');
+        const spineMonth = document.getElementById('spine-month');
+
+        months.forEach((m, i) => {
+            const el = document.createElement('span');
+            el.textContent = m;
+            if (i === now.getMonth()) el.classList.add('is-current');
+            monthRow.appendChild(el);
+        });
+
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        for (let d = 1; d <= 31; d++) {
+            const el = document.createElement('span');
+            el.textContent = d;
+            if (d === now.getDate() && d <= daysInMonth) el.classList.add('is-current');
+            if (d > daysInMonth) {
+                el.textContent = '';
+                el.style.visibility = 'hidden';
+            }
+            dayRow.appendChild(el);
+        }
+
+        spineMonth.textContent = months[now.getMonth()] + ' ' + now.getFullYear();
+
+        const bandDate = document.getElementById('band-date');
+        bandDate.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+        const albumEl = document.getElementById('album');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCap = document.getElementById('lightbox-cap');
+
+        PHOTOS.forEach((p, index) => {
+            const article = document.createElement('article');
+            article.className = 'photo-entry';
+
+            const polaroid = document.createElement('div');
+            polaroid.className = 'polaroid';
+            if (p.aspect) polaroid.style.setProperty('--ar', p.aspect);
+
+            const tape = document.createElement('div');
+            tape.className = 'tape';
+            tape.setAttribute('aria-hidden', 'true');
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            const img = document.createElement('img');
+            img.src = p.src;
+            img.alt = p.caption || 'Album photo ' + (index + 1);
+            img.loading = index < 2 ? 'eager' : 'lazy';
+            btn.appendChild(img);
+
+            btn.addEventListener('click', function () {
+                lightboxImg.src = p.src;
+                lightboxImg.alt = img.alt;
+                lightboxCap.textContent = (p.date ? p.date + ' — ' : '') + (p.caption || '');
+                lightbox.classList.add('is-open');
+            });
+
+            const capBlock = document.createElement('div');
+            capBlock.className = 'caption-block';
+            const meta = document.createElement('div');
+            meta.className = 'caption-meta';
+            meta.textContent = p.date || '—';
+            const cap = document.createElement('p');
+            cap.className = 'caption-text';
+            cap.textContent = p.caption || '';
+
+            capBlock.appendChild(meta);
+            capBlock.appendChild(cap);
+
+            polaroid.appendChild(tape);
+            polaroid.appendChild(btn);
+            polaroid.appendChild(capBlock);
+            article.appendChild(polaroid);
+            albumEl.appendChild(article);
+        });
+
+        function closeLightbox() {
+            lightbox.classList.remove('is-open');
+            lightboxImg.src = '';
+        }
+
+        lightbox.addEventListener('click', function (e) {
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    </script>
+</body>
+</html>
