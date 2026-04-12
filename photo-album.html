@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>photo album — stalogy</title>
+    <title>foto — stalogy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=7">
     <link rel="shortcut icon" sizes="any" href="favicon.svg?v=7">
+    <link rel="stylesheet" href="site-tabs.css">
     <style>
         :root {
             --paper: #f5f0e0;
@@ -298,30 +299,12 @@
             max-width: 140px;
         }
 
-        .back-link {
-            position: fixed;
-            top: 14px;
-            right: 14px;
-            z-index: 60;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 11px;
-            text-decoration: none;
-            color: var(--ink);
-            background: rgba(245, 240, 224, 0.92);
-            border: 1px solid var(--grid);
-            padding: 6px 10px;
-        }
-
-        .back-link:hover {
-            background: #fffef8;
-        }
-
         /* Lightbox */
         .lightbox {
             position: fixed;
             inset: 0;
             background: rgba(42, 40, 36, 0.88);
-            z-index: 100;
+            z-index: 2100;
             display: none;
             align-items: center;
             justify-content: center;
@@ -371,8 +354,11 @@
         }
     </style>
 </head>
-<body>
-    <a class="back-link" href="desktop.html">← desktop</a>
+<body class="has-site-tabs">
+    <nav class="site-tabs" aria-label="Site">
+        <a class="site-tab" href="desktop.html">sketch</a>
+        <a class="site-tab is-active" href="photo-album.html">foto</a>
+    </nav>
 
     <div class="notebook-frame">
         <aside class="left-margin" aria-hidden="true">
@@ -381,7 +367,7 @@
 
         <main>
             <div class="stalogy-label">018 Editor's Series · 365 Days Notebook</div>
-            <h1 class="page-title">Photo album</h1>
+            <h1 class="page-title">Foto</h1>
             <p class="page-sub">A quiet spread of moments, laid out like grid paper and soft margins. Swap the entries in the script block for your own images and lines.</p>
 
             <div class="date-strip" aria-label="Calendar strip">
