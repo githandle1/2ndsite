@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Maya's cabinet: a running list of photos, reads, and personal notes.">
+    <title>maya's cabinet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=7">
+    <style>
+        :root {
+            color-scheme: light;
+            --paper: #faf9f6;
+            --ink: #24211f;
+            --hover: #8b2f32;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+        }
+
+        body {
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: "Libre Baskerville", serif;
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+        main {
+            width: min(100% - 48px, 720px);
+            margin: 0 auto;
+            padding: 72px 0 96px;
+        }
+
+        h1 {
+            margin: 0 0 64px;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        section {
+            margin: 0 0 40px;
+        }
+
+        h4 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.65;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        .photo-entry {
+            border-bottom: 1px solid rgba(36, 33, 31, 0.16);
+        }
+
+        .photo-entry:first-of-type {
+            border-top: 1px solid rgba(36, 33, 31, 0.16);
+        }
+
+        .photo-entry summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 0;
+            cursor: pointer;
+            list-style: none;
+            transition: color 180ms ease;
+        }
+
+        .photo-entry summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .photo-entry summary::after {
+            content: "+";
+            font-size: 1.1rem;
+            font-weight: 400;
+            line-height: 1;
+        }
+
+        .photo-entry[open] summary::after {
+            content: "−";
+        }
+
+        .photo-entry summary:hover,
+        .photo-entry summary:focus-visible {
+            color: var(--hover);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            padding: 4px 0 16px;
+        }
+
+        .photo-slot {
+            display: grid;
+            place-items: center;
+            aspect-ratio: 1;
+            background: #f1eee8;
+            border: 1px solid rgba(36, 33, 31, 0.12);
+            color: rgba(36, 33, 31, 0.48);
+            font-size: 0.65rem;
+            overflow: hidden;
+        }
+
+        .photo-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .phrase {
+            width: fit-content;
+            transition: color 180ms ease;
+        }
+
+        .phrase:hover,
+        .phrase:focus-visible {
+            color: var(--hover);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 32px;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                width: min(100% - 32px, 720px);
+                padding-top: 40px;
+            }
+
+            h1 {
+                margin-bottom: 48px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1 class="phrase">filings</h1>
+
+        <section aria-labelledby="currently-reading">
+            <h4 id="currently-reading" class="phrase">currently reading</h4>
+        </section>
+
+        <section aria-labelledby="photos">
+            <h4 id="photos" class="phrase">photos</h4>
+            <details class="photo-entry">
+                <summary>nyc, july 2026</summary>
+                <div class="photo-grid" aria-label="NYC photo gallery">
+                    <div class="photo-slot"><img src="photos/cursor.jpeg" alt="Central Park, NYC"></div>
+                    <div class="photo-slot">02</div>
+                    <div class="photo-slot">03</div>
+                    <div class="photo-slot">04</div>
+                    <div class="photo-slot">05</div>
+                    <div class="photo-slot">06</div>
+                    <div class="photo-slot">07</div>
+                    <div class="photo-slot">08</div>
+                    <div class="photo-slot">09</div>
+                </div>
+            </details>
+            <details class="photo-entry">
+                <summary>london, july 2026</summary>
+                <div class="photo-grid" aria-label="London photo gallery">
+                    <div class="photo-slot">01</div>
+                    <div class="photo-slot">02</div>
+                    <div class="photo-slot">03</div>
+                    <div class="photo-slot">04</div>
+                    <div class="photo-slot">05</div>
+                    <div class="photo-slot">06</div>
+                    <div class="photo-slot">07</div>
+                    <div class="photo-slot">08</div>
+                    <div class="photo-slot">09</div>
+                </div>
+            </details>
+            <details class="photo-entry">
+                <summary>paris, july 2026</summary>
+                <div class="photo-grid" aria-label="Paris photo gallery">
+                    <div class="photo-slot">01</div>
+                    <div class="photo-slot">02</div>
+                    <div class="photo-slot">03</div>
+                    <div class="photo-slot">04</div>
+                    <div class="photo-slot">05</div>
+                    <div class="photo-slot">06</div>
+                    <div class="photo-slot">07</div>
+                    <div class="photo-slot">08</div>
+                    <div class="photo-slot">09</div>
+                </div>
+            </details>
+        </section>
+
+        <section aria-labelledby="reads">
+            <h4 id="reads" class="phrase">reads</h4>
+        </section>
+
+        <a class="back-link phrase" href="index.html">← back</a>
+    </main>
+</body>
+</html>
