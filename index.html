@@ -341,7 +341,14 @@
 
         .sketchbook-link .arrow {
             display: inline-block;
-            margin-left: 0.12em;
+            width: 0.45em;
+            height: 0.45em;
+            margin-left: 0.15em;
+            box-sizing: border-box;
+            border-top: 1.5px solid currentColor;
+            border-right: 1.5px solid currentColor;
+            transform: rotate(45deg) translateY(-0.06em);
+            vertical-align: baseline;
             font-size: 0.75em;
             line-height: 1;
         }
@@ -481,7 +488,7 @@
             </details>
         </section>
 
-        <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">↗</span></a>
+        <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true"></span></a>
     </main>
 
     <div class="photo-overlay" id="photo-overlay" hidden aria-hidden="true">
