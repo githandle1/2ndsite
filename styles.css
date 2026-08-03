@@ -246,6 +246,20 @@ body {
     color: #000;
 }
 
+.cabinet-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cabinet-link span {
+    transition: color 180ms ease;
+}
+
+.cabinet-link:hover span,
+.cabinet-link:focus-visible span {
+    color: #8b2f32;
+}
+
 .point-number {
     font-weight: bold;
     margin-bottom: 2px;
