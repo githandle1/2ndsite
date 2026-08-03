@@ -104,14 +104,22 @@
         .photo-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 8px;
+            gap: 12px 8px;
             padding: 4px 0 16px;
+        }
+
+        .photo-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
         }
 
         .photo-slot {
             display: grid;
             place-items: center;
             aspect-ratio: 1;
+            width: 100%;
             background: #f1eee8;
             border: 1px solid rgba(36, 33, 31, 0.12);
             color: rgba(36, 33, 31, 0.48);
@@ -138,25 +146,68 @@
             pointer-events: none;
         }
 
-        .polaroid-overlay {
+        .photo-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .caption-toggle {
+            border: none;
+            background: none;
+            padding: 0 1px;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 400;
+            line-height: 1;
+            color: var(--hover);
+            cursor: pointer;
+            opacity: 0.82;
+            transition: opacity 180ms ease;
+        }
+
+        .caption-toggle:hover,
+        .caption-toggle:focus-visible {
+            opacity: 1;
+        }
+
+        .photo-caption {
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            font-size: 0.58rem;
+            line-height: 1.35;
+            text-align: right;
+            color: rgba(36, 33, 31, 0.62);
+            transition: max-height 220ms ease, opacity 220ms ease, margin-top 220ms ease;
+        }
+
+        .photo-caption.is-open {
+            max-height: 2.5rem;
+            margin-top: 3px;
+            opacity: 1;
+        }
+
+        .photo-overlay {
             position: fixed;
             inset: 0;
             z-index: 100;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px;
+            padding: 12px;
             opacity: 0;
             visibility: hidden;
             transition: opacity 220ms ease, visibility 220ms ease;
         }
 
-        .polaroid-overlay.is-open {
+        .photo-overlay.is-open {
             opacity: 1;
             visibility: visible;
         }
 
-        .polaroid-backdrop {
+        .photo-overlay-backdrop {
             position: absolute;
             inset: 0;
             background: rgba(36, 33, 31, 0.58);
@@ -164,75 +215,21 @@
             cursor: pointer;
         }
 
-        .polaroid {
+        .photo-overlay-image {
             position: relative;
             z-index: 1;
-            margin: 0;
-            width: min(90vw, 480px);
-            background: #fff;
-            padding: 14px 14px 46px;
-            box-shadow:
-                0 1px 2px rgba(0, 0, 0, 0.08),
-                0 12px 40px rgba(0, 0, 0, 0.22);
-            transform: scale(0.94);
+            display: block;
+            max-width: 96vw;
+            max-height: 96dvh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            transform: scale(0.96);
             transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        .polaroid-overlay.is-open .polaroid {
+        .photo-overlay.is-open .photo-overlay-image {
             transform: scale(1);
-        }
-
-        .polaroid-image {
-            display: block;
-            width: 100%;
-            aspect-ratio: 4 / 3;
-            object-fit: cover;
-            background: #f1eee8;
-        }
-
-        .polaroid-caption {
-            position: absolute;
-            left: 14px;
-            right: 14px;
-            bottom: 10px;
-            text-align: right;
-        }
-
-        .polaroid-timestamp {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 0.53rem;
-            letter-spacing: 0.04em;
-            text-transform: lowercase;
-            color: rgba(36, 33, 31, 0.45);
-        }
-
-        .polaroid-note {
-            margin: 0;
-            font-size: 0.78rem;
-            line-height: 1.4;
-            color: var(--ink);
-        }
-
-        .polaroid-close {
-            position: absolute;
-            top: -12px;
-            right: -12px;
-            z-index: 2;
-            width: 28px;
-            height: 28px;
-            border: 1px solid rgba(36, 33, 31, 0.12);
-            border-radius: 50%;
-            background: #fff;
-            color: var(--ink);
-            font-size: 1rem;
-            line-height: 1;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-        }
-
-        .polaroid-close:hover {
-            color: var(--hover);
         }
 
         .phrase {
@@ -270,7 +267,7 @@
 </head>
 <body>
     <main>
-        <h1 class="phrase">filings</h1>
+        <h1 class="phrase">filing cabinet</h1>
 
         <section aria-labelledby="currently-reading">
             <h4 id="currently-reading" class="phrase">currently reading</h4>
@@ -281,18 +278,60 @@
             <details class="photo-entry">
                 <summary>nyc, july 2026</summary>
                 <div class="photo-grid" aria-label="NYC photo gallery">
-                    <button type="button" class="photo-slot photo-thumb" data-src="photos/cursor.jpeg" data-note="central park, august 2026" aria-label="Open Central Park photo">
-                        <img src="photos/cursor.jpeg" alt="Central Park, NYC">
-                    </button>
-                    <button type="button" class="photo-slot photo-thumb" data-src="photos/williamsburg-bridge.jpeg" data-note="sheep's meadow, august 2026" aria-label="Open Sheep Meadow photo">
-                        <img src="photos/williamsburg-bridge.jpeg" alt="Williamsburg Bridge, East River">
-                    </button>
-                    <button type="button" class="photo-slot photo-thumb" data-src="photos/sheep-meadow.jpeg" data-note="williamsburg bridge, july 2026" aria-label="Open Williamsburg Bridge photo">
-                        <img src="photos/sheep-meadow.jpeg" alt="Sheep Meadow, Central Park">
-                    </button>
-                    <div class="photo-slot">04</div>
-                    <div class="photo-slot">05</div>
-                    <div class="photo-slot">06</div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/cursor.jpeg" aria-label="Open Central Park photo">
+                            <img src="photos/cursor.jpeg" alt="Central Park, NYC">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">central park, august 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/williamsburg-bridge.jpeg" aria-label="Open Sheep Meadow photo">
+                            <img src="photos/williamsburg-bridge.jpeg" alt="Williamsburg Bridge, East River">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">sheep's meadow, august 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/sheep-meadow.jpeg" aria-label="Open Williamsburg Bridge photo">
+                            <img src="photos/sheep-meadow.jpeg" alt="Sheep Meadow, Central Park">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">williamsburg bridge, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/mulberry-manhattan.jpeg" aria-label="Open Mulberry Street photo">
+                            <img src="photos/mulberry-manhattan.jpeg" alt="Mulberry Street cafe, Manhattan">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">mulberry street, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/lower-east-side.jpeg" aria-label="Open Lower East Side photo">
+                            <img src="photos/lower-east-side.jpeg" alt="Lower East Side street view">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">lower east side, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/dining-room.jpeg" aria-label="Open dining room photo">
+                            <img src="photos/dining-room.jpeg" alt="Restaurant dining room">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">dinner service, july 2026</p>
+                        </div>
+                    </div>
                     <div class="photo-slot">07</div>
                     <div class="photo-slot">08</div>
                     <div class="photo-slot">09</div>
@@ -315,9 +354,33 @@
             <details class="photo-entry">
                 <summary>paris, july 2026</summary>
                 <div class="photo-grid" aria-label="Paris photo gallery">
-                    <div class="photo-slot">01</div>
-                    <div class="photo-slot">02</div>
-                    <div class="photo-slot">03</div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/paris-metro.jpeg" aria-label="Open Paris metro photo">
+                            <img src="photos/paris-metro.jpeg" alt="Paris metro at dusk">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">line 6, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/place-des-vosges.jpeg" aria-label="Open Place des Vosges photo">
+                            <img src="photos/place-des-vosges.jpeg" alt="Place des Vosges, Paris">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">place des vosges, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/archives-nationales.jpeg" aria-label="Open Archives Nationales photo">
+                            <img src="photos/archives-nationales.jpeg" alt="Archives Nationales, Paris">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">archives nationales, july 2026</p>
+                        </div>
+                    </div>
                     <div class="photo-slot">04</div>
                     <div class="photo-slot">05</div>
                     <div class="photo-slot">06</div>
@@ -335,46 +398,26 @@
         <a class="back-link phrase" href="index.html">← back</a>
     </main>
 
-    <div class="polaroid-overlay" id="polaroid-overlay" hidden aria-hidden="true">
-        <button type="button" class="polaroid-backdrop" aria-label="Close photo preview"></button>
-        <figure class="polaroid">
-            <button type="button" class="polaroid-close" aria-label="Close photo preview">×</button>
-            <img class="polaroid-image" src="" alt="">
-            <figcaption class="polaroid-caption">
-                <time class="polaroid-timestamp"></time>
-                <p class="polaroid-note"></p>
-            </figcaption>
-        </figure>
+    <div class="photo-overlay" id="photo-overlay" hidden aria-hidden="true">
+        <button type="button" class="photo-overlay-backdrop" aria-label="Close photo preview"></button>
+        <img class="photo-overlay-image" src="" alt="">
     </div>
 
     <script>
-        const overlay = document.getElementById('polaroid-overlay');
-        const polaroidImage = overlay.querySelector('.polaroid-image');
-        const polaroidTimestamp = overlay.querySelector('.polaroid-timestamp');
-        const polaroidNote = overlay.querySelector('.polaroid-note');
-        const backdrop = overlay.querySelector('.polaroid-backdrop');
-        const closeButton = overlay.querySelector('.polaroid-close');
+        const overlay = document.getElementById('photo-overlay');
+        const overlayImage = overlay.querySelector('.photo-overlay-image');
+        const backdrop = overlay.querySelector('.photo-overlay-backdrop');
 
-        function openPolaroid(thumb) {
-            polaroidImage.src = thumb.dataset.src;
-            polaroidImage.alt = thumb.querySelector('img')?.alt || '';
-
-            const timestamp = thumb.dataset.timestamp || '';
-            const note = thumb.dataset.note || '';
-
-            polaroidTimestamp.textContent = timestamp;
-            polaroidTimestamp.hidden = !timestamp;
-            polaroidNote.textContent = note;
-            polaroidNote.hidden = !note;
-
+        function openPreview(thumb) {
+            overlayImage.src = thumb.dataset.src;
+            overlayImage.alt = thumb.querySelector('img')?.alt || '';
             overlay.hidden = false;
             overlay.setAttribute('aria-hidden', 'false');
             requestAnimationFrame(() => overlay.classList.add('is-open'));
             document.body.style.overflow = 'hidden';
-            closeButton.focus();
         }
 
-        function closePolaroid() {
+        function closePreview() {
             overlay.classList.remove('is-open');
             overlay.setAttribute('aria-hidden', 'true');
             document.body.style.overflow = '';
@@ -382,21 +425,33 @@
             window.setTimeout(() => {
                 if (!overlay.classList.contains('is-open')) {
                     overlay.hidden = true;
-                    polaroidImage.removeAttribute('src');
+                    overlayImage.removeAttribute('src');
                 }
             }, 220);
         }
 
         document.querySelectorAll('.photo-thumb').forEach((thumb) => {
-            thumb.addEventListener('click', () => openPolaroid(thumb));
+            thumb.addEventListener('click', () => openPreview(thumb));
         });
 
-        backdrop.addEventListener('click', closePolaroid);
-        closeButton.addEventListener('click', closePolaroid);
+        document.querySelectorAll('.caption-toggle').forEach((toggle) => {
+            toggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const caption = toggle.nextElementSibling;
+                const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+                const nextState = !isOpen;
+
+                toggle.setAttribute('aria-expanded', String(nextState));
+                toggle.textContent = nextState ? '−' : '+';
+                caption.classList.toggle('is-open', nextState);
+            });
+        });
+
+        backdrop.addEventListener('click', closePreview);
 
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && overlay.classList.contains('is-open')) {
-                closePolaroid();
+                closePreview();
             }
         });
     </script>
