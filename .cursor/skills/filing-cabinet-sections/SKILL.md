@@ -82,7 +82,7 @@ Insert inside `<main>`, above or below other sections:
 
 ```html
 <a class="sketchbook-link phrase" href="sketchbook.html">
-    visit the sketchbook <span class="arrow" aria-hidden="true">↗</span>
+    visit my sketchbook <span class="arrow" aria-hidden="true">↗</span>
 </a>
 ```
 
