@@ -42,10 +42,96 @@
         }
 
         h1 {
-            margin: 0 0 64px;
+            margin: 0 0 16px;
             font-size: clamp(1.75rem, 4vw, 2.5rem);
             font-weight: 400;
             letter-spacing: -0.02em;
+        }
+
+        .intro {
+            margin: 0 0 52px;
+            width: 100%;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .intro p {
+            margin: 0 0 0.55em;
+        }
+
+        .intro-meta {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            column-gap: 0.4em;
+            align-items: baseline;
+            width: 100%;
+        }
+
+        .intro-lead {
+            display: contents;
+        }
+
+        .intro-lead .caption-toggle {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .intro-lead p {
+            grid-column: 2;
+            grid-row: 1;
+            margin: 0;
+        }
+
+        .intro-blurb {
+            grid-column: 2;
+            grid-row: 2;
+            margin: 0;
+            width: 100%;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            font-size: inherit;
+            line-height: inherit;
+            text-align: left;
+            color: var(--ink);
+            transition: max-height 280ms ease, opacity 220ms ease, margin-top 220ms ease;
+        }
+
+        .intro-blurb.is-open {
+            max-height: 32rem;
+            margin-top: 6px;
+            opacity: 1;
+        }
+
+        .intro-blurb p {
+            margin: 0 0 0.55em;
+        }
+
+        .intro-blurb p:last-child {
+            margin-bottom: 0;
+        }
+
+        .intro-blurb ul {
+            margin: 0 0 0.85em;
+            padding-left: 1.25em;
+            list-style: disc;
+        }
+
+        .intro-blurb li {
+            margin: 0.1em 0;
+        }
+
+        .intro-blurb li::marker {
+            color: var(--ink);
+        }
+
+        .intro a {
+            transition: color 180ms ease;
+        }
+
+        .intro a:hover,
+        .intro a:focus-visible {
+            color: var(--hover);
         }
 
         section {
@@ -267,14 +353,38 @@
             }
 
             h1 {
-                margin-bottom: 48px;
+                margin-bottom: 14px;
+            }
+
+            .intro {
+                margin-bottom: 40px;
+                font-size: 0.84rem;
             }
         }
     </style>
 </head>
 <body>
     <main>
-        <h1 class="phrase">filing cabinet.</h1>
+        <h1 class="phrase">filing cabinet</h1>
+
+        <div class="intro">
+            <div class="intro-meta">
+                <div class="intro-lead">
+                    <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show bio">+</button>
+                    <p>hi i'm maya.</p>
+                </div>
+                <div class="intro-blurb">
+                    <p>i'm currently:</p>
+                    <ul>
+                        <li>in nyc</li>
+                        <li>visiting a lot of teahouses</li>
+                        <li>and collecting more files to store in my cabinet.</li>
+                    </ul>
+                    <p>previously, i led brand marketing at <a href="https://cursor.com" target="_blank" rel="noopener noreferrer">cursor</a>. before that, i built <a href="https://www.notion.com" target="_blank" rel="noopener noreferrer">notion's education program</a>.</p>
+                    <p>you can shoot me a message <a href="mailto:mayabakir38@gmail.com">here</a>.</p>
+                </div>
+            </div>
+        </div>
 
         <section aria-labelledby="photos">
             <h4 id="photos" class="phrase">photos</h4>
@@ -413,7 +523,10 @@
         document.querySelectorAll('.caption-toggle').forEach((toggle) => {
             toggle.addEventListener('click', (event) => {
                 event.stopPropagation();
-                const caption = toggle.nextElementSibling;
+                const container = toggle.closest('.photo-meta, .intro-meta');
+                const caption = container
+                    ? container.querySelector('.photo-caption, .intro-blurb')
+                    : toggle.nextElementSibling;
                 const isOpen = toggle.getAttribute('aria-expanded') === 'true';
                 const nextState = !isOpen;
 
