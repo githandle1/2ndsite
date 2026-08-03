@@ -71,18 +71,58 @@
         }
 
         .intro-lead {
-            display: contents;
-        }
-
-        .intro-lead .caption-toggle {
-            grid-column: 1;
-            grid-row: 1;
-        }
-
-        .intro-lead p {
-            grid-column: 2;
-            grid-row: 1;
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            column-gap: 0.4em;
+            align-items: baseline;
+            border: none;
+            background: none;
+            padding: 0;
             margin: 0;
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 400;
+            line-height: 1.65;
+            color: inherit;
+            text-align: left;
+            cursor: pointer;
+            width: 100%;
+            opacity: 1;
+        }
+
+        .intro-toggle-mark {
+            font-size: 0.85em;
+            font-weight: 400;
+            line-height: 1;
+            color: var(--hover);
+            opacity: 0.82;
+            transition: opacity 180ms ease;
+        }
+
+        .intro-lead:hover .intro-toggle-mark,
+        .intro-lead:focus-visible .intro-toggle-mark {
+            opacity: 1;
+        }
+
+        .intro-lead.caption-toggle {
+            font-size: 0.92rem;
+            font-weight: 400;
+            line-height: 1.65;
+            color: var(--ink);
+            opacity: 1;
+            padding: 0;
+        }
+
+        .intro-lead-text {
+            margin: 0;
+            color: var(--ink);
+            transition: color 180ms ease;
+        }
+
+        .intro-lead:hover .intro-lead-text,
+        .intro-lead:focus-visible .intro-lead-text {
+            color: var(--hover);
         }
 
         .intro-blurb {
@@ -364,7 +404,6 @@
 
             .intro {
                 margin-bottom: 40px;
-                font-size: 0.84rem;
             }
         }
     </style>
@@ -375,10 +414,10 @@
 
         <div class="intro">
             <div class="intro-meta">
-                <div class="intro-lead">
-                    <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show bio">+</button>
-                    <p>hi i'm maya.</p>
-                </div>
+                <button type="button" class="intro-lead caption-toggle" aria-expanded="false" aria-label="Show bio">
+                    <span class="intro-toggle-mark" aria-hidden="true">+</span>
+                    <span class="intro-lead-text">hi i'm maya.</span>
+                </button>
                 <div class="intro-blurb">
                     <p>i'm currently:</p>
                     <ul>
@@ -537,7 +576,13 @@
                 const nextState = !isOpen;
 
                 toggle.setAttribute('aria-expanded', String(nextState));
-                toggle.textContent = nextState ? '−' : '+';
+                const toggleMark = toggle.querySelector('.intro-toggle-mark');
+                if (toggleMark) {
+                    toggleMark.textContent = nextState ? '−' : '+';
+                    toggle.setAttribute('aria-label', nextState ? 'Hide bio' : 'Show bio');
+                } else {
+                    toggle.textContent = nextState ? '−' : '+';
+                }
                 caption.classList.toggle('is-open', nextState);
             });
         });
