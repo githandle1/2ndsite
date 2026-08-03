@@ -2,466 +2,457 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>maya's sketchbook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Maya's filing cabinet: photos and personal notes.">
+    <title>maya bakir</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="mobile.css">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=7">
-    <link rel="shortcut icon" sizes="any" href="favicon.svg?v=7">
-    <link rel="apple-touch-icon" href="favicon.svg?v=7">
-    <!-- Preload critical background images -->
-    <link rel="preload" as="image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0h20v1H0zM0 0h1v20H0z' fill='%23ccc'/%3E%3C/svg%3E">
     <style>
-        /* Critical CSS for immediate background grid rendering */
-        body, .desktop {
-            background-color: #f0ece4 !important; /* Light beige/off-white color */
-            background-image: 
-                linear-gradient(#ccc 1px, transparent 1px),
-                linear-gradient(90deg, #ccc 1px, transparent 1px) !important;
-            background-size: 20px 20px !important;
-            background-attachment: fixed !important;
+        :root {
+            color-scheme: light;
+            --paper: #faf9f6;
+            --ink: #24211f;
+            --hover: #8b2f32;
         }
-        
-        /* Ensure welcome window is always visible by default */
-        .welcome-window {
-            display: flex !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            transition: opacity 0.3s ease-in-out;
-            z-index: 1000 !important;
+
+        * {
+            box-sizing: border-box;
         }
-        
-        /* Ensure stalogy info is always visible by default */
-        .stalogy-info {
-            display: flex !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            z-index: 999 !important;
-        }
-        
+
+        html,
         body {
-            font-family: 'Libre Baskerville', serif;
+            min-height: 100%;
+        }
+
+        body {
             margin: 0;
-            padding: 0;
-            background-color: #f0ece4;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: "Libre Baskerville", serif;
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+        main {
+            width: min(100% - 48px, 720px);
+            margin: 0 auto;
+            padding: 72px 0 96px;
+        }
+
+        h1 {
+            margin: 0 0 64px;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        section {
+            margin: 0 0 40px;
+        }
+
+        h4 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.65;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        .photo-entry {
+            border-bottom: 1px solid rgba(36, 33, 31, 0.16);
+        }
+
+        .photo-entry:first-of-type {
+            border-top: 1px solid rgba(36, 33, 31, 0.16);
+        }
+
+        .photo-entry summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 0;
+            cursor: pointer;
+            list-style: none;
+            transition: color 180ms ease;
+        }
+
+        .photo-entry summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .photo-entry summary::after {
+            content: "+";
+            font-size: 1.1rem;
+            font-weight: 400;
+            line-height: 1;
+        }
+
+        .photo-entry[open] summary::after {
+            content: "−";
+        }
+
+        .photo-entry summary:hover,
+        .photo-entry summary:focus-visible {
+            color: var(--hover);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px 8px;
+            padding: 4px 0 16px;
+        }
+
+        .photo-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .photo-slot {
+            display: grid;
+            place-items: center;
+            aspect-ratio: 1;
+            width: 100%;
+            background: #f1eee8;
+            border: 1px solid rgba(36, 33, 31, 0.12);
+            color: rgba(36, 33, 31, 0.48);
+            font-size: 0.65rem;
             overflow: hidden;
-            height: 100vh;
-            width: 100vw;
         }
-        
-        /* Page turn animation */
-        .page-turn {
-            position: fixed;
-            top: 0;
-            right: 0;
+
+        .photo-slot.photo-thumb {
+            cursor: pointer;
+            padding: 0;
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .photo-slot.photo-thumb:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 14px rgba(36, 33, 31, 0.14);
+        }
+
+        .photo-slot img {
+            width: 100%;
             height: 100%;
-            width: 0;
-            background-color: #f0ece4;
-            background-image: 
-                linear-gradient(#ccc 1px, transparent 1px),
-                linear-gradient(90deg, #ccc 1px, transparent 1px);
-            background-size: 20px 20px;
-            background-attachment: fixed;
-            z-index: 9999;
-            box-shadow: -5px 0 10px rgba(0, 0, 0, 0.2);
+            object-fit: cover;
+            display: block;
             pointer-events: none;
-            will-change: width;
-            transition: width 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
-            transform: none;
         }
-        
-        /* Mobile-specific styles for index page */
-        @media (max-width: 768px) {
-            .welcome-window {
-                width: 80% !important; /* Reduced from 100% to 80% */
-                max-width: 80% !important; /* Reduced from 100% to 80% */
-                padding: 16px !important; /* Reduced from 20px to 16px (20% smaller) */
-                margin: 0 auto !important;
-                position: fixed !important;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                align-items: center !important;
-                text-align: center !important;
-                height: auto !important;
-                box-sizing: border-box !important;
-                /* Border uses pastel dreamy blue */
-                border: 1.1px solid #BFD7EA !important; /* 10% thicker border */
-                border-radius: 0 !important; /* Square corners instead of rounded */
-                background-color: rgba(240, 236, 228, 0.9) !important; /* Slightly transparent background */
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+
+        .photo-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .caption-toggle {
+            border: none;
+            background: none;
+            padding: 0 1px;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 400;
+            line-height: 1;
+            color: var(--hover);
+            cursor: pointer;
+            opacity: 0.82;
+            transition: opacity 180ms ease;
+        }
+
+        .caption-toggle:hover,
+        .caption-toggle:focus-visible {
+            opacity: 1;
+        }
+
+        .photo-caption {
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            font-size: 0.58rem;
+            line-height: 1.35;
+            text-align: right;
+            color: rgba(36, 33, 31, 0.62);
+            transition: max-height 220ms ease, opacity 220ms ease, margin-top 220ms ease;
+        }
+
+        .photo-caption.is-open {
+            max-height: 2.5rem;
+            margin-top: 3px;
+            opacity: 1;
+        }
+
+        .photo-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 220ms ease, visibility 220ms ease;
+        }
+
+        .photo-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .photo-overlay-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(36, 33, 31, 0.58);
+            border: none;
+            cursor: pointer;
+        }
+
+        .photo-overlay-image {
+            position: relative;
+            z-index: 1;
+            display: block;
+            max-width: 96vw;
+            max-height: 96dvh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            transform: scale(0.96);
+            transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .photo-overlay.is-open .photo-overlay-image {
+            transform: scale(1);
+        }
+
+        .phrase {
+            width: fit-content;
+            transition: color 180ms ease;
+        }
+
+        .phrase:hover,
+        .phrase:focus-visible {
+            color: var(--hover);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .sketchbook-link {
+            display: inline-block;
+            margin-top: 32px;
+            font-size: 0.8rem;
+        }
+
+        .sketchbook-link .arrow {
+            display: inline-block;
+            margin-left: 0.12em;
+            font-size: 0.75em;
+            line-height: 1;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                width: min(100% - 32px, 720px);
+                padding-top: 40px;
             }
-            
-            .welcome-text {
-                width: 100% !important;
-                max-width: 320px !important; /* Reduced from 400px to 320px (20% smaller) */
-                margin: 0 auto !important;
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
-                justify-content: center !important;
-            }
-            
-            .welcome-text h1 {
-                font-size: 19px !important; /* Reduced from 24px to 19px (approximately 20% smaller) */
-                margin-bottom: 16px !important; /* Reduced from 20px to 16px */
-                text-align: center !important;
-            }
-            
-            .enter-button {
-                margin-top: 16px !important; /* Reduced from 20px to 16px */
-                text-align: center !important;
-                width: 100% !important;
-            }
-            
-            .enter-button a {
-                display: inline-block !important;
-                padding: 10px 19px !important; /* Reduced from 12px 24px to 10px 19px */
-                font-size: 14px !important; /* Reduced from 16px to 14px (approximately 20% smaller) */
-            }
-            
-            /* Hide the yellow bar on mobile */
-            .desktop::after {
-                display: none !important;
-            }
-            
-            /* Ensure the stalogy info is properly positioned */
-            .stalogy-info {
-                position: fixed !important;
-                bottom: 0 !important;
-                z-index: 6 !important;
-                display: flex !important;
-                flex-wrap: wrap !important;
-                justify-content: space-around !important;
-                width: 100% !important;
-                padding: 10px 5px 5px !important;
-                background-color: #f0ece4 !important; /* Match the background color */
-                align-items: flex-start !important; /* Align items at the top */
-            }
-            
-            /* Style the info points */
-            .info-point {
-                width: 50% !important;
-                margin: 5px 0 !important;
-                text-align: center !important;
-            }
-            
-            /* Special layout for date and bopping around to ensure they're on the same row and level */
-            .info-point:nth-child(1),
-            .info-point:nth-child(2) {
-                width: 50% !important; /* Ensure they take exactly half the width each */
-                margin-bottom: 15px !important; /* Add space between rows */
-                display: inline-flex !important; /* Use inline-flex to keep them on the same row */
-                flex-direction: column !important;
-                align-items: center !important;
-                justify-content: flex-start !important; /* Align content at the top */
-                height: 40px !important; /* Set a fixed height for both */
-            }
-            
-            /* Ensure the first row items have the same exact spacing */
-            .info-point:nth-child(1) .point-number,
-            .info-point:nth-child(2) .point-number {
-                margin-bottom: 5px !important; /* Consistent spacing for both date and bopping around */
-                line-height: 1.2 !important; /* Consistent line height */
-            }
-            
-            .info-point:nth-child(1) .point-title,
-            .info-point:nth-child(2) .point-title {
-                line-height: 1.2 !important; /* Consistent line height */
-            }
-            
-            /* Style the point numbers (date, bopping around, etc.) */
-            .point-number {
-                font-weight: bold !important;
-                color: #000 !important;
-                font-size: 12px !important;
-                margin-bottom: 5px !important; /* Consistent spacing for all points */
-            }
-            
-            /* Style the point titles (the values) */
-            .point-title {
-                font-weight: normal !important;
-                color: #666 !important;
-                font-size: 12px !important;
-            }
-            
-            /* Ensure second row (wearing and listening to) are aligned */
-            .info-point:nth-child(3),
-            .info-point:nth-child(4) {
-                margin-top: 0 !important;
-                width: 50% !important; /* Ensure they take exactly half the width each */
-                height: 40px !important; /* Set a fixed height for both */
-            }
-            
-            .stalogy-title {
-                font-size: 12px !important;
-                padding: 6px 12px !important;
-            }
-            
-            /* Ensure the page has enough height */
-            body, .desktop {
-                min-height: 100vh;
+
+            h1 {
+                margin-bottom: 48px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="desktop">
-        <!-- Stalogy notebook elements -->
-        <div class="stalogy-label">
-            <div class="stalogy-title">
-                <span>018 Editor's Series 365 Days Notebook</span>
-            </div>
-        </div>
-        
-        <div class="welcome-window">
-            <div class="welcome-text">
-                <h1>maya's sketchbook</h1>
-                <div class="enter-button">
-                    <a href="desktop.html">Enter here</a>
+    <main>
+        <h1 class="phrase">filing cabinet</h1>
+
+        <section aria-labelledby="photos">
+            <h4 id="photos" class="phrase">photos</h4>
+            <details class="photo-entry">
+                <summary>nyc, july 2026</summary>
+                <div class="photo-grid" aria-label="NYC photo gallery">
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/cursor.jpeg" aria-label="Open Central Park photo">
+                            <img src="photos/cursor.jpeg" alt="Central Park, NYC">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">central park, august 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/williamsburg-bridge.jpeg" aria-label="Open Sheep Meadow photo">
+                            <img src="photos/williamsburg-bridge.jpeg" alt="Williamsburg Bridge, East River">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">sheep's meadow, august 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/sheep-meadow.jpeg" aria-label="Open Williamsburg Bridge photo">
+                            <img src="photos/sheep-meadow.jpeg" alt="Sheep Meadow, Central Park">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">williamsburg bridge, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/mulberry-manhattan.jpeg" aria-label="Open Mulberry Street photo">
+                            <img src="photos/mulberry-manhattan.jpeg" alt="Mulberry Street cafe, Manhattan">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">mulberry street, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/lower-east-side.jpeg" aria-label="Open Lower East Side photo">
+                            <img src="photos/lower-east-side.jpeg" alt="Lower East Side street view">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">lower east side, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/dining-room.jpeg" aria-label="Open dining room photo">
+                            <img src="photos/dining-room.jpeg" alt="Restaurant dining room">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">dinner service, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-slot">07</div>
+                    <div class="photo-slot">08</div>
+                    <div class="photo-slot">09</div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Stalogy yellow band info -->
-        <div class="stalogy-info">
-            <div class="info-point">
-                <span class="point-number">date</span>
-                <span class="point-title" id="current-date">Loading date...</span>
-            </div>
-            <div class="info-point">
-                <span class="point-number">bopping around</span>
-                <span class="point-title">NYC</span>
-            </div>
-            <div class="info-point">
-                <span class="point-number">wearing</span>
-                <span class="point-title">what I want</span>
-            </div>
-            <div class="info-point">
-                <span class="point-number">listening to</span>
-                <span class="point-title"><a href="javascript:void(0);" onclick="playAudio('spotidownloader.com - I Love Video - New Paradise.mp3'); return false;" style="color: inherit; text-decoration: none;">this</a></span>
-            </div>
-            <a class="info-point cabinet-link" href="mayas-cabinet.html">
-                <span class="point-number">personal musings</span>
-                <span class="point-title">maya's cabinet</span>
-            </a>
-        </div>
+            </details>
+            <details class="photo-entry">
+                <summary>london, july 2026</summary>
+                <div class="photo-grid" aria-label="London photo gallery">
+                    <div class="photo-slot">01</div>
+                    <div class="photo-slot">02</div>
+                    <div class="photo-slot">03</div>
+                    <div class="photo-slot">04</div>
+                    <div class="photo-slot">05</div>
+                    <div class="photo-slot">06</div>
+                    <div class="photo-slot">07</div>
+                    <div class="photo-slot">08</div>
+                    <div class="photo-slot">09</div>
+                </div>
+            </details>
+            <details class="photo-entry">
+                <summary>paris, july 2026</summary>
+                <div class="photo-grid" aria-label="Paris photo gallery">
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/paris-metro.jpeg" aria-label="Open Paris metro photo">
+                            <img src="photos/paris-metro.jpeg" alt="Paris metro at dusk">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">line 6, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/place-des-vosges.jpeg" aria-label="Open Place des Vosges photo">
+                            <img src="photos/place-des-vosges.jpeg" alt="Place des Vosges, Paris">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">place des vosges, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/archives-nationales.jpeg" aria-label="Open Archives Nationales photo">
+                            <img src="photos/archives-nationales.jpeg" alt="Archives Nationales, Paris">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">archives nationales, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-slot">04</div>
+                    <div class="photo-slot">05</div>
+                    <div class="photo-slot">06</div>
+                    <div class="photo-slot">07</div>
+                    <div class="photo-slot">08</div>
+                    <div class="photo-slot">09</div>
+                </div>
+            </details>
+        </section>
+
+        <a class="sketchbook-link phrase" href="sketchbook.html">visit the sketchbook <span class="arrow" aria-hidden="true">↗</span></a>
+    </main>
+
+    <div class="photo-overlay" id="photo-overlay" hidden aria-hidden="true">
+        <button type="button" class="photo-overlay-backdrop" aria-label="Close photo preview"></button>
+        <img class="photo-overlay-image" src="" alt="">
     </div>
-    
-    <!-- Hidden audio element for playing music -->
-    <audio id="audio-player" style="display: none;"></audio>
-    
-    <!-- Page turn animation overlay -->
-    <div class="page-turn"></div>
-    
-    <script src="script.js"></script>
-    <script src="mobile.js"></script>
+
     <script>
-        // Force reload on back navigation to ensure content is displayed
-        window.addEventListener('load', function() {
-            // Check if we're coming back from another page
-            if (document.referrer.includes('desktop.html')) {
-                console.log('Coming back from desktop.html - forcing content visibility');
-                
-                // Force welcome window to be visible
-                const welcomeWindow = document.querySelector('.welcome-window');
-                if (welcomeWindow) {
-                    welcomeWindow.style.display = 'flex';
-                    welcomeWindow.style.opacity = '1';
-                    welcomeWindow.style.visibility = 'visible';
+        const overlay = document.getElementById('photo-overlay');
+        const overlayImage = overlay.querySelector('.photo-overlay-image');
+        const backdrop = overlay.querySelector('.photo-overlay-backdrop');
+
+        function openPreview(thumb) {
+            overlayImage.src = thumb.dataset.src;
+            overlayImage.alt = thumb.querySelector('img')?.alt || '';
+            overlay.hidden = false;
+            overlay.setAttribute('aria-hidden', 'false');
+            requestAnimationFrame(() => overlay.classList.add('is-open'));
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            overlay.classList.remove('is-open');
+            overlay.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+
+            window.setTimeout(() => {
+                if (!overlay.classList.contains('is-open')) {
+                    overlay.hidden = true;
+                    overlayImage.removeAttribute('src');
                 }
-                
-                // Force stalogy info to be visible
-                const stalogyInfo = document.querySelector('.stalogy-info');
-                if (stalogyInfo) {
-                    stalogyInfo.style.display = 'flex';
-                    stalogyInfo.style.opacity = '1';
-                    stalogyInfo.style.visibility = 'visible';
-                }
-            }
+            }, 220);
+        }
+
+        document.querySelectorAll('.photo-thumb').forEach((thumb) => {
+            thumb.addEventListener('click', () => openPreview(thumb));
         });
 
-        // Function to play audio file
-        function playAudio(audioFile) {
-            const audioPlayer = document.getElementById('audio-player');
-            
-            // If already playing the same song, toggle play/pause
-            if (audioPlayer.src.includes(audioFile) && !audioPlayer.paused) {
-                audioPlayer.pause();
-                sessionStorage.removeItem('currentlyPlaying');
-                sessionStorage.removeItem('audioCurrentTime');
-            } else {
-                audioPlayer.src = audioFile;
-                audioPlayer.play();
-                // Store the current audio file and timestamp in sessionStorage
-                sessionStorage.setItem('currentlyPlaying', audioFile);
-                
-                // Add event listener to update current time in sessionStorage
-                audioPlayer.addEventListener('timeupdate', function() {
-                    sessionStorage.setItem('audioCurrentTime', audioPlayer.currentTime);
-                });
-            }
-        }
-        
-        // Page turn animation function
-        function pageTurn() {
-            const pageTurnElement = document.querySelector('.page-turn');
-            
-            // Simply expand the page turn element to full width
-            pageTurnElement.style.width = '100%';
-            
-            // Set flag in sessionStorage to indicate we're coming from a page turn
-            sessionStorage.setItem('fromPageTurn', 'true');
-            
-            // Store the current scroll position to maintain consistency
-            sessionStorage.setItem('scrollPosition', window.scrollY.toString());
-            
-            // Delay navigation to allow animation to complete
-            setTimeout(() => {
-                window.location.href = 'desktop.html';
-            }, 600); // Slightly shorter than the CSS transition to ensure smooth handoff
-            
-            return false; // Prevent default link behavior
-        }
-        
-        // Modify the Enter button to preserve audio state and trigger page turn
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded on index page');
-            
-            // Update current date
-            const currentDateElement = document.getElementById('current-date');
-            if (currentDateElement) {
-                const now = new Date();
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                currentDateElement.textContent = now.toLocaleDateString('en-US', options);
-            }
-            
-            // Add page turn animation to enter button
-            const enterButton = document.querySelector('.enter-button a');
-            if (enterButton) {
-                enterButton.onclick = pageTurn;
-            }
-            
-            // Function to detect mobile devices and adjust UI
-            detectMobileAndAdjustUI();
-        });
-        
-        // Function to detect mobile devices and adjust UI
-        function detectMobileAndAdjustUI() {
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-            
-            if (isMobile) {
-                // Add mobile class to body for CSS targeting
-                document.body.classList.add('mobile-device');
-                
-                // Adjust stalogy info for mobile
-                const stalogyInfo = document.querySelector('.stalogy-info');
-                if (stalogyInfo) {
-                    stalogyInfo.style.flexWrap = 'wrap';
-                    stalogyInfo.style.padding = '5px 10px';
-                    stalogyInfo.style.height = 'auto';
-                }
-                
-                // Adjust info points for mobile
-                const infoPoints = document.querySelectorAll('.info-point');
-                infoPoints.forEach(point => {
-                    point.style.width = '50%';
-                    point.style.margin = '5px 0';
-                });
-            }
-        }
-        
-        // Also call it on orientation change
-        window.addEventListener('orientationchange', detectMobileAndAdjustUI);
-        
-        // Handle page visibility changes to ensure content is displayed when navigating back
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                console.log('Page is now visible - ensuring content is displayed');
-                
-                // Make sure welcome window is visible
-                const welcomeWindow = document.querySelector('.welcome-window');
-                if (welcomeWindow) {
-                    welcomeWindow.style.display = 'flex';
-                    welcomeWindow.style.opacity = '1';
-                }
-                
-                // Make sure stalogy info is visible
-                const stalogyInfo = document.querySelector('.stalogy-info');
-                if (stalogyInfo) {
-                    stalogyInfo.style.display = 'flex';
-                    stalogyInfo.style.opacity = '1';
-                }
-                
-                // Re-apply mobile UI adjustments if needed
-                detectMobileAndAdjustUI();
-            }
-        });
-        
-        // Ensure content is displayed when page loads or when navigating back
-        window.addEventListener('pageshow', function(event) {
-            // This triggers even when navigating back via browser history
-            if (event.persisted) {
-                console.log('Page loaded from cache (back navigation) - ensuring content is displayed');
-                
-                // Force reload the page to ensure all content is properly displayed
-                if (document.referrer.includes('desktop.html')) {
-                    console.log('Coming back from desktop.html - forcing reload');
-                    window.location.reload();
-                    return;
-                }
-                
-                // Make sure welcome window is visible
-                const welcomeWindow = document.querySelector('.welcome-window');
-                if (welcomeWindow) {
-                    welcomeWindow.style.display = 'flex';
-                    welcomeWindow.style.opacity = '1';
-                }
-                
-                // Make sure stalogy info is visible
-                const stalogyInfo = document.querySelector('.stalogy-info');
-                if (stalogyInfo) {
-                    stalogyInfo.style.display = 'flex';
-                    stalogyInfo.style.opacity = '1';
-                }
-                
-                // Re-apply mobile UI adjustments
-                detectMobileAndAdjustUI();
-                
-                // Force a refresh if we're coming back from desktop.html
-                if (sessionStorage.getItem('navigatingBack')) {
-                    sessionStorage.removeItem('navigatingBack');
-                    window.location.reload();
-                }
-            }
-        });
+        document.querySelectorAll('.caption-toggle').forEach((toggle) => {
+            toggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const caption = toggle.nextElementSibling;
+                const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+                const nextState = !isOpen;
 
-        // Check for navigatingBack flag on initial load
-        if (sessionStorage.getItem('navigatingBack')) {
-            console.log('Detected navigation back from desktop.html');
-            sessionStorage.removeItem('navigatingBack');
-            
-            // Force elements to be visible immediately
-            document.addEventListener('DOMContentLoaded', function() {
-                const welcomeWindow = document.querySelector('.welcome-window');
-                if (welcomeWindow) {
-                    welcomeWindow.style.display = 'flex';
-                    welcomeWindow.style.opacity = '1';
-                }
-                
-                const stalogyInfo = document.querySelector('.stalogy-info');
-                if (stalogyInfo) {
-                    stalogyInfo.style.display = 'flex';
-                    stalogyInfo.style.opacity = '1';
-                }
+                toggle.setAttribute('aria-expanded', String(nextState));
+                toggle.textContent = nextState ? '−' : '+';
+                caption.classList.toggle('is-open', nextState);
             });
-        }
+        });
+
+        backdrop.addEventListener('click', closePreview);
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && overlay.classList.contains('is-open')) {
+                closePreview();
+            }
+        });
     </script>
 </body>
-</html> 
+</html>

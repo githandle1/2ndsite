@@ -856,7 +856,7 @@
             let target = e.target;
             while (target && target !== document) {
                 if (target.tagName === 'A' && 
-                    (target.href.endsWith('index.html') || 
+                    (target.href.endsWith('sketchbook.html') || 
                      target.href.endsWith('/') || 
                      target.href === window.location.origin + '/')) {
                     e.preventDefault();
@@ -869,7 +869,7 @@
         });
         
         window.addEventListener('popstate', function() {
-            if (document.referrer.includes('index.html') || 
+            if (document.referrer.includes('sketchbook.html') || 
                 document.referrer.endsWith('/') || 
                 document.referrer === window.location.origin + '/') {
                 sessionStorage.setItem('navigatingBack', 'true');

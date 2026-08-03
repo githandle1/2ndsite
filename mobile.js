@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Delay showing the earbuds window to ensure DOM is fully ready
         setTimeout(() => {
             // Check if we're on the index page (welcome window)
-            if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html')) {
+            if (window.location.pathname === '/' || window.location.pathname.endsWith('sketchbook.html')) {
                 console.log('Showing welcome window on mobile');
                 showMobileWindow('about-window');
                 updateActiveMobileIcon('about-window');
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show welcome window when resizing to mobile with a delay
             setTimeout(() => {
                 // Check if we're on the index page (welcome window)
-                if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html')) {
+                if (window.location.pathname === '/' || window.location.pathname.endsWith('sketchbook.html')) {
                     showMobileWindow('about-window');
                     updateActiveMobileIcon('about-window');
                 } else {
