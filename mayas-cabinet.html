@@ -116,6 +116,14 @@
             border: 1px solid rgba(36, 33, 31, 0.12);
             color: rgba(36, 33, 31, 0.48);
             font-size: 0.65rem;
+            overflow: hidden;
+        }
+
+        .photo-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .phrase {
@@ -164,7 +172,7 @@
             <details class="photo-entry">
                 <summary>nyc, july 2026</summary>
                 <div class="photo-grid" aria-label="NYC photo gallery">
-                    <div class="photo-slot">01</div>
+                    <div class="photo-slot"><img src="photos/cursor.jpeg" alt="Central Park, NYC"></div>
                     <div class="photo-slot">02</div>
                     <div class="photo-slot">03</div>
                     <div class="photo-slot">04</div>
