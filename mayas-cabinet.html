@@ -119,11 +119,120 @@
             overflow: hidden;
         }
 
+        .photo-slot.photo-thumb {
+            cursor: pointer;
+            padding: 0;
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .photo-slot.photo-thumb:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 14px rgba(36, 33, 31, 0.14);
+        }
+
         .photo-slot img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
+            pointer-events: none;
+        }
+
+        .polaroid-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 220ms ease, visibility 220ms ease;
+        }
+
+        .polaroid-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .polaroid-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(36, 33, 31, 0.58);
+            border: none;
+            cursor: pointer;
+        }
+
+        .polaroid {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            width: min(90vw, 480px);
+            background: #fff;
+            padding: 14px 14px 46px;
+            box-shadow:
+                0 1px 2px rgba(0, 0, 0, 0.08),
+                0 12px 40px rgba(0, 0, 0, 0.22);
+            transform: scale(0.94);
+            transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .polaroid-overlay.is-open .polaroid {
+            transform: scale(1);
+        }
+
+        .polaroid-image {
+            display: block;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            background: #f1eee8;
+        }
+
+        .polaroid-caption {
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 10px;
+            text-align: right;
+        }
+
+        .polaroid-timestamp {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.53rem;
+            letter-spacing: 0.04em;
+            text-transform: lowercase;
+            color: rgba(36, 33, 31, 0.45);
+        }
+
+        .polaroid-note {
+            margin: 0;
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: var(--ink);
+        }
+
+        .polaroid-close {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            z-index: 2;
+            width: 28px;
+            height: 28px;
+            border: 1px solid rgba(36, 33, 31, 0.12);
+            border-radius: 50%;
+            background: #fff;
+            color: var(--ink);
+            font-size: 1rem;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .polaroid-close:hover {
+            color: var(--hover);
         }
 
         .phrase {
@@ -172,9 +281,15 @@
             <details class="photo-entry">
                 <summary>nyc, july 2026</summary>
                 <div class="photo-grid" aria-label="NYC photo gallery">
-                    <div class="photo-slot"><img src="photos/cursor.jpeg" alt="Central Park, NYC"></div>
-                    <div class="photo-slot">02</div>
-                    <div class="photo-slot">03</div>
+                    <button type="button" class="photo-slot photo-thumb" data-src="photos/cursor.jpeg" data-note="central park, august 2026" aria-label="Open Central Park photo">
+                        <img src="photos/cursor.jpeg" alt="Central Park, NYC">
+                    </button>
+                    <button type="button" class="photo-slot photo-thumb" data-src="photos/williamsburg-bridge.jpeg" data-note="sheep's meadow, august 2026" aria-label="Open Sheep Meadow photo">
+                        <img src="photos/williamsburg-bridge.jpeg" alt="Williamsburg Bridge, East River">
+                    </button>
+                    <button type="button" class="photo-slot photo-thumb" data-src="photos/sheep-meadow.jpeg" data-note="williamsburg bridge, july 2026" aria-label="Open Williamsburg Bridge photo">
+                        <img src="photos/sheep-meadow.jpeg" alt="Sheep Meadow, Central Park">
+                    </button>
                     <div class="photo-slot">04</div>
                     <div class="photo-slot">05</div>
                     <div class="photo-slot">06</div>
@@ -219,5 +334,71 @@
 
         <a class="back-link phrase" href="index.html">← back</a>
     </main>
+
+    <div class="polaroid-overlay" id="polaroid-overlay" hidden aria-hidden="true">
+        <button type="button" class="polaroid-backdrop" aria-label="Close photo preview"></button>
+        <figure class="polaroid">
+            <button type="button" class="polaroid-close" aria-label="Close photo preview">×</button>
+            <img class="polaroid-image" src="" alt="">
+            <figcaption class="polaroid-caption">
+                <time class="polaroid-timestamp"></time>
+                <p class="polaroid-note"></p>
+            </figcaption>
+        </figure>
+    </div>
+
+    <script>
+        const overlay = document.getElementById('polaroid-overlay');
+        const polaroidImage = overlay.querySelector('.polaroid-image');
+        const polaroidTimestamp = overlay.querySelector('.polaroid-timestamp');
+        const polaroidNote = overlay.querySelector('.polaroid-note');
+        const backdrop = overlay.querySelector('.polaroid-backdrop');
+        const closeButton = overlay.querySelector('.polaroid-close');
+
+        function openPolaroid(thumb) {
+            polaroidImage.src = thumb.dataset.src;
+            polaroidImage.alt = thumb.querySelector('img')?.alt || '';
+
+            const timestamp = thumb.dataset.timestamp || '';
+            const note = thumb.dataset.note || '';
+
+            polaroidTimestamp.textContent = timestamp;
+            polaroidTimestamp.hidden = !timestamp;
+            polaroidNote.textContent = note;
+            polaroidNote.hidden = !note;
+
+            overlay.hidden = false;
+            overlay.setAttribute('aria-hidden', 'false');
+            requestAnimationFrame(() => overlay.classList.add('is-open'));
+            document.body.style.overflow = 'hidden';
+            closeButton.focus();
+        }
+
+        function closePolaroid() {
+            overlay.classList.remove('is-open');
+            overlay.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+
+            window.setTimeout(() => {
+                if (!overlay.classList.contains('is-open')) {
+                    overlay.hidden = true;
+                    polaroidImage.removeAttribute('src');
+                }
+            }, 220);
+        }
+
+        document.querySelectorAll('.photo-thumb').forEach((thumb) => {
+            thumb.addEventListener('click', () => openPolaroid(thumb));
+        });
+
+        backdrop.addEventListener('click', closePolaroid);
+        closeButton.addEventListener('click', closePolaroid);
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && overlay.classList.contains('is-open')) {
+                closePolaroid();
+            }
+        });
+    </script>
 </body>
 </html>
