@@ -172,6 +172,29 @@
             color: var(--ink);
         }
 
+        .intro-blurb .caption-toggle {
+            margin-left: 0.35em;
+            vertical-align: baseline;
+            font-size: 0.85em;
+        }
+
+        .teahouse-note {
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            font-size: inherit;
+            line-height: 1.65;
+            color: var(--ink);
+            transition: max-height 220ms ease, opacity 220ms ease, margin-top 220ms ease;
+        }
+
+        .teahouse-note.is-open {
+            max-height: 4rem;
+            margin-top: 0.35em;
+            opacity: 1;
+        }
+
         .intro a {
             transition: color 180ms ease;
         }
@@ -250,6 +273,7 @@
             padding: 9px 0;
             color: inherit;
             text-decoration: none;
+            cursor: pointer;
         }
 
         .bookmark-title {
@@ -363,12 +387,18 @@
             padding: 12px;
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
             transition: opacity 220ms ease, visibility 220ms ease;
+        }
+
+        .photo-overlay[hidden] {
+            display: none !important;
         }
 
         .photo-overlay.is-open {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
         }
 
         .photo-overlay-backdrop {
@@ -457,7 +487,11 @@
                     <p>i'm currently:</p>
                     <ul>
                         <li>in nyc</li>
-                        <li>visiting a lot of teahouses</li>
+                        <li>
+                            visiting a lot of teahouses
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show favorite teahouse">+</button>
+                            <p class="teahouse-note">my favorite is currently <a href="https://www.instagram.com/softhours.world/" target="_blank" rel="noopener noreferrer">soft hours</a></p>
+                        </li>
                         <li>and collecting more files to store in my cabinet.</li>
                     </ul>
                     <p>previously, i led brand marketing at <a href="https://cursor.com" target="_blank" rel="noopener noreferrer">cursor</a>. before that, i built <a href="https://www.notion.com" target="_blank" rel="noopener noreferrer">notion's education program</a>.</p>
@@ -563,7 +597,7 @@
 
         <section aria-labelledby="bookmarks">
             <h4 id="bookmarks" class="phrase">bookmarks</h4>
-            <ul class="bookmark-list">
+            <ul id="bookmark-list" class="bookmark-list">
                 <li>
                     <a href="https://www.newyorker.com/magazine/2016/06/20/art-and-taste-in-the-internet-age" target="_blank" rel="noopener noreferrer"><span class="bookmark-title">art and taste in the internet age</span><span class="bookmark-meta">, the new yorker / louis menand</span></a>
                 </li>
@@ -610,12 +644,12 @@
         function closePreview() {
             overlay.classList.remove('is-open');
             overlay.setAttribute('aria-hidden', 'true');
+            overlay.hidden = true;
             document.body.style.overflow = '';
             currentPhotoIndex = -1;
 
             window.setTimeout(() => {
                 if (!overlay.classList.contains('is-open')) {
-                    overlay.hidden = true;
                     overlayImage.removeAttribute('src');
                 }
             }, 220);
@@ -637,10 +671,13 @@
         document.querySelectorAll('.caption-toggle').forEach((toggle) => {
             toggle.addEventListener('click', (event) => {
                 event.stopPropagation();
-                const container = toggle.closest('.photo-meta, .intro-meta');
-                const caption = container
-                    ? container.querySelector('.photo-caption, .intro-blurb')
-                    : toggle.nextElementSibling;
+                const sibling = toggle.nextElementSibling;
+                const caption = sibling?.matches?.('.photo-caption, .intro-blurb, .teahouse-note')
+                    ? sibling
+                    : toggle.closest('.photo-meta, .intro-meta')?.querySelector('.photo-caption, .intro-blurb');
+                if (!caption) {
+                    return;
+                }
                 const isOpen = toggle.getAttribute('aria-expanded') === 'true';
                 const nextState = !isOpen;
 
@@ -651,6 +688,12 @@
                     toggle.setAttribute('aria-label', nextState ? 'Hide bio' : 'Show bio');
                 } else {
                     toggle.textContent = nextState ? '−' : '+';
+                    if (caption.classList.contains('teahouse-note')) {
+                        toggle.setAttribute(
+                            'aria-label',
+                            nextState ? 'Hide favorite teahouse' : 'Show favorite teahouse'
+                        );
+                    }
                 }
                 caption.classList.toggle('is-open', nextState);
             });
@@ -679,6 +722,74 @@
                 navigatePhoto(-1);
             }
         });
+
+        function normalizeBookmarkUrl(url) {
+            const value = String(url || '').trim();
+            if (!value) {
+                return '';
+            }
+            if (/^https?:\/\//i.test(value)) {
+                return value;
+            }
+            return `https://${value}`;
+        }
+
+        function formatBookmarkMeta(bookmark) {
+            const parts = [];
+            if (bookmark.publication) {
+                parts.push(bookmark.publication);
+            }
+            if (bookmark.author) {
+                parts.push(bookmark.author);
+            }
+            if (parts.length === 0) {
+                return '';
+            }
+            return `, ${parts.join(' / ')}`;
+        }
+
+        function renderBookmarks(bookmarks) {
+            const list = document.getElementById('bookmark-list');
+            if (!list || !Array.isArray(bookmarks)) {
+                return;
+            }
+
+            list.replaceChildren();
+
+            bookmarks.forEach((bookmark) => {
+                const href = normalizeBookmarkUrl(bookmark.url || bookmark.link);
+                if (!href || !bookmark?.title) {
+                    return;
+                }
+
+                const item = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = href;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+
+                const title = document.createElement('span');
+                title.className = 'bookmark-title';
+                title.textContent = bookmark.title;
+
+                const meta = document.createElement('span');
+                meta.className = 'bookmark-meta';
+                meta.textContent = formatBookmarkMeta(bookmark);
+
+                link.append(title, meta);
+                item.append(link);
+                list.append(item);
+            });
+        }
+
+        fetch('bookmarks.json')
+            .then((response) => (response.ok ? response.json() : null))
+            .then((bookmarks) => {
+                if (Array.isArray(bookmarks) && bookmarks.length > 0) {
+                    renderBookmarks(bookmarks);
+                }
+            })
+            .catch(() => {});
     </script>
 </body>
 </html>

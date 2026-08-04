@@ -78,6 +78,30 @@ Insert inside `<main>`, above or below other sections:
 </div>
 ```
 
+## Bookmarks section
+
+Bookmarks are stored in `bookmarks.json` (repo root) and rendered on the homepage by JavaScript. **Do not** add bookmark `<li>` items directly to `index.html`.
+
+```html
+<section aria-labelledby="bookmarks">
+    <h4 id="bookmarks" class="phrase">bookmarks</h4>
+    <ul id="bookmark-list" class="bookmark-list"></ul>
+</section>
+```
+
+Add entries to `bookmarks.json`:
+
+```json
+{
+  "title": "article title",
+  "url": "https://example.com/article",
+  "publication": "the publication",
+  "author": "author name"
+}
+```
+
+See `docs/add-bookmarks.md` for Safari Share Shortcut setup. Run `./scripts/install_share_shortcut.sh` on Mac to import the signed shortcut.
+
 ## Footer link pattern
 
 ```html
@@ -93,3 +117,4 @@ Insert inside `<main>`, above or below other sections:
 - [ ] Add `class="phrase"` to the header
 - [ ] Place section in logical order inside `<main>`
 - [ ] Keep `sketchbook-link` footer last in `<main>`
+- [ ] Add bookmarks via `bookmarks.json`, not inline HTML
