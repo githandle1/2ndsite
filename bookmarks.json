@@ -16,5 +16,17 @@
     "url": "https://www.imdb.com/title/tt0181739/",
     "publication": "imdb",
     "author": "bobby & peter farrelly"
+  },
+  {
+    "title": "the proof is in the code",
+    "url": "https://www.quantabooks.org/books/the-proof-in-the-code/",
+    "publication": "quanta books",
+    "author": "kevin hartnett"
+  },
+  {
+    "title": "the score",
+    "url": "https://www.goodreads.com/en/book/show/231363343-the-score",
+    "publication": "goodreads",
+    "author": "c thi nguyen"
   }
 ]
