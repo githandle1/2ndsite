@@ -328,6 +328,10 @@
             pointer-events: none;
         }
 
+        .photo-slot.photo-portrait img {
+            object-fit: contain;
+        }
+
         .photo-meta {
             display: flex;
             flex-direction: column;
@@ -556,17 +560,8 @@
                 </div>
             </details>
             <details class="photo-entry">
-                <summary>paris, july 2026</summary>
+                <summary>paris 2026</summary>
                 <div class="photo-grid" aria-label="Paris photo gallery">
-                    <div class="photo-item">
-                        <button type="button" class="photo-slot photo-thumb" data-src="photos/paris-metro.jpeg" aria-label="Open Paris metro photo">
-                            <img src="photos/paris-metro.jpeg" alt="Paris metro at dusk">
-                        </button>
-                        <div class="photo-meta">
-                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
-                            <p class="photo-caption">line 6, july 2026</p>
-                        </div>
-                    </div>
                     <div class="photo-item">
                         <button type="button" class="photo-slot photo-thumb" data-src="photos/place-des-vosges.jpeg" aria-label="Open Place des Vosges photo">
                             <img src="photos/place-des-vosges.jpeg" alt="Place des Vosges, Paris">
@@ -574,6 +569,15 @@
                         <div class="photo-meta">
                             <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
                             <p class="photo-caption">place des vosges, july 2026</p>
+                        </div>
+                    </div>
+                    <div class="photo-item">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/caves-saint-gilles.jpeg" aria-label="Open Caves Saint Gilles photo">
+                            <img src="photos/caves-saint-gilles.jpeg" alt="Caves Saint Gilles, Rue St Gilles, Paris">
+                        </button>
+                        <div class="photo-meta">
+                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
+                            <p class="photo-caption">caves saint gilles, july 2026</p>
                         </div>
                     </div>
                     <div class="photo-item">
@@ -586,12 +590,12 @@
                         </div>
                     </div>
                     <div class="photo-item">
-                        <button type="button" class="photo-slot photo-thumb" data-src="photos/caves-saint-gilles.jpeg" aria-label="Open Caves Saint Gilles photo">
-                            <img src="photos/caves-saint-gilles.jpeg" alt="Caves Saint Gilles, Rue St Gilles, Paris">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/paris-metro.jpeg" aria-label="Open Paris metro photo">
+                            <img src="photos/paris-metro.jpeg" alt="Paris metro at dusk">
                         </button>
                         <div class="photo-meta">
                             <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
-                            <p class="photo-caption">caves saint gilles, july 2026</p>
+                            <p class="photo-caption">line 6, july 2026</p>
                         </div>
                     </div>
                     <div class="photo-item">
