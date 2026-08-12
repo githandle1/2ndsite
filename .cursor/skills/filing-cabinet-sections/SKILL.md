@@ -96,7 +96,7 @@ Add entries to `snaps.json`:
 - **`city`** — internal label for aria/accessibility (e.g. `nyc`, `paris`)
 - **`photos`** — ordered list; lightbox swipes within the full month album (across cities)
 
-Optional per photo: `"portrait": true` for `object-fit: contain` thumbnails.
+Thumbnails always fill the square grid cell with `object-fit: cover`, regardless of aspect ratio.
 
 ## Photos section with expandable albums (legacy reference)
 

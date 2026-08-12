@@ -450,6 +450,8 @@
         .photo-slot.photo-thumb {
             cursor: pointer;
             padding: 0;
+            display: block;
+            position: relative;
             appearance: none;
             -webkit-appearance: none;
             outline: none;
@@ -465,15 +467,14 @@
         }
 
         .photo-slot img {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center;
             display: block;
             pointer-events: none;
-        }
-
-        .photo-slot.photo-portrait img {
-            object-fit: contain;
         }
 
         .photo-meta {
@@ -1222,9 +1223,6 @@
                         const thumb = document.createElement('button');
                         thumb.type = 'button';
                         thumb.className = 'photo-slot photo-thumb';
-                        if (photo.portrait) {
-                            thumb.classList.add('photo-portrait');
-                        }
                         thumb.dataset.src = photo.src;
                         thumb.setAttribute(
                             'aria-label',
