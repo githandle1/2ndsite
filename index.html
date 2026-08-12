@@ -1510,6 +1510,14 @@
                 tracesRoot.append(path);
             });
 
+            const regionLabelY = Object.values(data.regions || {}).reduce((maxBottom, region) => {
+                if (!region?.box) {
+                    return maxBottom;
+                }
+
+                return Math.max(maxBottom, region.box.y + region.box.height);
+            }, 0) + 18;
+
             Object.entries(data.regions || {}).forEach(([, region]) => {
                 if (!region?.label || !region?.box) {
                     return;
@@ -1518,7 +1526,7 @@
                 const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 label.setAttribute('class', 'places-region-label');
                 label.setAttribute('x', String(region.box.x + region.box.width / 2));
-                label.setAttribute('y', String(region.box.y + region.box.height + 18));
+                label.setAttribute('y', String(regionLabelY));
                 label.setAttribute('text-anchor', 'middle');
                 label.textContent = region.label;
                 labelsRoot.append(label);
