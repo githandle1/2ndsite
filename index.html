@@ -293,6 +293,127 @@
             color: var(--muted);
         }
 
+        .places-map {
+            padding: 14px 0 2px;
+        }
+
+        .places-map[hidden] {
+            display: none;
+        }
+
+        .snaps-footer {
+            padding: 10px 0 2px;
+        }
+
+        .snaps-footsteps-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border: none;
+            background: none;
+            padding: 0;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 400;
+            line-height: 1;
+            color: var(--muted);
+            cursor: pointer;
+            transition: color 180ms ease;
+        }
+
+        .snaps-footsteps-toggle:hover,
+        .snaps-footsteps-toggle:focus-visible {
+            color: var(--hover);
+        }
+
+        .snaps-footsteps-mark {
+            color: var(--hover);
+            opacity: 0.82;
+            transition: opacity 180ms ease;
+        }
+
+        .snaps-footsteps-toggle:hover .snaps-footsteps-mark,
+        .snaps-footsteps-toggle:focus-visible .snaps-footsteps-mark {
+            opacity: 1;
+        }
+
+        .places-map svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            overflow: visible;
+        }
+
+        .places-trace {
+            fill: none;
+            stroke: rgba(36, 33, 31, 0.13);
+            stroke-width: 1;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            pointer-events: none;
+        }
+
+        .places-trace--crossing {
+            stroke: rgba(36, 33, 31, 0.08);
+            stroke-dasharray: 4 7;
+        }
+
+        .places-region-label {
+            font-family: "Libre Baskerville", serif;
+            font-size: 11px;
+            font-weight: 400;
+            fill: var(--muted);
+            pointer-events: none;
+        }
+
+        .place-pin {
+            cursor: pointer;
+        }
+
+        .place-pin-hit {
+            fill: transparent;
+            pointer-events: all;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .place-pin-hit:focus,
+        .place-pin-hit:focus-visible {
+            outline: none;
+        }
+
+        .place-pin-hit:focus-visible {
+            stroke: var(--hover);
+            stroke-width: 1.5;
+            fill: rgba(139, 47, 50, 0.12);
+        }
+
+        .place-pin-dot {
+            fill: var(--hover);
+            opacity: 0.78;
+            transition: opacity 180ms ease;
+            pointer-events: none;
+        }
+
+        .place-pin:hover .place-pin-dot,
+        .place-pin:has(.place-pin-hit:focus-visible) .place-pin-dot {
+            opacity: 1;
+        }
+
+        .place-pin-label {
+            font-family: "Libre Baskerville", serif;
+            font-size: 11px;
+            font-weight: 400;
+            fill: var(--muted);
+            transition: fill 180ms ease;
+            pointer-events: none;
+        }
+
+        .place-pin:hover .place-pin-label,
+        .place-pin:has(.place-pin-hit:focus-visible) .place-pin-label {
+            fill: var(--hover);
+        }
+
         .photo-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -596,6 +717,18 @@
             .intro {
                 margin-bottom: 40px;
             }
+
+            .photo-overlay-controls {
+                display: none;
+            }
+
+            .photo-overlay-image {
+                max-height: calc(100dvh - (2 * var(--photo-frame-margin)));
+            }
+
+            .photo-overlay-stage {
+                touch-action: pan-y pinch-zoom;
+            }
         }
     </style>
 </head>
@@ -677,12 +810,12 @@
                         </div>
                     </div>
                     <div class="photo-item">
-                        <button type="button" class="photo-slot photo-thumb" data-src="photos/dining-room.jpeg" aria-label="Open dining room photo">
-                            <img src="photos/dining-room.jpeg" alt="Restaurant dining room">
+                        <button type="button" class="photo-slot photo-thumb" data-src="photos/dining-room.jpeg" aria-label="Open Union Square photo">
+                            <img src="photos/dining-room.jpeg" alt="Union Square, Manhattan">
                         </button>
                         <div class="photo-meta">
                             <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show caption">+</button>
-                            <p class="photo-caption">dinner service, july 2026</p>
+                            <p class="photo-caption">union square, july 2026</p>
                         </div>
                     </div>
                 </div>
@@ -737,6 +870,26 @@
                     </div>
                 </div>
             </details>
+            <div class="snaps-footer">
+                <button
+                    type="button"
+                    class="snaps-footsteps-toggle"
+                    id="snaps-footsteps-toggle"
+                    aria-expanded="false"
+                    aria-controls="places-map"
+                    aria-label="Show footsteps map"
+                >
+                    <span class="snaps-footsteps-label">footsteps</span>
+                    <span class="snaps-footsteps-mark" aria-hidden="true">+</span>
+                </button>
+                <div class="places-map" id="places-map" role="img" aria-label="Map of favorite places and walking traces" hidden>
+                    <svg id="places-svg" viewBox="0 0 960 384" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                        <g class="places-traces" id="places-traces"></g>
+                        <g class="places-labels" id="places-labels"></g>
+                        <g class="places-pins" id="places-pins"></g>
+                    </svg>
+                </div>
+            </div>
         </section>
 
         <section aria-labelledby="bookmarks">
@@ -965,7 +1118,54 @@
             });
         });
 
+        const footstepsToggle = document.getElementById('snaps-footsteps-toggle');
+        const footstepsMap = document.getElementById('places-map');
+
+        if (footstepsToggle && footstepsMap) {
+            footstepsToggle.addEventListener('click', () => {
+                const isOpen = footstepsToggle.getAttribute('aria-expanded') === 'true';
+                const nextState = !isOpen;
+
+                footstepsToggle.setAttribute('aria-expanded', String(nextState));
+                footstepsToggle.setAttribute(
+                    'aria-label',
+                    nextState ? 'Hide footsteps map' : 'Show footsteps map'
+                );
+                footstepsToggle.querySelector('.snaps-footsteps-mark').textContent = nextState ? '−' : '+';
+                footstepsMap.hidden = !nextState;
+            });
+        }
+
         backdrop.addEventListener('click', closePreview);
+
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        overlayStage.addEventListener('touchstart', (event) => {
+            if (!overlay.classList.contains('is-open') || event.touches.length !== 1) {
+                return;
+            }
+
+            touchStartX = event.touches[0].clientX;
+            touchStartY = event.touches[0].clientY;
+        }, { passive: true });
+
+        overlayStage.addEventListener('touchend', (event) => {
+            if (!overlay.classList.contains('is-open') || currentAlbumThumbs.length <= 1) {
+                return;
+            }
+
+            const touch = event.changedTouches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+            const minSwipeDistance = 48;
+
+            if (Math.abs(deltaX) < minSwipeDistance || Math.abs(deltaX) < Math.abs(deltaY)) {
+                return;
+            }
+
+            navigatePhoto(deltaX < 0 ? 1 : -1);
+        }, { passive: true });
 
         document.addEventListener('keydown', (event) => {
             if (!overlay.classList.contains('is-open')) {
@@ -1047,6 +1247,367 @@
                 list.append(item);
             });
         }
+
+        function findPhotoThumb(src) {
+            if (!src) {
+                return null;
+            }
+
+            return document.querySelector(`.photo-thumb[data-src="${src}"]`);
+        }
+
+        function openPlacePhoto(place) {
+            const thumb = findPhotoThumb(place.photo);
+            if (thumb) {
+                openPreview(thumb);
+            }
+        }
+
+        function projectPlace(place, box, bounds) {
+            if (place.x != null && place.y != null) {
+                return { x: place.x, y: place.y };
+            }
+
+            if (!box || !bounds || place.lat == null || place.lon == null) {
+                return null;
+            }
+
+            const lonSpan = bounds.east - bounds.west;
+            const latSpan = bounds.north - bounds.south;
+
+            if (!lonSpan || !latSpan) {
+                return null;
+            }
+
+            return {
+                x: box.x + ((place.lon - bounds.west) / lonSpan) * box.width,
+                y: box.y + ((bounds.north - place.lat) / latSpan) * box.height
+            };
+        }
+
+        function computeRegionBounds(cityPlaces, paddingRatio = 0.18) {
+            const lats = cityPlaces.map((place) => place.lat);
+            const lons = cityPlaces.map((place) => place.lon);
+            const latMin = Math.min(...lats);
+            const latMax = Math.max(...lats);
+            const lonMin = Math.min(...lons);
+            const lonMax = Math.max(...lons);
+            const latSpan = latMax - latMin || 0.01;
+            const lonSpan = lonMax - lonMin || 0.01;
+            const latPad = Math.max(latSpan * paddingRatio, 0.003);
+            const lonPad = Math.max(lonSpan * paddingRatio, 0.003);
+
+            return {
+                north: latMax + latPad,
+                south: latMin - latPad,
+                east: lonMax + lonPad,
+                west: lonMin - lonPad
+            };
+        }
+
+        function estimateLabelBox(name, x, y, anchor) {
+            const width = name.length * 6.2;
+            const height = 14;
+            let left = x;
+
+            if (anchor === 'middle') {
+                left = x - width / 2;
+            } else if (anchor === 'end') {
+                left = x - width;
+            }
+
+            return { left, right: left + width, top: y - 12, bottom: y + 2 };
+        }
+
+        function labelBoxesOverlap(a, b, padding = 5) {
+            return !(
+                a.right + padding < b.left ||
+                a.left - padding > b.right ||
+                a.bottom + padding < b.top ||
+                a.top - padding > b.bottom
+            );
+        }
+
+        function placeLabelPosition(point, placedLabels, name) {
+            const candidates = [
+                { x: point.x + 12, y: point.y + 4, anchor: 'start' },
+                { x: point.x - 12, y: point.y + 4, anchor: 'end' },
+                { x: point.x + 12, y: point.y - 6, anchor: 'start' },
+                { x: point.x - 12, y: point.y - 6, anchor: 'end' },
+                { x: point.x + 12, y: point.y + 18, anchor: 'start' },
+                { x: point.x - 12, y: point.y + 18, anchor: 'end' },
+                { x: point.x, y: point.y - 8, anchor: 'middle' },
+                { x: point.x, y: point.y + 20, anchor: 'middle' }
+            ];
+
+            let best = candidates[0];
+            let bestScore = Infinity;
+
+            candidates.forEach((candidate) => {
+                const box = estimateLabelBox(name, candidate.x, candidate.y, candidate.anchor);
+                let overlaps = 0;
+
+                placedLabels.forEach((placed) => {
+                    if (labelBoxesOverlap(box, placed)) {
+                        overlaps += 1;
+                    }
+                });
+
+                const distance = Math.hypot(candidate.x - point.x, candidate.y - point.y);
+                const score = overlaps * 1000 + distance;
+
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = candidate;
+                }
+            });
+
+            placedLabels.push(estimateLabelBox(name, best.x, best.y, best.anchor));
+            return best;
+        }
+
+        function buildPhotoGalleryIndex() {
+            const index = new Map();
+
+            document.querySelectorAll('.photo-thumb[data-src]').forEach((thumb, order) => {
+                index.set(thumb.dataset.src, order);
+            });
+
+            return index;
+        }
+
+        function compareByUpload(a, b, galleryIndex) {
+            const timeA = a.place.uploadedAt ? Date.parse(a.place.uploadedAt) : Number.NaN;
+            const timeB = b.place.uploadedAt ? Date.parse(b.place.uploadedAt) : Number.NaN;
+
+            if (!Number.isNaN(timeA) && !Number.isNaN(timeB) && timeA !== timeB) {
+                return timeA - timeB;
+            }
+
+            if (!Number.isNaN(timeA) && Number.isNaN(timeB)) {
+                return -1;
+            }
+
+            if (Number.isNaN(timeA) && !Number.isNaN(timeB)) {
+                return 1;
+            }
+
+            const orderA = a.place.uploadOrder ?? galleryIndex.get(a.place.photo) ?? 0;
+            const orderB = b.place.uploadOrder ?? galleryIndex.get(b.place.photo) ?? 0;
+
+            return orderA - orderB;
+        }
+
+        function traceLocalStep(from, to) {
+            const midX = (from.x + to.x) / 2;
+            const midY = (from.y + to.y) / 2;
+            const bendX = midX + (to.y - from.y) * 0.12;
+            const bendY = midY - (to.x - from.x) * 0.12;
+
+            return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${bendX.toFixed(1)} ${bendY.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
+        }
+
+        function traceCrossingStep(from, to) {
+            const midX = (from.x + to.x) / 2;
+            const midY = Math.min(from.y, to.y) - 36;
+
+            return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${midX.toFixed(1)} ${midY.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
+        }
+
+        function buildChronologicalTraces(points, galleryIndex) {
+            if (points.length < 2) {
+                return [];
+            }
+
+            const sorted = [...points].sort((a, b) => compareByUpload(a, b, galleryIndex));
+            const segments = [];
+
+            for (let index = 1; index < sorted.length; index += 1) {
+                const previous = sorted[index - 1];
+                const current = sorted[index];
+                const crossing = previous.place.city !== current.place.city;
+
+                segments.push({
+                    d: crossing ? traceCrossingStep(previous, current) : traceLocalStep(previous, current),
+                    crossing
+                });
+            }
+
+            return segments;
+        }
+
+        function renderPlaces(data) {
+            const tracesRoot = document.getElementById('places-traces');
+            const labelsRoot = document.getElementById('places-labels');
+            const pinsRoot = document.getElementById('places-pins');
+            const svg = document.getElementById('places-svg');
+            const map = document.getElementById('places-map');
+
+            if (!tracesRoot || !labelsRoot || !pinsRoot || !svg || !data) {
+                return;
+            }
+
+            if (Array.isArray(data.viewBox) && data.viewBox.length === 2) {
+                svg.setAttribute('viewBox', `0 0 ${data.viewBox[0]} ${data.viewBox[1]}`);
+            }
+
+            tracesRoot.replaceChildren();
+            labelsRoot.replaceChildren();
+            pinsRoot.replaceChildren();
+
+            const pointsByCity = {};
+            const boundsByCity = {};
+
+            (data.places || []).forEach((place) => {
+                if (!place?.name || !place.city || place.lat == null || place.lon == null) {
+                    return;
+                }
+
+                if (!pointsByCity[place.city]) {
+                    pointsByCity[place.city] = [];
+                }
+
+                pointsByCity[place.city].push(place);
+            });
+
+            Object.entries(pointsByCity).forEach(([city, cityPlaces]) => {
+                const region = data.regions?.[city];
+                if (!region?.box) {
+                    return;
+                }
+
+                boundsByCity[city] = computeRegionBounds(cityPlaces);
+            });
+
+            const projectedByCity = {};
+
+            Object.entries(pointsByCity).forEach(([city, cityPlaces]) => {
+                const region = data.regions?.[city];
+                const bounds = boundsByCity[city];
+
+                if (!region?.box || !bounds) {
+                    return;
+                }
+
+                projectedByCity[city] = cityPlaces
+                    .map((place) => {
+                        const point = projectPlace(place, region.box, bounds);
+                        return point ? { place, ...point } : null;
+                    })
+                    .filter(Boolean);
+            });
+
+            const galleryIndex = buildPhotoGalleryIndex();
+            const allProjectedPoints = Object.values(projectedByCity).flat();
+
+            buildChronologicalTraces(allProjectedPoints, galleryIndex).forEach((segment) => {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', segment.d);
+                path.setAttribute(
+                    'class',
+                    segment.crossing ? 'places-trace places-trace--crossing' : 'places-trace'
+                );
+                tracesRoot.append(path);
+            });
+
+            Object.entries(data.regions || {}).forEach(([, region]) => {
+                if (!region?.label || !region?.box) {
+                    return;
+                }
+
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('class', 'places-region-label');
+                label.setAttribute('x', String(region.box.x + region.box.width / 2));
+                label.setAttribute('y', String(region.box.y + region.box.height + 18));
+                label.setAttribute('text-anchor', 'middle');
+                label.textContent = region.label;
+                labelsRoot.append(label);
+            });
+
+            const placedLabels = [];
+
+            Object.values(projectedByCity).forEach((cityPoints) => {
+                const centerX = cityPoints.reduce((sum, point) => sum + point.x, 0) / cityPoints.length;
+                const centerY = cityPoints.reduce((sum, point) => sum + point.y, 0) / cityPoints.length;
+
+                cityPoints
+                    .sort((a, b) => {
+                        const distA = Math.hypot(a.x - centerX, a.y - centerY);
+                        const distB = Math.hypot(b.x - centerX, b.y - centerY);
+                        return distB - distA;
+                    })
+                    .forEach(({ place, x, y }) => {
+                        const point = { x, y };
+                        const labelPosition = placeLabelPosition(point, placedLabels, place.name);
+                        const labelX = place.labelX ?? labelPosition.x;
+                        const labelY = place.labelY ?? labelPosition.y;
+                        const labelAnchor = place.labelAnchor ?? labelPosition.anchor;
+
+                        const pin = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        pin.setAttribute('class', 'place-pin');
+
+                        const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        hit.setAttribute('class', 'place-pin-hit');
+                        hit.setAttribute('cx', String(x));
+                        hit.setAttribute('cy', String(y));
+                        hit.setAttribute('r', '14');
+
+                        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        dot.setAttribute('class', 'place-pin-dot');
+                        dot.setAttribute('cx', String(x));
+                        dot.setAttribute('cy', String(y));
+                        dot.setAttribute('r', '3.5');
+
+                        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        label.setAttribute('class', 'place-pin-label');
+                        label.setAttribute('x', String(labelX));
+                        label.setAttribute('y', String(labelY));
+                        label.setAttribute('text-anchor', labelAnchor);
+                        label.textContent = place.name;
+
+                        if (place.photo) {
+                            hit.setAttribute('tabindex', '0');
+                            hit.setAttribute('role', 'button');
+                            hit.setAttribute('aria-label', `Open photo from ${place.name}`);
+
+                            const openPhoto = () => openPlacePhoto(place);
+                            hit.addEventListener('click', openPhoto);
+                            hit.addEventListener('keydown', (event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    openPlacePhoto(place);
+                                }
+                            });
+                        } else {
+                            hit.setAttribute('role', 'img');
+                            hit.setAttribute('aria-label', place.name);
+                        }
+
+                        pin.append(dot, label, hit);
+                        pinsRoot.append(pin);
+                    });
+            });
+
+            if (map && allProjectedPoints.length > 0) {
+                const chronologicalNames = [...allProjectedPoints]
+                    .sort((a, b) => compareByUpload(a, b, galleryIndex))
+                    .map(({ place }) => place.name);
+
+                map.setAttribute(
+                    'aria-label',
+                    `Upload timeline connecting favorite places: ${chronologicalNames.join(', ')}`
+                );
+            }
+        }
+
+        fetch('places.json')
+            .then((response) => (response.ok ? response.json() : null))
+            .then((places) => {
+                if (places && (places.places?.length || places.traces?.length)) {
+                    renderPlaces(places);
+                }
+            })
+            .catch(() => {});
 
         fetch('bookmarks.json')
             .then((response) => (response.ok ? response.json() : null))
