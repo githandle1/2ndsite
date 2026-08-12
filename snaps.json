@@ -1,0 +1,99 @@
+[
+  {
+    "label": "july 2026",
+    "groups": [
+      {
+        "city": "nyc",
+        "photos": [
+          {
+            "src": "photos/sheep-meadow.jpeg",
+            "alt": "Williamsburg Bridge, East River",
+            "caption": "williamsburg bridge, july 2026",
+            "ariaLabel": "Open Williamsburg Bridge photo"
+          },
+          {
+            "src": "photos/mulberry-manhattan.jpeg",
+            "alt": "Mulberry Street cafe, Manhattan",
+            "caption": "mulberry street, july 2026",
+            "ariaLabel": "Open Mulberry Street photo"
+          },
+          {
+            "src": "photos/lower-east-side.jpeg",
+            "alt": "Lower East Side street view",
+            "caption": "lower east side, july 2026",
+            "ariaLabel": "Open Lower East Side photo"
+          },
+          {
+            "src": "photos/dining-room.jpeg",
+            "alt": "Union Square, Manhattan",
+            "caption": "union square, july 2026",
+            "ariaLabel": "Open Union Square photo"
+          }
+        ]
+      },
+      {
+        "city": "paris",
+        "photos": [
+          {
+            "src": "photos/place-des-vosges.jpeg",
+            "alt": "Place des Vosges, Paris",
+            "caption": "place des vosges, july 2026",
+            "ariaLabel": "Open Place des Vosges photo"
+          },
+          {
+            "src": "photos/caves-saint-gilles.jpeg",
+            "alt": "Caves Saint Gilles, Rue St Gilles, Paris",
+            "caption": "caves saint gilles, july 2026",
+            "ariaLabel": "Open Caves Saint Gilles photo"
+          },
+          {
+            "src": "photos/archives-nationales.jpeg",
+            "alt": "Archives Nationales, Paris",
+            "caption": "archives nationales, july 2026",
+            "ariaLabel": "Open Archives Nationales photo"
+          },
+          {
+            "src": "photos/paris-metro.jpeg",
+            "alt": "Paris metro at dusk",
+            "caption": "line 6, july 2026",
+            "ariaLabel": "Open Paris metro photo"
+          },
+          {
+            "src": "photos/eiffel-skyline.jpeg",
+            "alt": "Paris skyline with the Eiffel Tower",
+            "caption": "eiffel tower, july 2026",
+            "ariaLabel": "Open Eiffel Tower skyline photo"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "august 2026",
+    "groups": [
+      {
+        "city": "nyc",
+        "photos": [
+          {
+            "src": "photos/cursor.jpeg",
+            "alt": "Central Park, NYC",
+            "caption": "central park, august 2026",
+            "ariaLabel": "Open Central Park photo"
+          },
+          {
+            "src": "photos/williamsburg-bridge.jpeg",
+            "alt": "Sheep Meadow, Central Park",
+            "caption": "sheep's meadow, august 2026",
+            "ariaLabel": "Open Sheep Meadow photo"
+          },
+          {
+            "src": "photos/moma-charlie.jpeg",
+            "alt": "MoMA banner and 53 West 53, Manhattan",
+            "caption": "moma, august 2026",
+            "ariaLabel": "Open MoMA photo"
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -50,7 +50,55 @@ Insert inside `<main>`, above or below other sections:
 </section>
 ```
 
-## Photos section with expandable albums
+## Snaps section
+
+Snaps are stored in `snaps.json` (repo root) and rendered by JavaScript. **Do not** add album `<details>` blocks directly to `index.html`.
+
+```html
+<section aria-labelledby="snaps">
+    <h4 id="snaps" class="phrase">snaps</h4>
+    <div id="snaps-albums"></div>
+    <!-- footsteps footer stays in index.html -->
+</section>
+```
+
+Albums are organized **by month** (one `+` row per month). Photos within a month render in group order from `snaps.json` (city groups are for data organization only, not shown on the page).
+
+Add entries to `snaps.json`:
+
+```json
+[
+  {
+    "label": "july 2026",
+    "groups": [
+      {
+        "city": "nyc",
+        "photos": [
+          {
+            "src": "photos/example.jpeg",
+            "alt": "Description for screen readers",
+            "caption": "location, july 2026",
+            "ariaLabel": "Open Example photo"
+          }
+        ]
+      },
+      {
+        "city": "paris",
+        "photos": []
+      }
+    ]
+  }
+]
+```
+
+- **`label`** — month accordion header (e.g. `july 2026`)
+- **`groups`** — city blocks within that month for organizing photos in JSON; omit empty groups
+- **`city`** — internal label for aria/accessibility (e.g. `nyc`, `paris`)
+- **`photos`** — ordered list; lightbox swipes within the full month album (across cities)
+
+Optional per photo: `"portrait": true` for `object-fit: contain` thumbnails.
+
+## Photos section with expandable albums (legacy reference)
 
 ```html
 <section aria-labelledby="photos">
@@ -118,3 +166,4 @@ See `docs/add-bookmarks.md` for Safari Share Shortcut setup. Run `./scripts/inst
 - [ ] Place section in logical order inside `<main>`
 - [ ] Keep `sketchbook-link` footer last in `<main>`
 - [ ] Add bookmarks via `bookmarks.json`, not inline HTML
+- [ ] Add snaps via `snaps.json`, not inline HTML
