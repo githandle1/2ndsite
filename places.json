@@ -16,7 +16,7 @@
     { "name": "nolita", "city": "nyc", "photo": "photos/mulberry-manhattan.jpeg", "lat": 40.714, "lon": -73.998, "uploadedAt": "2026-08-03T01:05:40", "uploadOrder": 0 },
     { "name": "lower east side", "city": "nyc", "photo": "photos/lower-east-side.jpeg", "lat": 40.715, "lon": -73.984, "uploadedAt": "2026-08-03T01:05:40", "uploadOrder": 1 },
     { "name": "union square", "city": "nyc", "photo": "photos/dining-room.jpeg", "lat": 40.7359, "lon": -73.9903, "uploadedAt": "2026-08-03T01:05:40", "uploadOrder": 2 },
-    { "name": "15th arr., paris", "city": "paris", "photo": "photos/paris-metro.jpeg", "lat": 48.853, "lon": 2.289, "uploadedAt": "2026-08-03T01:05:40", "uploadOrder": 3 },
+    { "name": "15th arr.", "city": "paris", "photo": "photos/paris-metro.jpeg", "lat": 48.853, "lon": 2.289, "uploadedAt": "2026-08-03T01:05:40", "uploadOrder": 3 },
     { "name": "place des vosges", "city": "paris", "photo": "photos/place-des-vosges.jpeg", "lat": 48.8556, "lon": 2.3654, "uploadedAt": "2026-08-03T01:11:15", "uploadOrder": 0 },
     { "name": "archives nationales", "city": "paris", "photo": "photos/archives-nationales.jpeg", "lat": 48.867, "lon": 2.337, "uploadedAt": "2026-08-03T01:11:15", "uploadOrder": 1 },
     { "name": "caves saint gilles", "city": "paris", "photo": "photos/caves-saint-gilles.jpeg", "lat": 48.859, "lon": 2.358, "uploadedAt": "2026-08-05T16:41:00" },

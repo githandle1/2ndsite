@@ -61,17 +61,24 @@
             width: min(100% - 48px, 720px);
             margin: 0 auto;
             padding: 72px 0 96px;
+            --block-gap: 48px;
+            --heading-gap: 12px;
         }
 
         h1 {
-            margin: 0 0 16px;
+            margin: 0 0 var(--heading-gap);
             font-size: clamp(1.75rem, 4vw, 2.5rem);
             font-weight: 400;
-            letter-spacing: -0.02em;
+            letter-spacing: 0;
+        }
+
+        h1.phrase {
+            display: block;
+            width: auto;
         }
 
         .intro {
-            margin: 0 0 52px;
+            margin: 0 0 var(--block-gap);
             width: 100%;
             font-size: 0.875rem;
             line-height: 1.6;
@@ -82,15 +89,13 @@
         }
 
         .intro-meta {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            column-gap: 0.4em;
-            align-items: baseline;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
             width: 100%;
         }
 
         .intro-lead {
-            grid-column: 1 / -1;
             display: inline-flex;
             align-items: baseline;
             gap: 0.55rem;
@@ -99,9 +104,9 @@
             padding: 0;
             margin: 0;
             font-family: inherit;
-            font-size: 0.972rem;
+            font-size: inherit;
             font-weight: 400;
-            line-height: 1.65;
+            line-height: inherit;
             color: inherit;
             text-align: left;
             cursor: pointer;
@@ -123,9 +128,9 @@
         }
 
         .intro-lead.caption-toggle {
-            font-size: 0.972rem;
+            font-size: inherit;
             font-weight: 400;
-            line-height: 1.65;
+            line-height: inherit;
             color: var(--ink);
             opacity: 1;
             padding: 0;
@@ -143,10 +148,8 @@
         }
 
         .intro-blurb {
-            grid-column: 2;
-            grid-row: 2;
-            margin: 0;
             width: 100%;
+            margin: 0;
             max-height: 0;
             overflow: hidden;
             opacity: 0;
@@ -218,7 +221,7 @@
         }
 
         section {
-            margin: 0 0 40px;
+            margin: 0 0 var(--block-gap);
         }
 
         h4 {
@@ -710,7 +713,7 @@
 
         .sketchbook-link {
             display: inline-block;
-            margin-top: 32px;
+            margin-top: var(--block-gap);
             font-size: 0.8rem;
         }
 
@@ -731,11 +734,11 @@
             }
 
             h1 {
-                margin-bottom: 14px;
+                margin-bottom: var(--heading-gap);
             }
 
             .intro {
-                margin-bottom: 40px;
+                margin-bottom: var(--block-gap);
             }
 
             .photo-overlay-controls {
