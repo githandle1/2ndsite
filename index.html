@@ -7,7 +7,7 @@
     <title>maya bakir</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=10">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=10">
@@ -189,7 +189,7 @@
         }
 
         .intro-blurb .caption-toggle {
-            margin-left: 0.35em;
+            margin-left: 0.12em;
             vertical-align: baseline;
             font-size: 0.85em;
         }
@@ -227,7 +227,7 @@
         h4 {
             margin: 0 0 8px;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 600;
             line-height: 1.65;
         }
 
@@ -250,6 +250,7 @@
             padding: 9px 0;
             cursor: pointer;
             list-style: none;
+            font-weight: 400;
             transition: color 180ms ease;
         }
 
@@ -521,6 +522,25 @@
             max-height: 2.5rem;
             margin-top: 3px;
             opacity: 1;
+        }
+
+        .photo-caption.is-linked {
+            cursor: pointer;
+            transition: color 180ms ease;
+        }
+
+        .photo-caption.is-linked:hover,
+        .photo-caption.is-linked:focus-visible {
+            color: var(--hover);
+            outline: none;
+        }
+
+        .place-pin.is-highlighted .place-pin-dot {
+            opacity: 1;
+        }
+
+        .place-pin.is-highlighted .place-pin-label {
+            fill: var(--hover);
         }
 
         .photo-overlay {
@@ -1051,6 +1071,45 @@
 
         const footstepsToggle = document.getElementById('snaps-footsteps-toggle');
         const footstepsMap = document.getElementById('places-map');
+        let placeByPhotoSrc = new Map();
+        let highlightedPlacePin = null;
+
+        function openFootstepsMap() {
+            if (!footstepsToggle || !footstepsMap) {
+                return;
+            }
+
+            if (footstepsToggle.getAttribute('aria-expanded') !== 'true') {
+                footstepsToggle.setAttribute('aria-expanded', 'true');
+                footstepsToggle.setAttribute('aria-label', 'Hide footsteps map');
+                footstepsToggle.querySelector('.snaps-footsteps-mark').textContent = '−';
+                footstepsMap.hidden = false;
+            }
+        }
+
+        function focusPlaceOnMap(place) {
+            if (!place?.name) {
+                return;
+            }
+
+            openFootstepsMap();
+
+            const pin = document.querySelector(
+                `.place-pin[data-place-name="${CSS.escape(place.name)}"]`
+            );
+
+            if (!pin) {
+                return;
+            }
+
+            if (highlightedPlacePin) {
+                highlightedPlacePin.classList.remove('is-highlighted');
+            }
+
+            pin.classList.add('is-highlighted');
+            highlightedPlacePin = pin;
+            footstepsMap?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
 
         if (footstepsToggle && footstepsMap) {
             footstepsToggle.addEventListener('click', () => {
@@ -1180,6 +1239,48 @@
             return year * 12 + month;
         }
 
+        function buildPhotoCaptionElement(photo) {
+            const caption = document.createElement('p');
+            caption.className = 'photo-caption';
+            caption.dataset.photoSrc = photo.src;
+            caption.textContent = photo.caption || '';
+            return caption;
+        }
+
+        function indexPlacesByPhoto(data) {
+            placeByPhotoSrc.clear();
+
+            (data?.places || []).forEach((place) => {
+                getPlacePhotos(place).forEach((src) => {
+                    placeByPhotoSrc.set(src, place);
+                });
+            });
+
+            updateCaptionPlaceLinks();
+        }
+
+        function updateCaptionPlaceLinks() {
+            document.querySelectorAll('.photo-caption[data-photo-src]').forEach((caption) => {
+                const place = placeByPhotoSrc.get(caption.dataset.photoSrc);
+                const isLinked = Boolean(place);
+
+                caption.classList.toggle('is-linked', isLinked);
+
+                if (isLinked) {
+                    caption.setAttribute('role', 'button');
+                    caption.setAttribute('tabindex', '0');
+                    caption.setAttribute(
+                        'aria-label',
+                        `Show ${caption.textContent} on footsteps map`
+                    );
+                } else {
+                    caption.removeAttribute('role');
+                    caption.removeAttribute('tabindex');
+                    caption.removeAttribute('aria-label');
+                }
+            });
+        }
+
         function renderSnaps(albums) {
             const root = document.getElementById('snaps-albums');
             if (!root || !Array.isArray(albums)) {
@@ -1247,9 +1348,7 @@
                         captionToggle.setAttribute('aria-label', 'Show caption');
                         captionToggle.textContent = '+';
 
-                        const caption = document.createElement('p');
-                        caption.className = 'photo-caption';
-                        caption.textContent = photo.caption || '';
+                        const caption = buildPhotoCaptionElement(photo);
 
                         meta.append(captionToggle, caption);
                         item.append(thumb, meta);
@@ -1296,6 +1395,30 @@
                     toggle.setAttribute('aria-expanded', String(nextState));
                     toggle.textContent = nextState ? '−' : '+';
                     caption.classList.toggle('is-open', nextState);
+                });
+            });
+
+            root.querySelectorAll('.photo-caption[data-photo-src]').forEach((caption) => {
+                const openLinkedPlace = (event) => {
+                    if (!caption.classList.contains('is-linked')) {
+                        return;
+                    }
+
+                    event.stopPropagation();
+                    const place = placeByPhotoSrc.get(caption.dataset.photoSrc);
+
+                    if (place) {
+                        focusPlaceOnMap(place);
+                        caption.blur();
+                    }
+                };
+
+                caption.addEventListener('click', openLinkedPlace);
+                caption.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        openLinkedPlace(event);
+                    }
                 });
             });
         }
@@ -1654,6 +1777,7 @@
 
                         const pin = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                         pin.setAttribute('class', 'place-pin');
+                        pin.setAttribute('data-place-name', place.name);
 
                         const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                         hit.setAttribute('class', 'place-pin-hit');
@@ -1718,6 +1842,8 @@
                     `Upload timeline connecting favorite places: ${chronologicalNames.join(', ')}`
                 );
             }
+
+            indexPlacesByPhoto(data);
         }
 
         fetch('snaps.json')
