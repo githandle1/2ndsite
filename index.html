@@ -422,11 +422,6 @@
             overflow: hidden;
         }
 
-        .photo-overlay-stage.is-zoomed {
-            align-items: flex-start;
-            overflow: auto;
-        }
-
         .photo-overlay-frame {
             display: flex;
             flex-direction: column;
@@ -456,14 +451,6 @@
         .photo-overlay-image.is-visible {
             transform: scale(1);
             opacity: 1;
-        }
-
-        .photo-overlay-stage.is-zoomed .photo-overlay-image {
-            max-width: none;
-            max-height: none;
-            width: auto;
-            height: auto;
-            cursor: zoom-out;
         }
 
         .photo-overlay-controls {
@@ -563,11 +550,6 @@
             display: block;
             width: 1.15rem;
             height: 1.15rem;
-        }
-
-        .photo-overlay-btn[data-action="close"] .photo-overlay-icon {
-            width: 1.25rem;
-            height: 1.25rem;
         }
 
         .phrase {
@@ -777,12 +759,6 @@
                 <div class="photo-overlay-controls">
                     <div class="photo-overlay-dots" id="photo-overlay-dots" role="tablist" aria-label="Photos in album"></div>
                     <div class="photo-overlay-actions">
-                        <button type="button" class="photo-overlay-btn" data-action="zoom" aria-label="Zoom photo" aria-pressed="false">
-                            <svg class="photo-overlay-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
-                                <circle cx="10.5" cy="10.5" r="5.75"></circle>
-                                <path d="M15 15l4.5 4.5"></path>
-                            </svg>
-                        </button>
                         <button type="button" class="photo-overlay-btn" data-action="prev" aria-label="Previous photo">
                             <svg class="photo-overlay-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
                                 <path d="M15 6l-6 6 6 6"></path>
@@ -791,11 +767,6 @@
                         <button type="button" class="photo-overlay-btn" data-action="next" aria-label="Next photo">
                             <svg class="photo-overlay-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
                                 <path d="M9 6l6 6-6 6"></path>
-                            </svg>
-                        </button>
-                        <button type="button" class="photo-overlay-btn" data-action="close" aria-label="Close photo preview">
-                            <svg class="photo-overlay-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
-                                <path d="M7 7l10 10M17 7L7 17"></path>
                             </svg>
                         </button>
                     </div>
@@ -814,7 +785,6 @@
         const overlayButtons = [...overlay.querySelectorAll('.photo-overlay-btn')];
         let currentAlbumThumbs = [];
         let currentPhotoIndex = -1;
-        let isZoomed = false;
         const photoRevealDurationMs = 780;
 
         function startRevealAnimation({ includeBackdrop = false } = {}) {
@@ -836,16 +806,6 @@
                 overlayImage.onload = null;
                 reveal();
             };
-        }
-
-        function setZoom(nextZoomed) {
-            isZoomed = nextZoomed;
-            overlayStage.classList.toggle('is-zoomed', isZoomed);
-            const zoomButton = overlay.querySelector('[data-action="zoom"]');
-            if (zoomButton) {
-                zoomButton.setAttribute('aria-pressed', String(isZoomed));
-                zoomButton.setAttribute('aria-label', isZoomed ? 'Reset zoom' : 'Zoom photo');
-            }
         }
 
         function renderDots() {
@@ -880,7 +840,6 @@
             }
 
             currentPhotoIndex = index;
-            setZoom(false);
 
             if (animate) {
                 overlayImage.classList.remove('is-visible');
@@ -906,7 +865,6 @@
 
             const index = currentAlbumThumbs.indexOf(thumb);
             currentPhotoIndex = index;
-            setZoom(false);
             overlayImage.src = thumb.dataset.src;
             overlayImage.alt = thumb.querySelector('img')?.alt || '';
             renderDots();
@@ -925,7 +883,6 @@
             document.body.style.overflow = '';
             currentAlbumThumbs = [];
             currentPhotoIndex = -1;
-            setZoom(false);
 
             window.setTimeout(() => {
                 if (!overlay.classList.contains('is-open')) {
@@ -954,11 +911,6 @@
                 event.stopPropagation();
                 const action = button.dataset.action;
 
-                if (action === 'close') {
-                    closePreview();
-                    return;
-                }
-
                 if (action === 'prev') {
                     navigatePhoto(-1);
                     return;
@@ -966,11 +918,6 @@
 
                 if (action === 'next') {
                     navigatePhoto(1);
-                    return;
-                }
-
-                if (action === 'zoom') {
-                    setZoom(!isZoomed);
                 }
             });
         });
@@ -980,14 +927,7 @@
         });
 
         overlayStage.addEventListener('click', (event) => {
-            if (event.target.closest('.photo-overlay-controls')) {
-                return;
-            }
-
-            if (event.target.closest('.photo-overlay-image')) {
-                if (isZoomed && event.target === overlayImage) {
-                    setZoom(false);
-                }
+            if (event.target.closest('.photo-overlay-controls') || event.target.closest('.photo-overlay-image')) {
                 return;
             }
 
