@@ -22,6 +22,10 @@
             --hover: #8b2f32;
             --line: rgba(139, 47, 50, 0.2);
             --muted: rgba(36, 33, 31, 0.58);
+            --photo-reveal-duration: 780ms;
+            --photo-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --photo-frame-margin: 36px;
+            --photo-controls-band: 48px;
         }
 
         * {
@@ -379,14 +383,13 @@
             position: fixed;
             inset: 0;
             z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
+            display: block;
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
-            transition: opacity 220ms ease, visibility 220ms ease;
+            transition:
+                opacity var(--photo-reveal-duration) var(--photo-reveal-ease),
+                visibility var(--photo-reveal-duration);
         }
 
         .photo-overlay[hidden] {
@@ -402,26 +405,169 @@
         .photo-overlay-backdrop {
             position: absolute;
             inset: 0;
-            background: rgba(36, 33, 31, 0.58);
+            background: rgba(36, 33, 31, 0.72);
             border: none;
             cursor: pointer;
         }
 
-        .photo-overlay-image {
-            position: relative;
+        .photo-overlay-stage {
+            position: absolute;
+            inset: 0;
             z-index: 1;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--photo-frame-margin);
+            overflow: hidden;
+        }
+
+        .photo-overlay-stage.is-zoomed {
+            align-items: flex-start;
+            overflow: auto;
+        }
+
+        .photo-overlay-frame {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            width: max-content;
+            max-width: 100%;
+            max-height: 100%;
+            min-height: 0;
+        }
+
+        .photo-overlay-image {
             display: block;
-            max-width: 96vw;
-            max-height: 96dvh;
             width: auto;
             height: auto;
             object-fit: contain;
-            transform: scale(0.96);
-            transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+            max-width: calc(100vw - (2 * var(--photo-frame-margin)));
+            max-height: calc(100dvh - (2 * var(--photo-frame-margin)) - var(--photo-controls-band));
+            flex: 0 1 auto;
+            min-height: 0;
+            transform: scale(0.68);
+            opacity: 0;
+            transition:
+                transform var(--photo-reveal-duration) var(--photo-reveal-ease),
+                opacity var(--photo-reveal-duration) var(--photo-reveal-ease);
         }
 
-        .photo-overlay.is-open .photo-overlay-image {
+        .photo-overlay-image.is-visible {
             transform: scale(1);
+            opacity: 1;
+        }
+
+        .photo-overlay-stage.is-zoomed .photo-overlay-image {
+            max-width: none;
+            max-height: none;
+            width: auto;
+            height: auto;
+            cursor: zoom-out;
+        }
+
+        .photo-overlay-controls {
+            position: relative;
+            z-index: 2;
+            flex: 0 0 var(--photo-controls-band);
+            width: max-content;
+            max-width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: nowrap;
+            gap: 14px;
+            padding: 0;
+            background: transparent;
+            border: none;
+            pointer-events: none;
+        }
+
+        .photo-overlay-dots,
+        .photo-overlay-actions {
+            pointer-events: auto;
+            flex-shrink: 0;
+        }
+
+        .photo-overlay-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 0;
+            flex-shrink: 0;
+        }
+
+        .photo-overlay-dots {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 0;
+            max-width: 220px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .photo-overlay-dots::-webkit-scrollbar {
+            display: none;
+        }
+
+        .photo-overlay-dot {
+            flex: 0 0 auto;
+            width: 5px;
+            height: 5px;
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            background: rgba(250, 249, 246, 0.34);
+            cursor: pointer;
+            transition: background-color 180ms ease, opacity 180ms ease, transform 180ms ease;
+        }
+
+        .photo-overlay-dot:hover,
+        .photo-overlay-dot:focus-visible {
+            background: rgba(250, 249, 246, 0.58);
+        }
+
+        .photo-overlay-dot.is-active {
+            background: var(--hover);
+            transform: scale(1.08);
+        }
+
+        .photo-overlay-btn {
+            border: none;
+            background: none;
+            color: rgba(250, 249, 246, 0.72);
+            line-height: 0;
+            padding: 7px 10px;
+            cursor: pointer;
+            transition: color 180ms ease, opacity 180ms ease;
+        }
+
+        .photo-overlay-btn:hover,
+        .photo-overlay-btn:focus-visible {
+            color: var(--paper);
+        }
+
+        .photo-overlay-btn:disabled {
+            opacity: 0.22;
+            cursor: default;
+        }
+
+        .photo-overlay-btn:disabled:hover,
+        .photo-overlay-btn:disabled:focus-visible {
+            color: rgba(250, 249, 246, 0.72);
+        }
+
+        .photo-overlay-icon {
+            display: block;
+            width: 1.15rem;
+            height: 1.15rem;
+        }
+
+        .photo-overlay-btn[data-action="close"] .photo-overlay-icon {
+            width: 1.25rem;
+            height: 1.25rem;
         }
 
         .phrase {
@@ -625,60 +771,227 @@
 
     <div class="photo-overlay" id="photo-overlay" hidden aria-hidden="true">
         <button type="button" class="photo-overlay-backdrop" aria-label="Close photo preview"></button>
-        <img class="photo-overlay-image" src="" alt="">
+        <div class="photo-overlay-stage" id="photo-overlay-stage">
+            <div class="photo-overlay-frame">
+                <img class="photo-overlay-image" src="" alt="">
+                <div class="photo-overlay-controls">
+                    <div class="photo-overlay-dots" id="photo-overlay-dots" role="tablist" aria-label="Photos in album"></div>
+                    <div class="photo-overlay-actions">
+                        <button type="button" class="photo-overlay-btn" data-action="zoom" aria-label="Zoom photo" aria-pressed="false">
+                            <svg class="photo-overlay-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+                                <circle cx="10.5" cy="10.5" r="5.75"></circle>
+                                <path d="M15 15l4.5 4.5"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="photo-overlay-btn" data-action="prev" aria-label="Previous photo">
+                            <svg class="photo-overlay-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+                                <path d="M15 6l-6 6 6 6"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="photo-overlay-btn" data-action="next" aria-label="Next photo">
+                            <svg class="photo-overlay-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+                                <path d="M9 6l6 6-6 6"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="photo-overlay-btn" data-action="close" aria-label="Close photo preview">
+                            <svg class="photo-overlay-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+                                <path d="M7 7l10 10M17 7L7 17"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         const overlay = document.getElementById('photo-overlay');
+        const overlayStage = document.getElementById('photo-overlay-stage');
         const overlayImage = overlay.querySelector('.photo-overlay-image');
+        const overlayDots = document.getElementById('photo-overlay-dots');
         const backdrop = overlay.querySelector('.photo-overlay-backdrop');
         const photoThumbs = [...document.querySelectorAll('.photo-thumb')];
+        const overlayButtons = [...overlay.querySelectorAll('.photo-overlay-btn')];
+        let currentAlbumThumbs = [];
         let currentPhotoIndex = -1;
+        let isZoomed = false;
+        const photoRevealDurationMs = 780;
 
-        function showPhotoAt(index) {
-            const thumb = photoThumbs[index];
+        function startRevealAnimation({ includeBackdrop = false } = {}) {
+            const reveal = () => {
+                requestAnimationFrame(() => {
+                    if (includeBackdrop) {
+                        overlay.classList.add('is-open');
+                    }
+                    overlayImage.classList.add('is-visible');
+                });
+            };
+
+            if (overlayImage.complete && overlayImage.naturalWidth > 0) {
+                reveal();
+                return;
+            }
+
+            overlayImage.onload = () => {
+                overlayImage.onload = null;
+                reveal();
+            };
+        }
+
+        function setZoom(nextZoomed) {
+            isZoomed = nextZoomed;
+            overlayStage.classList.toggle('is-zoomed', isZoomed);
+            const zoomButton = overlay.querySelector('[data-action="zoom"]');
+            if (zoomButton) {
+                zoomButton.setAttribute('aria-pressed', String(isZoomed));
+                zoomButton.setAttribute('aria-label', isZoomed ? 'Reset zoom' : 'Zoom photo');
+            }
+        }
+
+        function renderDots() {
+            overlayDots.replaceChildren();
+
+            currentAlbumThumbs.forEach((thumb, index) => {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = 'photo-overlay-dot';
+                dot.setAttribute('role', 'tab');
+                dot.setAttribute('aria-label', `Photo ${index + 1} of ${currentAlbumThumbs.length}`);
+                dot.setAttribute('aria-selected', String(index === currentPhotoIndex));
+                dot.classList.toggle('is-active', index === currentPhotoIndex);
+                dot.addEventListener('click', () => showPhotoAt(index));
+                overlayDots.appendChild(dot);
+            });
+
+            const activeDot = overlayDots.querySelector('.photo-overlay-dot.is-active');
+            activeDot?.scrollIntoView({ block: 'nearest', inline: 'center' });
+        }
+
+        function updateNavButtons() {
+            const hasMultiple = currentAlbumThumbs.length > 1;
+            overlay.querySelector('[data-action="prev"]').disabled = !hasMultiple;
+            overlay.querySelector('[data-action="next"]').disabled = !hasMultiple;
+        }
+
+        function showPhotoAt(index, { animate = false } = {}) {
+            const thumb = currentAlbumThumbs[index];
             if (!thumb) {
                 return;
             }
 
             currentPhotoIndex = index;
+            setZoom(false);
+
+            if (animate) {
+                overlayImage.classList.remove('is-visible');
+            }
+
             overlayImage.src = thumb.dataset.src;
             overlayImage.alt = thumb.querySelector('img')?.alt || '';
+            renderDots();
+            updateNavButtons();
+
+            if (animate) {
+                startRevealAnimation();
+            }
         }
 
         function openPreview(thumb) {
-            showPhotoAt(photoThumbs.indexOf(thumb));
+            currentAlbumThumbs = thumb.closest('.photo-grid')
+                ? [...thumb.closest('.photo-grid').querySelectorAll('.photo-thumb')]
+                : photoThumbs;
+
+            overlay.classList.remove('is-open');
+            overlayImage.classList.remove('is-visible');
+
+            const index = currentAlbumThumbs.indexOf(thumb);
+            currentPhotoIndex = index;
+            setZoom(false);
+            overlayImage.src = thumb.dataset.src;
+            overlayImage.alt = thumb.querySelector('img')?.alt || '';
+            renderDots();
+            updateNavButtons();
+
             overlay.hidden = false;
             overlay.setAttribute('aria-hidden', 'false');
-            requestAnimationFrame(() => overlay.classList.add('is-open'));
             document.body.style.overflow = 'hidden';
+            startRevealAnimation({ includeBackdrop: true });
         }
 
         function closePreview() {
+            overlayImage.classList.remove('is-visible');
             overlay.classList.remove('is-open');
             overlay.setAttribute('aria-hidden', 'true');
-            overlay.hidden = true;
             document.body.style.overflow = '';
+            currentAlbumThumbs = [];
             currentPhotoIndex = -1;
+            setZoom(false);
 
             window.setTimeout(() => {
                 if (!overlay.classList.contains('is-open')) {
+                    overlay.hidden = true;
                     overlayImage.removeAttribute('src');
+                    overlayDots.replaceChildren();
                 }
-            }, 220);
+            }, photoRevealDurationMs);
         }
 
         function navigatePhoto(direction) {
-            if (currentPhotoIndex === -1 || photoThumbs.length === 0) {
+            if (currentPhotoIndex === -1 || currentAlbumThumbs.length <= 1) {
                 return;
             }
 
-            const nextIndex = (currentPhotoIndex + direction + photoThumbs.length) % photoThumbs.length;
-            showPhotoAt(nextIndex);
+            const nextIndex = (currentPhotoIndex + direction + currentAlbumThumbs.length) % currentAlbumThumbs.length;
+            showPhotoAt(nextIndex, { animate: true });
         }
 
         document.querySelectorAll('.photo-thumb').forEach((thumb) => {
             thumb.addEventListener('click', () => openPreview(thumb));
+        });
+
+        overlayButtons.forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const action = button.dataset.action;
+
+                if (action === 'close') {
+                    closePreview();
+                    return;
+                }
+
+                if (action === 'prev') {
+                    navigatePhoto(-1);
+                    return;
+                }
+
+                if (action === 'next') {
+                    navigatePhoto(1);
+                    return;
+                }
+
+                if (action === 'zoom') {
+                    setZoom(!isZoomed);
+                }
+            });
+        });
+
+        overlay.querySelector('.photo-overlay-controls')?.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+
+        overlayStage.addEventListener('click', (event) => {
+            if (event.target.closest('.photo-overlay-controls')) {
+                return;
+            }
+
+            if (event.target.closest('.photo-overlay-image')) {
+                if (isZoomed && event.target === overlayImage) {
+                    setZoom(false);
+                }
+                return;
+            }
+
+            closePreview();
         });
 
         document.querySelectorAll('.caption-toggle').forEach((toggle) => {
