@@ -382,12 +382,6 @@
             outline: none;
         }
 
-        .place-pin-hit:focus-visible {
-            stroke: var(--hover);
-            stroke-width: 1.5;
-            fill: rgba(139, 47, 50, 0.12);
-        }
-
         .place-pin-dot {
             fill: var(--hover);
             opacity: 0.78;
@@ -1578,12 +1572,16 @@
                             hit.setAttribute('role', 'button');
                             hit.setAttribute('aria-label', `Open photo from ${place.name}`);
 
-                            const openPhoto = () => openPlacePhoto(place);
+                            const openPhoto = () => {
+                                openPlacePhoto(place);
+                                hit.blur();
+                            };
                             hit.addEventListener('click', openPhoto);
                             hit.addEventListener('keydown', (event) => {
                                 if (event.key === 'Enter' || event.key === ' ') {
                                     event.preventDefault();
                                     openPlacePhoto(place);
+                                    hit.blur();
                                 }
                             });
                         } else {
@@ -1591,7 +1589,7 @@
                             hit.setAttribute('aria-label', place.name);
                         }
 
-                        pin.append(dot, label, hit);
+                        pin.append(hit, dot, label);
                         pinsRoot.append(pin);
                     });
             });
