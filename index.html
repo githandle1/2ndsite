@@ -62,7 +62,7 @@
             margin: 0 auto;
             padding: 72px 0 96px;
             --block-gap: 48px;
-            --heading-gap: 12px;
+            --heading-gap: 26px;
             --list-size: 15px;
             --list-line-height: 1.65;
         }
@@ -80,7 +80,7 @@
         }
 
         .intro {
-            margin: 0 0 var(--block-gap);
+            margin: 0 0 calc(var(--block-gap) * 0.85);
             width: 100%;
             font-size: var(--list-size);
             line-height: var(--list-line-height);
@@ -775,7 +775,7 @@
             }
 
             .intro {
-                margin-bottom: var(--block-gap);
+                margin-bottom: calc(var(--block-gap) * 0.85);
             }
 
             .photo-grid {
@@ -1338,8 +1338,6 @@
 
             root.replaceChildren();
 
-            let defaultAlbumOpened = false;
-
             [...albums]
                 .sort((a, b) => albumSortKey(b) - albumSortKey(a))
                 .forEach((album) => {
@@ -1411,9 +1409,8 @@
                     return;
                 }
 
-                if (!defaultAlbumOpened) {
+                if (album.defaultOpen) {
                     details.open = true;
-                    defaultAlbumOpened = true;
                 }
 
                 albumGroups.append(grid);
