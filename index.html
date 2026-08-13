@@ -418,6 +418,10 @@
             font-size: 0.72rem;
             font-weight: 400;
             fill: var(--muted);
+            paint-order: stroke fill;
+            stroke: var(--paper);
+            stroke-width: 6px;
+            stroke-linejoin: round;
             transition: fill 180ms ease;
             pointer-events: none;
         }
@@ -1558,8 +1562,8 @@
             };
         }
 
-        function estimateLabelBox(name, x, y, anchor) {
-            const width = name.length * 6.2;
+        function estimateLabelBox(name, x, y, anchor, charWidth = 6.2) {
+            const width = name.length * charWidth;
             const height = 14;
             let left = x;
 
@@ -1572,7 +1576,7 @@
             return { left, right: left + width, top: y - 12, bottom: y + 2 };
         }
 
-        function labelBoxesOverlap(a, b, padding = 5) {
+        function labelBoxesOverlap(a, b, padding = 8) {
             return !(
                 a.right + padding < b.left ||
                 a.left - padding > b.right ||
@@ -1581,31 +1585,57 @@
             );
         }
 
-        function placeLabelPosition(point, placedLabels, name) {
-            const candidates = [
-                { x: point.x + 12, y: point.y + 4, anchor: 'start' },
-                { x: point.x - 12, y: point.y + 4, anchor: 'end' },
-                { x: point.x + 12, y: point.y - 6, anchor: 'start' },
-                { x: point.x - 12, y: point.y - 6, anchor: 'end' },
-                { x: point.x + 12, y: point.y + 18, anchor: 'start' },
-                { x: point.x - 12, y: point.y + 18, anchor: 'end' },
-                { x: point.x, y: point.y - 8, anchor: 'middle' },
-                { x: point.x, y: point.y + 20, anchor: 'middle' }
-            ];
+        function countLabelOverlaps(box, placedLabels) {
+            let overlaps = 0;
 
+            placedLabels.forEach((placed) => {
+                if (labelBoxesOverlap(box, placed)) {
+                    overlaps += 1;
+                }
+            });
+
+            return overlaps;
+        }
+
+        function buildLabelCandidates(point, preferred = []) {
+            const offsets = [12, 18, 24];
+            const generated = [];
+
+            offsets.forEach((offset) => {
+                generated.push(
+                    { x: point.x + offset, y: point.y + 4, anchor: 'start' },
+                    { x: point.x - offset, y: point.y + 4, anchor: 'end' },
+                    { x: point.x + offset, y: point.y - 6, anchor: 'start' },
+                    { x: point.x - offset, y: point.y - 6, anchor: 'end' },
+                    { x: point.x + offset, y: point.y + 18, anchor: 'start' },
+                    { x: point.x - offset, y: point.y + 18, anchor: 'end' },
+                    { x: point.x, y: point.y - offset, anchor: 'middle' },
+                    { x: point.x, y: point.y + offset + 8, anchor: 'middle' }
+                );
+            });
+
+            const seen = new Set();
+
+            return [...preferred, ...generated].filter((candidate) => {
+                const key = `${candidate.x},${candidate.y},${candidate.anchor}`;
+
+                if (seen.has(key)) {
+                    return false;
+                }
+
+                seen.add(key);
+                return true;
+            });
+        }
+
+        function placeLabelPosition(point, placedLabels, name, preferred = [], charWidth = 6.2) {
+            const candidates = buildLabelCandidates(point, preferred);
             let best = candidates[0];
             let bestScore = Infinity;
 
             candidates.forEach((candidate) => {
-                const box = estimateLabelBox(name, candidate.x, candidate.y, candidate.anchor);
-                let overlaps = 0;
-
-                placedLabels.forEach((placed) => {
-                    if (labelBoxesOverlap(box, placed)) {
-                        overlaps += 1;
-                    }
-                });
-
+                const box = estimateLabelBox(name, candidate.x, candidate.y, candidate.anchor, charWidth);
+                const overlaps = countLabelOverlaps(box, placedLabels);
                 const distance = Math.hypot(candidate.x - point.x, candidate.y - point.y);
                 const score = overlaps * 1000 + distance;
 
@@ -1615,8 +1645,44 @@
                 }
             });
 
-            placedLabels.push(estimateLabelBox(name, best.x, best.y, best.anchor));
+            placedLabels.push(
+                estimateLabelBox(name, best.x, best.y, best.anchor, charWidth)
+            );
             return best;
+        }
+
+        function resolveLabelPosition(point, placedLabels, place, charWidth = 6.2) {
+            const preferred = [];
+
+            if (place.labelPlacement === 'left') {
+                preferred.push(
+                    { x: point.x - 12, y: point.y + 4, anchor: 'end' },
+                    { x: point.x - 18, y: point.y + 4, anchor: 'end' }
+                );
+            }
+
+            if (place.labelPlacement === 'right') {
+                preferred.push(
+                    { x: point.x + 12, y: point.y + 4, anchor: 'start' },
+                    { x: point.x + 18, y: point.y + 4, anchor: 'start' }
+                );
+            }
+
+            if (place.labelPlacement === 'above') {
+                preferred.push(
+                    { x: point.x, y: point.y - 12, anchor: 'middle' },
+                    { x: point.x, y: point.y - 18, anchor: 'middle' }
+                );
+            }
+
+            if (place.labelPlacement === 'below') {
+                preferred.push(
+                    { x: point.x, y: point.y + 20, anchor: 'middle' },
+                    { x: point.x, y: point.y + 26, anchor: 'middle' }
+                );
+            }
+
+            return placeLabelPosition(point, placedLabels, place.name, preferred, charWidth);
         }
 
         function buildPhotoGalleryIndex() {
@@ -1651,13 +1717,25 @@
             return orderA - orderB;
         }
 
-        function traceLocalStep(from, to) {
+        function traceQuadraticStep(from, to, bendSign = 1) {
             const midX = (from.x + to.x) / 2;
             const midY = (from.y + to.y) / 2;
-            const bendX = midX + (to.y - from.y) * 0.12;
-            const bendY = midY - (to.x - from.x) * 0.12;
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            const distance = Math.hypot(dx, dy) || 1;
+            const bendFactor = (distance < 90 ? 0.24 : 0.12) * bendSign;
+            const bendX = midX + dy * bendFactor;
+            const bendY = midY - dx * bendFactor;
 
             return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${bendX.toFixed(1)} ${bendY.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
+        }
+
+        function traceLocalStep(from, to) {
+            return traceQuadraticStep(from, to, 1);
+        }
+
+        function traceLoopPair(from, to) {
+            return [traceQuadraticStep(from, to, 1), traceQuadraticStep(from, to, -1)];
         }
 
         function traceCrossingStep(from, to, stacked = false) {
@@ -1674,7 +1752,17 @@
             return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${midX.toFixed(1)} ${midY.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
         }
 
-        function buildChronologicalTraces(points, galleryIndex, stacked = false) {
+        function tracePairKey(nameA, nameB) {
+            return [nameA, nameB].sort().join('\0');
+        }
+
+        function shouldSkipTrace(from, to, skipPairs = []) {
+            const key = tracePairKey(from.place.name, to.place.name);
+
+            return skipPairs.some(([nameA, nameB]) => tracePairKey(nameA, nameB) === key);
+        }
+
+        function buildChronologicalTraces(points, galleryIndex, stacked = false, skipPairs = []) {
             if (points.length < 2) {
                 return [];
             }
@@ -1685,6 +1773,11 @@
             for (let index = 1; index < sorted.length; index += 1) {
                 const previous = sorted[index - 1];
                 const current = sorted[index];
+
+                if (shouldSkipTrace(previous, current, skipPairs)) {
+                    continue;
+                }
+
                 const crossing = previous.place.city !== current.place.city;
 
                 segments.push({
@@ -1696,6 +1789,29 @@
             }
 
             return segments;
+        }
+
+        function computeLabelLayout(projectedByCity, stacked = false, reservedLabels = []) {
+            const placedLabels = [...reservedLabels];
+            const labelByPlaceName = new Map();
+            const charWidth = stacked ? 7.4 : 6.2;
+
+            Object.values(projectedByCity).forEach((cityPoints) => {
+                cityPoints
+                    .sort((a, b) => a.x - b.x || a.y - b.y)
+                    .forEach(({ place, x, y }) => {
+                        const point = { x, y };
+                        const labelPosition = resolveLabelPosition(point, placedLabels, place, charWidth);
+
+                        labelByPlaceName.set(place.name, {
+                            labelX: place.labelX ?? labelPosition.x,
+                            labelY: place.labelY ?? labelPosition.y,
+                            labelAnchor: place.labelAnchor ?? labelPosition.anchor
+                        });
+                    });
+            });
+
+            return { placedLabels, labelByPlaceName };
         }
 
         function getPlacesLayout(data) {
@@ -1786,7 +1902,36 @@
             const galleryIndex = buildPhotoGalleryIndex();
             const allProjectedPoints = Object.values(projectedByCity).flat();
 
-            buildChronologicalTraces(allProjectedPoints, galleryIndex, layout.stacked).forEach((segment) => {
+            const sharedRegionLabelY = Object.values(layout.regions || {}).reduce((maxBottom, region) => {
+                if (!region?.box) {
+                    return maxBottom;
+                }
+
+                return Math.max(maxBottom, region.box.y + region.box.height);
+            }, 0) + 18;
+
+            const regionLabelBoxes = Object.values(layout.regions || {})
+                .filter((region) => region?.label && region?.box)
+                .map((region) => {
+                    const x = region.box.x + region.box.width / 2;
+                    const y = layout.stacked ? region.box.y + region.box.height + 18 : sharedRegionLabelY;
+                    const charWidth = layout.stacked ? 7.4 : 6.2;
+
+                    return estimateLabelBox(region.label, x, y, 'middle', charWidth);
+                });
+
+            const { placedLabels, labelByPlaceName } = computeLabelLayout(
+                projectedByCity,
+                layout.stacked,
+                regionLabelBoxes
+            );
+
+            buildChronologicalTraces(
+                allProjectedPoints,
+                galleryIndex,
+                layout.stacked,
+                data.skipTracePairs || []
+            ).forEach((segment) => {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', segment.d);
                 path.setAttribute(
@@ -1796,7 +1941,23 @@
                 tracesRoot.append(path);
             });
 
-            const sharedRegionLabelY = Object.values(layout.regions || {}).reduce((maxBottom, region) => {
+            (data.loopPairs || []).forEach(([nameA, nameB]) => {
+                const pointA = allProjectedPoints.find(({ place }) => place.name === nameA);
+                const pointB = allProjectedPoints.find(({ place }) => place.name === nameB);
+
+                if (!pointA || !pointB || pointA.place.city !== pointB.place.city) {
+                    return;
+                }
+
+                traceLoopPair(pointA, pointB).forEach((d) => {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', d);
+                    path.setAttribute('class', 'places-trace');
+                    tracesRoot.append(path);
+                });
+            });
+
+            const sharedRegionLabelYForRender = Object.values(layout.regions || {}).reduce((maxBottom, region) => {
                 if (!region?.box) {
                     return maxBottom;
                 }
@@ -1814,7 +1975,7 @@
                 label.setAttribute('x', String(region.box.x + region.box.width / 2));
                 label.setAttribute(
                     'y',
-                    String(layout.stacked ? region.box.y + region.box.height + 18 : sharedRegionLabelY)
+                    String(layout.stacked ? region.box.y + region.box.height + 18 : sharedRegionLabelYForRender)
                 );
                 if (layout.stacked) {
                     label.setAttribute('font-size', '11');
@@ -1824,24 +1985,12 @@
                 labelsRoot.append(label);
             });
 
-            const placedLabels = [];
-
             Object.values(projectedByCity).forEach((cityPoints) => {
-                const centerX = cityPoints.reduce((sum, point) => sum + point.x, 0) / cityPoints.length;
-                const centerY = cityPoints.reduce((sum, point) => sum + point.y, 0) / cityPoints.length;
-
-                cityPoints
-                    .sort((a, b) => {
-                        const distA = Math.hypot(a.x - centerX, a.y - centerY);
-                        const distB = Math.hypot(b.x - centerX, b.y - centerY);
-                        return distB - distA;
-                    })
-                    .forEach(({ place, x, y }) => {
-                        const point = { x, y };
-                        const labelPosition = placeLabelPosition(point, placedLabels, place.name);
-                        const labelX = place.labelX ?? labelPosition.x;
-                        const labelY = place.labelY ?? labelPosition.y;
-                        const labelAnchor = place.labelAnchor ?? labelPosition.anchor;
+                cityPoints.forEach(({ place, x, y }) => {
+                        const layoutForPlace = labelByPlaceName.get(place.name);
+                        const labelX = layoutForPlace?.labelX ?? x;
+                        const labelY = layoutForPlace?.labelY ?? y;
+                        const labelAnchor = layoutForPlace?.labelAnchor ?? 'middle';
 
                         const pin = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                         pin.setAttribute('class', 'place-pin');
@@ -1900,7 +2049,7 @@
 
                         pin.append(hit, dot, label);
                         pinsRoot.append(pin);
-                    });
+                });
             });
 
             if (map && allProjectedPoints.length > 0) {
