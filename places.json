@@ -1,5 +1,6 @@
 {
   "viewBox": [960, 384],
+  "mobileViewBox": [360, 580],
   "regions": {
     "nyc": {
       "box": { "x": 8, "y": 72, "width": 300, "height": 268 },
@@ -7,6 +8,16 @@
     },
     "paris": {
       "box": { "x": 652, "y": 16, "width": 300, "height": 268 },
+      "label": "paris"
+    }
+  },
+  "mobileRegions": {
+    "nyc": {
+      "box": { "x": 12, "y": 12, "width": 336, "height": 228 },
+      "label": "new york city"
+    },
+    "paris": {
+      "box": { "x": 12, "y": 284, "width": 336, "height": 228 },
       "label": "paris"
     }
   },

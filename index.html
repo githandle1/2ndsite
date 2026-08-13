@@ -773,6 +773,24 @@
                 padding: 6px 0 18px;
             }
 
+            .snaps-footsteps-toggle {
+                font-size: var(--list-size);
+            }
+
+            .places-map {
+                padding: 8px 0 4px;
+            }
+
+            .places-map svg {
+                width: 100%;
+                height: auto;
+            }
+
+            .places-region-label,
+            .place-pin-label {
+                font-size: 12px;
+            }
+
             .photo-overlay-controls {
                 display: none;
             }
@@ -1541,6 +1559,73 @@
             };
         }
 
+        function distributePlacesInRegion(cityPlaces, box, bounds) {
+            const projected = cityPlaces
+                .map((place) => {
+                    const point = projectPlace(place, box, bounds);
+                    return point ? { place, x: point.x, y: point.y } : null;
+                })
+                .filter(Boolean);
+
+            const count = projected.length;
+
+            if (count === 0) {
+                return [];
+            }
+
+            if (count === 1) {
+                return [{
+                    place: projected[0].place,
+                    x: box.x + box.width / 2,
+                    y: box.y + box.height / 2
+                }];
+            }
+
+            projected.sort((a, b) => {
+                const yDiff = a.y - b.y;
+
+                if (Math.abs(yDiff) > 6) {
+                    return yDiff;
+                }
+
+                return a.x - b.x;
+            });
+
+            const insetX = box.width * 0.06;
+            const insetY = box.height * 0.1;
+            const innerW = box.width - insetX * 2;
+            const innerH = box.height - insetY * 2;
+            const aspect = innerW / innerH;
+            let cols = 1;
+            let bestScore = Infinity;
+
+            for (let candidateCols = 1; candidateCols <= count; candidateCols += 1) {
+                const candidateRows = Math.ceil(count / candidateCols);
+                const gridAspect = candidateCols / candidateRows;
+                const score = Math.abs(gridAspect - aspect) + (candidateCols * candidateRows - count) * 0.05;
+
+                if (score < bestScore) {
+                    bestScore = score;
+                    cols = candidateCols;
+                }
+            }
+
+            const rows = Math.ceil(count / cols);
+            const cellW = innerW / cols;
+            const cellH = innerH / rows;
+
+            return projected.map(({ place }, index) => {
+                const col = index % cols;
+                const row = Math.floor(index / cols);
+
+                return {
+                    place,
+                    x: box.x + insetX + col * cellW + cellW / 2,
+                    y: box.y + insetY + row * cellH + cellH / 2
+                };
+            });
+        }
+
         function estimateLabelBox(name, x, y, anchor) {
             const width = name.length * 6.2;
             const height = 14;
@@ -1643,14 +1728,21 @@
             return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${bendX.toFixed(1)} ${bendY.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
         }
 
-        function traceCrossingStep(from, to) {
+        function traceCrossingStep(from, to, stacked = false) {
+            if (stacked) {
+                const midY = (from.y + to.y) / 2;
+                const bendX = Math.max(from.x, to.x) + 52;
+
+                return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${bendX.toFixed(1)} ${midY.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
+            }
+
             const midX = (from.x + to.x) / 2;
             const midY = Math.min(from.y, to.y) - 36;
 
             return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${midX.toFixed(1)} ${midY.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
         }
 
-        function buildChronologicalTraces(points, galleryIndex) {
+        function buildChronologicalTraces(points, galleryIndex, stacked = false) {
             if (points.length < 2) {
                 return [];
             }
@@ -1664,13 +1756,36 @@
                 const crossing = previous.place.city !== current.place.city;
 
                 segments.push({
-                    d: crossing ? traceCrossingStep(previous, current) : traceLocalStep(previous, current),
+                    d: crossing
+                        ? traceCrossingStep(previous, current, stacked)
+                        : traceLocalStep(previous, current),
                     crossing
                 });
             }
 
             return segments;
         }
+
+        function getPlacesLayout(data) {
+            const isMobile = window.matchMedia('(max-width: 600px)').matches;
+
+            if (isMobile && Array.isArray(data.mobileViewBox) && data.mobileRegions) {
+                return {
+                    viewBox: data.mobileViewBox,
+                    regions: data.mobileRegions,
+                    stacked: true
+                };
+            }
+
+            return {
+                viewBox: data.viewBox,
+                regions: data.regions,
+                stacked: false
+            };
+        }
+
+        let latestPlacesData = null;
+        let placesRenderFrame = 0;
 
         function renderPlaces(data) {
             const tracesRoot = document.getElementById('places-traces');
@@ -1683,8 +1798,13 @@
                 return;
             }
 
-            if (Array.isArray(data.viewBox) && data.viewBox.length === 2) {
-                svg.setAttribute('viewBox', `0 0 ${data.viewBox[0]} ${data.viewBox[1]}`);
+            latestPlacesData = data;
+            const layout = getPlacesLayout(data);
+            const pinHitRadius = layout.stacked ? 20 : 14;
+            const pinDotRadius = layout.stacked ? 4.5 : 3.5;
+
+            if (Array.isArray(layout.viewBox) && layout.viewBox.length === 2) {
+                svg.setAttribute('viewBox', `0 0 ${layout.viewBox[0]} ${layout.viewBox[1]}`);
             }
 
             tracesRoot.replaceChildren();
@@ -1707,7 +1827,7 @@
             });
 
             Object.entries(pointsByCity).forEach(([city, cityPlaces]) => {
-                const region = data.regions?.[city];
+                const region = layout.regions?.[city];
                 if (!region?.box) {
                     return;
                 }
@@ -1718,25 +1838,27 @@
             const projectedByCity = {};
 
             Object.entries(pointsByCity).forEach(([city, cityPlaces]) => {
-                const region = data.regions?.[city];
+                const region = layout.regions?.[city];
                 const bounds = boundsByCity[city];
 
                 if (!region?.box || !bounds) {
                     return;
                 }
 
-                projectedByCity[city] = cityPlaces
-                    .map((place) => {
-                        const point = projectPlace(place, region.box, bounds);
-                        return point ? { place, ...point } : null;
-                    })
-                    .filter(Boolean);
+                projectedByCity[city] = layout.stacked
+                    ? distributePlacesInRegion(cityPlaces, region.box, bounds)
+                    : cityPlaces
+                        .map((place) => {
+                            const point = projectPlace(place, region.box, bounds);
+                            return point ? { place, ...point } : null;
+                        })
+                        .filter(Boolean);
             });
 
             const galleryIndex = buildPhotoGalleryIndex();
             const allProjectedPoints = Object.values(projectedByCity).flat();
 
-            buildChronologicalTraces(allProjectedPoints, galleryIndex).forEach((segment) => {
+            buildChronologicalTraces(allProjectedPoints, galleryIndex, layout.stacked).forEach((segment) => {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', segment.d);
                 path.setAttribute(
@@ -1746,7 +1868,7 @@
                 tracesRoot.append(path);
             });
 
-            const regionLabelY = Object.values(data.regions || {}).reduce((maxBottom, region) => {
+            const sharedRegionLabelY = Object.values(layout.regions || {}).reduce((maxBottom, region) => {
                 if (!region?.box) {
                     return maxBottom;
                 }
@@ -1754,7 +1876,7 @@
                 return Math.max(maxBottom, region.box.y + region.box.height);
             }, 0) + 18;
 
-            Object.entries(data.regions || {}).forEach(([, region]) => {
+            Object.entries(layout.regions || {}).forEach(([, region]) => {
                 if (!region?.label || !region?.box) {
                     return;
                 }
@@ -1762,7 +1884,10 @@
                 const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 label.setAttribute('class', 'places-region-label');
                 label.setAttribute('x', String(region.box.x + region.box.width / 2));
-                label.setAttribute('y', String(regionLabelY));
+                label.setAttribute(
+                    'y',
+                    String(layout.stacked ? region.box.y + region.box.height + 18 : sharedRegionLabelY)
+                );
                 label.setAttribute('text-anchor', 'middle');
                 label.textContent = region.label;
                 labelsRoot.append(label);
@@ -1795,13 +1920,13 @@
                         hit.setAttribute('class', 'place-pin-hit');
                         hit.setAttribute('cx', String(x));
                         hit.setAttribute('cy', String(y));
-                        hit.setAttribute('r', '14');
+                        hit.setAttribute('r', String(pinHitRadius));
 
                         const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                         dot.setAttribute('class', 'place-pin-dot');
                         dot.setAttribute('cx', String(x));
                         dot.setAttribute('cy', String(y));
-                        dot.setAttribute('r', '3.5');
+                        dot.setAttribute('r', String(pinDotRadius));
 
                         const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                         label.setAttribute('class', 'place-pin-label');
@@ -1874,6 +1999,17 @@
                 }
             })
             .catch(() => {});
+
+        window.addEventListener('resize', () => {
+            if (!latestPlacesData) {
+                return;
+            }
+
+            cancelAnimationFrame(placesRenderFrame);
+            placesRenderFrame = requestAnimationFrame(() => {
+                renderPlaces(latestPlacesData);
+            });
+        });
 
         fetch('bookmarks.json')
             .then((response) => (response.ok ? response.json() : null))
