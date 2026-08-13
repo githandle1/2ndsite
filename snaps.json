@@ -91,6 +91,12 @@
             "alt": "MoMA banner and 53 West 53, Manhattan",
             "caption": "moma, august 2026",
             "ariaLabel": "Open MoMA photo"
+          },
+          {
+            "src": "photos/chinatown-street.jpeg",
+            "alt": "Cyclist crossing a Chinatown street corner, Manhattan",
+            "caption": "chinatown, august 2026",
+            "ariaLabel": "Open Chinatown street photo"
           }
         ]
       }
