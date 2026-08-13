@@ -63,6 +63,8 @@
             padding: 72px 0 96px;
             --block-gap: 48px;
             --heading-gap: 12px;
+            --list-size: 15px;
+            --list-line-height: 1.65;
         }
 
         h1 {
@@ -80,8 +82,8 @@
         .intro {
             margin: 0 0 var(--block-gap);
             width: 100%;
-            font-size: 0.875rem;
-            line-height: 1.6;
+            font-size: var(--list-size);
+            line-height: var(--list-line-height);
         }
 
         .intro p {
@@ -250,6 +252,8 @@
             padding: 9px 0;
             cursor: pointer;
             list-style: none;
+            font-size: var(--list-size);
+            line-height: var(--list-line-height);
             font-weight: 400;
             transition: color 180ms ease;
         }
@@ -291,6 +295,8 @@
             color: inherit;
             text-decoration: none;
             cursor: pointer;
+            font-size: var(--list-size);
+            line-height: var(--list-line-height);
         }
 
         .bookmark-title {
@@ -749,7 +755,7 @@
 
         @media (max-width: 600px) {
             main {
-                width: min(100% - 32px, 720px);
+                width: min(100% - 24px, 720px);
                 padding-top: 40px;
             }
 
@@ -759,6 +765,12 @@
 
             .intro {
                 margin-bottom: var(--block-gap);
+            }
+
+            .photo-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 14px 10px;
+                padding: 6px 0 18px;
             }
 
             .photo-overlay-controls {
