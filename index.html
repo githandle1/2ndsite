@@ -437,9 +437,16 @@
 
         .photo-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 12px 8px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px var(--photo-grid-col-gap, 8px);
             padding: 4px 0 16px;
+            --photo-grid-col-gap: 8px;
+        }
+
+        .photo-item:last-child:nth-child(odd):not(:only-child) {
+            grid-column: 1 / -1;
+            justify-self: center;
+            width: calc((100% - var(--photo-grid-col-gap, 8px)) / 2);
         }
 
         .photo-item {
@@ -772,8 +779,8 @@
             }
 
             .photo-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 14px 10px;
+                --photo-grid-col-gap: 10px;
+                gap: 14px var(--photo-grid-col-gap);
                 padding: 6px 0 18px;
             }
 
@@ -794,12 +801,21 @@
                 display: none;
             }
 
-            .photo-overlay-image {
-                max-height: calc(100dvh - (2 * var(--photo-frame-margin)));
+            .photo-overlay-stage {
+                padding: 12px;
+                touch-action: pan-y pinch-zoom;
             }
 
-            .photo-overlay-stage {
-                touch-action: pan-y pinch-zoom;
+            .photo-overlay-frame {
+                width: 100%;
+                max-width: 100%;
+                align-items: center;
+            }
+
+            .photo-overlay-image {
+                width: 100%;
+                max-width: 100%;
+                max-height: calc(100dvh - 24px);
             }
         }
     </style>
@@ -1322,6 +1338,8 @@
 
             root.replaceChildren();
 
+            let defaultAlbumOpened = false;
+
             [...albums]
                 .sort((a, b) => albumSortKey(b) - albumSortKey(a))
                 .forEach((album) => {
@@ -1391,6 +1409,11 @@
 
                 if (!grid.children.length) {
                     return;
+                }
+
+                if (!defaultAlbumOpened) {
+                    details.open = true;
+                    defaultAlbumOpened = true;
                 }
 
                 albumGroups.append(grid);
