@@ -219,5 +219,25 @@
 
         <a class="back-link phrase" href="index.html">visit my sketchbook</a>
     </main>
+    <script>
+        (function () {
+            const openSound = new Audio('sounds/filing-cabinet-open.wav');
+            const closeSound = new Audio('sounds/filing-cabinet-close.wav');
+            openSound.preload = 'auto';
+            closeSound.preload = 'auto';
+
+            function playSound(sound) {
+                sound.pause();
+                sound.currentTime = 0;
+                sound.play().catch(() => {});
+            }
+
+            document.querySelectorAll('.photo-entry').forEach((entry) => {
+                entry.addEventListener('toggle', () => {
+                    playSound(entry.open ? openSound : closeSound);
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
