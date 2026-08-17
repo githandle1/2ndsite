@@ -65,6 +65,11 @@
             --heading-gap: 26px;
             --list-size: 15px;
             --list-line-height: 1.65;
+            --toggle-tone-a: color-mix(in srgb, var(--hover) 58%, white);
+            --toggle-tone-b: color-mix(in srgb, var(--hover) 68%, white);
+            --toggle-tone-c: color-mix(in srgb, var(--hover) 78%, var(--hover));
+            --toggle-tone-d: color-mix(in srgb, var(--hover) 88%, var(--ink));
+            --toggle-mark-size: 1.1rem;
         }
 
         h1 {
@@ -99,7 +104,7 @@
 
         .intro-lead {
             display: inline-flex;
-            align-items: baseline;
+            align-items: center;
             gap: 0.55rem;
             border: none;
             background: none;
@@ -112,30 +117,6 @@
             color: inherit;
             text-align: left;
             cursor: pointer;
-            opacity: 1;
-        }
-
-        .intro-toggle-mark {
-            font-size: 0.85em;
-            font-weight: 400;
-            line-height: 1;
-            color: var(--hover);
-            opacity: 0.82;
-            transition: opacity 180ms ease;
-        }
-
-        .intro-lead:hover .intro-toggle-mark,
-        .intro-lead:focus-visible .intro-toggle-mark {
-            opacity: 1;
-        }
-
-        .intro-lead.caption-toggle {
-            font-size: inherit;
-            font-weight: 400;
-            line-height: inherit;
-            color: var(--ink);
-            opacity: 1;
-            padding: 0;
         }
 
         .intro-lead-text {
@@ -147,6 +128,36 @@
         .intro-lead:hover .intro-lead-text,
         .intro-lead:focus-visible .intro-lead-text {
             color: var(--hover);
+        }
+
+        .intro-toggle-mark {
+            font-size: var(--toggle-mark-size);
+            font-weight: 400;
+            line-height: 1;
+            opacity: 0.82;
+            transition: opacity 180ms ease, color 180ms ease;
+        }
+
+        .intro-lead:hover .intro-toggle-mark,
+        .intro-lead:focus-visible .intro-toggle-mark {
+            opacity: 1;
+            color: var(--hover);
+        }
+
+        .toggle-mark--tone-a {
+            color: var(--toggle-tone-a);
+        }
+
+        .toggle-mark--tone-b {
+            color: var(--toggle-tone-b);
+        }
+
+        .toggle-mark--tone-c {
+            color: var(--toggle-tone-c);
+        }
+
+        .toggle-mark--tone-d {
+            color: var(--toggle-tone-d);
         }
 
         .intro-blurb {
@@ -193,7 +204,6 @@
         .intro-blurb .caption-toggle {
             margin-left: 0.12em;
             vertical-align: baseline;
-            font-size: 0.85em;
         }
 
         .teahouse-note {
@@ -264,9 +274,25 @@
 
         .photo-entry summary::after {
             content: "+";
-            font-size: 1.1rem;
+            font-size: var(--toggle-mark-size);
             font-weight: 400;
             line-height: 1;
+        }
+
+        .photo-entry:nth-child(4n + 1) summary::after {
+            color: var(--toggle-tone-a);
+        }
+
+        .photo-entry:nth-child(4n + 2) summary::after {
+            color: var(--toggle-tone-b);
+        }
+
+        .photo-entry:nth-child(4n + 3) summary::after {
+            color: var(--toggle-tone-c);
+        }
+
+        .photo-entry:nth-child(4n + 4) summary::after {
+            color: var(--toggle-tone-d);
         }
 
         .photo-entry[open] summary::after {
@@ -275,6 +301,11 @@
 
         .photo-entry summary:hover,
         .photo-entry summary:focus-visible {
+            color: var(--hover);
+        }
+
+        .photo-entry summary:hover::after,
+        .photo-entry summary:focus-visible::after {
             color: var(--hover);
         }
 
@@ -346,14 +377,17 @@
         }
 
         .snaps-footsteps-mark {
-            color: var(--hover);
+            font-size: calc(var(--toggle-mark-size) / var(--list-size) * 1em);
+            font-weight: 400;
+            line-height: 1;
             opacity: 0.82;
-            transition: opacity 180ms ease;
+            transition: opacity 180ms ease, color 180ms ease;
         }
 
         .snaps-footsteps-toggle:hover .snaps-footsteps-mark,
         .snaps-footsteps-toggle:focus-visible .snaps-footsteps-mark {
             opacity: 1;
+            color: var(--hover);
         }
 
         .places-map svg {
@@ -504,23 +538,55 @@
             align-items: flex-end;
         }
 
+        .intro-toggle-mark.toggle-mark--tone-a {
+            color: var(--toggle-tone-a);
+        }
+
+        .snaps-footsteps-mark.toggle-mark--tone-d {
+            color: var(--toggle-tone-d);
+        }
+
         .caption-toggle {
             border: none;
             background: none;
             padding: 0 1px;
             font-family: inherit;
-            font-size: 0.72rem;
+            font-size: var(--toggle-mark-size);
             font-weight: 400;
             line-height: 1;
-            color: var(--hover);
             cursor: pointer;
             opacity: 0.82;
-            transition: opacity 180ms ease;
+            transition: opacity 180ms ease, color 180ms ease;
+        }
+
+        .caption-toggle:not([class*="toggle-mark--"]) {
+            color: var(--hover);
         }
 
         .caption-toggle:hover,
         .caption-toggle:focus-visible {
             opacity: 1;
+            color: var(--hover);
+        }
+
+        .caption-toggle.toggle-mark--tone-a,
+        .photo-grid .photo-item:nth-child(4n + 1) .caption-toggle {
+            color: var(--toggle-tone-a);
+        }
+
+        .caption-toggle.toggle-mark--tone-b,
+        .photo-grid .photo-item:nth-child(4n + 2) .caption-toggle {
+            color: var(--toggle-tone-b);
+        }
+
+        .caption-toggle.toggle-mark--tone-c,
+        .photo-grid .photo-item:nth-child(4n + 3) .caption-toggle {
+            color: var(--toggle-tone-c);
+        }
+
+        .caption-toggle.toggle-mark--tone-d,
+        .photo-grid .photo-item:nth-child(4n + 4) .caption-toggle {
+            color: var(--toggle-tone-d);
         }
 
         .photo-caption {
@@ -826,17 +892,24 @@
 
         <div class="intro">
             <div class="intro-meta">
-                <button type="button" class="intro-lead caption-toggle" aria-expanded="false" aria-label="Show bio">
+                <button
+                    type="button"
+                    class="intro-lead"
+                    id="intro-toggle"
+                    aria-expanded="false"
+                    aria-controls="intro-blurb"
+                    aria-label="Show bio"
+                >
                     <span class="intro-lead-text">hi, i'm maya.</span>
-                    <span class="intro-toggle-mark" aria-hidden="true">+</span>
+                    <span class="intro-toggle-mark toggle-mark--tone-a" aria-hidden="true">+</span>
                 </button>
-                <div class="intro-blurb">
+                <div class="intro-blurb" id="intro-blurb">
                     <p>i'm currently:</p>
                     <ul>
                         <li>in nyc</li>
                         <li>
                             visiting a lot of teahouses
-                            <button type="button" class="caption-toggle" aria-expanded="false" aria-label="Show favorite teahouse">+</button>
+                            <button type="button" class="caption-toggle toggle-mark--tone-b" aria-expanded="false" aria-label="Show favorite teahouse">+</button>
                             <p class="teahouse-note">my current favorite: <a href="https://www.instagram.com/softhours.world/" target="_blank" rel="noopener noreferrer">soft hours</a></p>
                         </li>
                         <li>and collecting more files to store in my cabinet.</li>
@@ -860,7 +933,7 @@
                     aria-label="Show footsteps map"
                 >
                     <span class="snaps-footsteps-label">footsteps</span>
-                    <span class="snaps-footsteps-mark" aria-hidden="true">+</span>
+                    <span class="snaps-footsteps-mark toggle-mark--tone-d" aria-hidden="true">+</span>
                 </button>
                 <div class="places-map" id="places-map" role="img" aria-label="Map of favorite places and walking traces" hidden>
                     <svg id="places-svg" viewBox="0 0 960 384" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
@@ -918,6 +991,202 @@
         let currentAlbumThumbs = [];
         let currentPhotoIndex = -1;
         const photoRevealDurationMs = 780;
+        let cabinetAudioContext = null;
+        const toggleToneClasses = [
+            'toggle-mark--tone-a',
+            'toggle-mark--tone-b',
+            'toggle-mark--tone-c',
+            'toggle-mark--tone-d'
+        ];
+
+        function setToggleState(toggle, isOpen, { panel, openLabel, closeLabel, mark } = {}) {
+            toggle.setAttribute('aria-expanded', String(isOpen));
+
+            const markElement = mark || toggle.querySelector('.intro-toggle-mark, .snaps-footsteps-mark');
+            if (markElement) {
+                markElement.textContent = isOpen ? '−' : '+';
+            } else {
+                toggle.textContent = isOpen ? '−' : '+';
+            }
+
+            if (openLabel && closeLabel) {
+                toggle.setAttribute('aria-label', isOpen ? closeLabel : openLabel);
+            }
+
+            if (panel) {
+                panel.classList.toggle('is-open', isOpen);
+            }
+        }
+
+        function initCabinetToggles() {
+            document.addEventListener('click', (event) => {
+                const introToggle = event.target.closest('#intro-toggle');
+                if (introToggle) {
+                    const introBlurb = document.getElementById('intro-blurb');
+                    if (!introBlurb) {
+                        return;
+                    }
+
+                    const nextState = introToggle.getAttribute('aria-expanded') !== 'true';
+                    setToggleState(introToggle, nextState, {
+                        panel: introBlurb,
+                        openLabel: 'Show bio',
+                        closeLabel: 'Hide bio'
+                    });
+                    playCabinetSound(nextState);
+                    return;
+                }
+
+                const captionToggle = event.target.closest('.caption-toggle');
+                if (captionToggle) {
+                    event.stopPropagation();
+                    const caption = captionToggle.nextElementSibling;
+                    const isTeahouse = caption?.classList.contains('teahouse-note');
+                    const isPhotoCaption = caption?.classList.contains('photo-caption');
+
+                    if (!isTeahouse && !isPhotoCaption) {
+                        return;
+                    }
+
+                    const nextState = captionToggle.getAttribute('aria-expanded') !== 'true';
+                    setToggleState(captionToggle, nextState, {
+                        panel: caption,
+                        openLabel: isTeahouse ? 'Show favorite teahouse' : 'Show caption',
+                        closeLabel: isTeahouse ? 'Hide favorite teahouse' : 'Hide caption'
+                    });
+                    playCabinetSound(nextState);
+                    return;
+                }
+
+                const footstepsToggle = event.target.closest('#snaps-footsteps-toggle');
+                if (footstepsToggle) {
+                    const footstepsMap = document.getElementById('places-map');
+                    if (!footstepsMap) {
+                        return;
+                    }
+
+                    const nextState = footstepsToggle.getAttribute('aria-expanded') !== 'true';
+                    setToggleState(footstepsToggle, nextState, {
+                        openLabel: 'Show footsteps map',
+                        closeLabel: 'Hide footsteps map'
+                    });
+                    footstepsMap.hidden = !nextState;
+
+                    if (nextState && latestPlacesData) {
+                        renderPlaces(latestPlacesData);
+                    }
+
+                    playCabinetSound(nextState);
+                    return;
+                }
+
+                const albumSummary = event.target.closest('.photo-entry summary');
+                if (albumSummary) {
+                    const album = albumSummary.closest('.photo-entry');
+                    if (album) {
+                        playCabinetSound(!album.open);
+                    }
+                }
+            });
+        }
+
+        function cabinetSoundsEnabled() {
+            return true;
+        }
+
+        function primeCabinetAudio() {
+            try {
+                const context = getCabinetAudioContext();
+                if (context.state === 'suspended') {
+                    void context.resume();
+                }
+            } catch {
+                // Ignore browsers that block audio until interaction.
+            }
+        }
+
+        document.addEventListener('pointerdown', primeCabinetAudio, { once: true, passive: true });
+
+        function getCabinetAudioContext() {
+            if (!cabinetAudioContext) {
+                cabinetAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            return cabinetAudioContext;
+        }
+
+        async function playCabinetSound(opening) {
+            if (!cabinetSoundsEnabled()) {
+                return;
+            }
+
+            let context;
+
+            try {
+                context = getCabinetAudioContext();
+                await context.resume();
+            } catch {
+                return;
+            }
+
+            if (context.state !== 'running') {
+                return;
+            }
+
+            const now = context.currentTime;
+            const master = context.createGain();
+            master.gain.value = 0.55;
+            master.connect(context.destination);
+
+            const zenFilter = context.createBiquadFilter();
+            zenFilter.type = 'lowpass';
+            zenFilter.frequency.value = 2600;
+            zenFilter.Q.value = 0.5;
+            zenFilter.connect(master);
+
+            const addZenTone = (start, frequency, duration, peak, attack = 0.012) => {
+                const oscillator = context.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(frequency, start);
+
+                const gain = context.createGain();
+                gain.gain.setValueAtTime(0.0001, start);
+                gain.gain.linearRampToValueAtTime(peak, start + attack);
+                gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+                oscillator.connect(gain);
+                gain.connect(zenFilter);
+                oscillator.start(start);
+                oscillator.stop(start + duration + 0.02);
+            };
+
+            const addZenTock = (start, peak) => {
+                const oscillator = context.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(1040, start);
+                oscillator.frequency.exponentialRampToValueAtTime(880, start + 0.022);
+
+                const gain = context.createGain();
+                gain.gain.setValueAtTime(0.0001, start);
+                gain.gain.linearRampToValueAtTime(peak, start + 0.002);
+                gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.035);
+
+                oscillator.connect(gain);
+                gain.connect(zenFilter);
+                oscillator.start(start);
+                oscillator.stop(start + 0.04);
+            };
+
+            if (opening) {
+                addZenTone(now, 392, 0.14, 0.052);
+                addZenTone(now + 0.1, 784, 0.1, 0.036);
+                addZenTock(now + 0.012, 0.012);
+                return;
+            }
+
+            addZenTone(now + 0.04, 698, 0.09, 0.038);
+            addZenTone(now + 0.12, 523, 0.13, 0.032);
+        }
 
         function startRevealAnimation({ includeBackdrop = false } = {}) {
             const reveal = () => {
@@ -1083,36 +1352,7 @@
             closePreview();
         });
 
-        document.querySelectorAll('.intro-lead.caption-toggle, .intro-blurb .caption-toggle').forEach((toggle) => {
-            toggle.addEventListener('click', (event) => {
-                event.stopPropagation();
-                const sibling = toggle.nextElementSibling;
-                const caption = sibling?.matches?.('.photo-caption, .intro-blurb, .teahouse-note')
-                    ? sibling
-                    : toggle.closest('.photo-meta, .intro-meta')?.querySelector('.photo-caption, .intro-blurb');
-                if (!caption) {
-                    return;
-                }
-                const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-                const nextState = !isOpen;
-
-                toggle.setAttribute('aria-expanded', String(nextState));
-                const toggleMark = toggle.querySelector('.intro-toggle-mark');
-                if (toggleMark) {
-                    toggleMark.textContent = nextState ? '−' : '+';
-                    toggle.setAttribute('aria-label', nextState ? 'Hide bio' : 'Show bio');
-                } else {
-                    toggle.textContent = nextState ? '−' : '+';
-                    if (caption.classList.contains('teahouse-note')) {
-                        toggle.setAttribute(
-                            'aria-label',
-                            nextState ? 'Hide favorite teahouse' : 'Show favorite teahouse'
-                        );
-                    }
-                }
-                caption.classList.toggle('is-open', nextState);
-            });
-        });
+        initCabinetToggles();
 
         const footstepsToggle = document.getElementById('snaps-footsteps-toggle');
         const footstepsMap = document.getElementById('places-map');
@@ -1125,9 +1365,10 @@
             }
 
             if (footstepsToggle.getAttribute('aria-expanded') !== 'true') {
-                footstepsToggle.setAttribute('aria-expanded', 'true');
-                footstepsToggle.setAttribute('aria-label', 'Hide footsteps map');
-                footstepsToggle.querySelector('.snaps-footsteps-mark').textContent = '−';
+                setToggleState(footstepsToggle, true, {
+                    openLabel: 'Show footsteps map',
+                    closeLabel: 'Hide footsteps map'
+                });
                 footstepsMap.hidden = false;
             }
         }
@@ -1154,25 +1395,6 @@
             pin.classList.add('is-highlighted');
             highlightedPlacePin = pin;
             footstepsMap?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        if (footstepsToggle && footstepsMap) {
-            footstepsToggle.addEventListener('click', () => {
-                const isOpen = footstepsToggle.getAttribute('aria-expanded') === 'true';
-                const nextState = !isOpen;
-
-                footstepsToggle.setAttribute('aria-expanded', String(nextState));
-                footstepsToggle.setAttribute(
-                    'aria-label',
-                    nextState ? 'Hide footsteps map' : 'Show footsteps map'
-                );
-                footstepsToggle.querySelector('.snaps-footsteps-mark').textContent = nextState ? '−' : '+';
-                footstepsMap.hidden = !nextState;
-
-                if (nextState && latestPlacesData) {
-                    renderPlaces(latestPlacesData);
-                }
-            });
         }
 
         backdrop.addEventListener('click', closePreview);
@@ -1360,6 +1582,8 @@
                 grid.className = 'photo-grid';
                 grid.setAttribute('aria-label', `${album.label} photos`);
 
+                let captionToggleIndex = 0;
+
                 album.groups.forEach((group) => {
                     if (!group?.city || !Array.isArray(group.photos) || group.photos.length === 0) {
                         return;
@@ -1392,7 +1616,8 @@
 
                         const captionToggle = document.createElement('button');
                         captionToggle.type = 'button';
-                        captionToggle.className = 'caption-toggle';
+                        captionToggle.className = `caption-toggle ${toggleToneClasses[captionToggleIndex % toggleToneClasses.length]}`;
+                        captionToggleIndex += 1;
                         captionToggle.setAttribute('aria-expanded', 'false');
                         captionToggle.setAttribute('aria-label', 'Show caption');
                         captionToggle.textContent = '+';
@@ -1431,23 +1656,6 @@
                 thumb.addEventListener('click', () => {
                     openPreview(thumb);
                     thumb.blur();
-                });
-            });
-
-            root.querySelectorAll('.photo-meta .caption-toggle').forEach((toggle) => {
-                toggle.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    const caption = toggle.nextElementSibling;
-                    if (!caption?.classList.contains('photo-caption')) {
-                        return;
-                    }
-
-                    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-                    const nextState = !isOpen;
-
-                    toggle.setAttribute('aria-expanded', String(nextState));
-                    toggle.textContent = nextState ? '−' : '+';
-                    caption.classList.toggle('is-open', nextState);
                 });
             });
 
