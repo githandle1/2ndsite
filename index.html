@@ -992,7 +992,6 @@
         let currentPhotoIndex = -1;
         const photoRevealDurationMs = 780;
         let cabinetAudioContext = null;
-        let cabinetNoiseBuffer = null;
         const toggleToneClasses = [
             'toggle-mark--tone-a',
             'toggle-mark--tone-b',
@@ -1116,21 +1115,7 @@
             return cabinetAudioContext;
         }
 
-        function getCabinetNoiseBuffer(context) {
-            if (!cabinetNoiseBuffer || cabinetNoiseBuffer.sampleRate !== context.sampleRate) {
-                const length = Math.floor(context.sampleRate * 0.08);
-                cabinetNoiseBuffer = context.createBuffer(1, length, context.sampleRate);
-                const data = cabinetNoiseBuffer.getChannelData(0);
-
-                for (let i = 0; i < length; i += 1) {
-                    data[i] = Math.random() * 2 - 1;
-                }
-            }
-
-            return cabinetNoiseBuffer;
-        }
-
-        async function playCabinetSound(opening) {
+        async function playCabinetSound() {
             if (!cabinetSoundsEnabled()) {
                 return;
             }
@@ -1150,107 +1135,68 @@
 
             const now = context.currentTime;
             const master = context.createGain();
-            master.gain.value = 0.7;
+            master.gain.value = 0.85;
             master.connect(context.destination);
 
-            const bodyFilter = context.createBiquadFilter();
-            bodyFilter.type = 'lowpass';
-            bodyFilter.frequency.value = 4200;
-            bodyFilter.Q.value = 0.7;
-            bodyFilter.connect(master);
+            const jitter = 0.96 + Math.random() * 0.08;
 
-            const addClack = (start, {
-                noisePeak,
-                bandFreq,
-                thudFreq,
-                thudPeak,
-                tickFreq,
-                tickPeak
-            }) => {
-                const jitter = 0.92 + Math.random() * 0.16;
+            const key = context.createOscillator();
+            key.type = 'sine';
+            key.frequency.setValueAtTime(155 * jitter, now);
+            key.frequency.exponentialRampToValueAtTime(72, now + 0.022);
 
-                const noise = context.createBufferSource();
-                noise.buffer = getCabinetNoiseBuffer(context);
+            const keyGain = context.createGain();
+            keyGain.gain.setValueAtTime(0.0001, now);
+            keyGain.gain.linearRampToValueAtTime(0.16, now + 0.001);
+            keyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.026);
 
-                const band = context.createBiquadFilter();
-                band.type = 'bandpass';
-                band.frequency.value = bandFreq * jitter;
-                band.Q.value = 1.8;
+            key.connect(keyGain);
+            keyGain.connect(master);
+            key.start(now);
+            key.stop(now + 0.03);
 
-                const noiseGain = context.createGain();
-                noiseGain.gain.setValueAtTime(0.0001, start);
-                noiseGain.gain.linearRampToValueAtTime(noisePeak, start + 0.0008);
-                noiseGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.028);
+            const strikeAt = now + 0.01;
+            const impulseLength = Math.floor(context.sampleRate * 0.009);
+            const impulseBuffer = context.createBuffer(1, impulseLength, context.sampleRate);
+            const impulseData = impulseBuffer.getChannelData(0);
 
-                noise.connect(band);
-                band.connect(noiseGain);
-                noiseGain.connect(bodyFilter);
-                noise.start(start);
-                noise.stop(start + 0.04);
-
-                const thud = context.createOscillator();
-                thud.type = 'triangle';
-                thud.frequency.setValueAtTime(thudFreq * jitter, start);
-                thud.frequency.exponentialRampToValueAtTime(thudFreq * 0.45, start + 0.032);
-
-                const thudGain = context.createGain();
-                thudGain.gain.setValueAtTime(0.0001, start);
-                thudGain.gain.linearRampToValueAtTime(thudPeak, start + 0.0012);
-                thudGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.045);
-
-                thud.connect(thudGain);
-                thudGain.connect(bodyFilter);
-                thud.start(start);
-                thud.stop(start + 0.05);
-
-                const tick = context.createOscillator();
-                tick.type = 'square';
-                tick.frequency.setValueAtTime(tickFreq * jitter, start);
-
-                const tickFilter = context.createBiquadFilter();
-                tickFilter.type = 'highpass';
-                tickFilter.frequency.value = 1600;
-
-                const tickGain = context.createGain();
-                tickGain.gain.setValueAtTime(0.0001, start);
-                tickGain.gain.linearRampToValueAtTime(tickPeak, start + 0.0006);
-                tickGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.011);
-
-                tick.connect(tickFilter);
-                tickFilter.connect(tickGain);
-                tickGain.connect(bodyFilter);
-                tick.start(start);
-                tick.stop(start + 0.016);
-            };
-
-            if (opening) {
-                addClack(now, {
-                    noisePeak: 0.22,
-                    bandFreq: 2400,
-                    thudFreq: 210,
-                    thudPeak: 0.16,
-                    tickFreq: 3200,
-                    tickPeak: 0.035
-                });
-                return;
+            for (let i = 0; i < impulseLength; i += 1) {
+                impulseData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / impulseLength, 7);
             }
 
-            addClack(now, {
-                noisePeak: 0.18,
-                bandFreq: 1700,
-                thudFreq: 150,
-                thudPeak: 0.18,
-                tickFreq: 2400,
-                tickPeak: 0.022
-            });
-            addClack(now + 0.032, {
-                noisePeak: 0.08,
-                bandFreq: 1200,
-                thudFreq: 110,
-                thudPeak: 0.07,
-                tickFreq: 1800,
-                tickPeak: 0.01
-            });
+            const impulse = context.createBufferSource();
+            impulse.buffer = impulseBuffer;
+
+            const clack = context.createBiquadFilter();
+            clack.type = 'bandpass';
+            clack.frequency.value = 2050 * jitter;
+            clack.Q.value = 7.2;
+
+            const clackGain = context.createGain();
+            clackGain.gain.setValueAtTime(0.0001, strikeAt);
+            clackGain.gain.linearRampToValueAtTime(0.62, strikeAt + 0.0005);
+            clackGain.gain.exponentialRampToValueAtTime(0.0001, strikeAt + 0.016);
+
+            impulse.connect(clack);
+            clack.connect(clackGain);
+            clackGain.connect(master);
+            impulse.start(strikeAt);
+            impulse.stop(strikeAt + 0.018);
+
+            const platen = context.createOscillator();
+            platen.type = 'sine';
+            platen.frequency.setValueAtTime(390 * jitter, strikeAt);
+            platen.frequency.exponentialRampToValueAtTime(160, strikeAt + 0.024);
+
+            const platenGain = context.createGain();
+            platenGain.gain.setValueAtTime(0.0001, strikeAt);
+            platenGain.gain.linearRampToValueAtTime(0.13, strikeAt + 0.0007);
+            platenGain.gain.exponentialRampToValueAtTime(0.0001, strikeAt + 0.028);
+
+            platen.connect(platenGain);
+            platenGain.connect(master);
+            platen.start(strikeAt);
+            platen.stop(strikeAt + 0.032);
         }
 
         function startRevealAnimation({ includeBackdrop = false } = {}) {
