@@ -920,8 +920,8 @@
             </div>
         </div>
 
-        <section aria-labelledby="snaps">
-            <h4 id="snaps" class="phrase">snaps</h4>
+        <section aria-labelledby="photos">
+            <h4 id="photos" class="phrase">photos</h4>
             <div id="snaps-albums"></div>
             <div class="snaps-footer">
                 <button
@@ -1837,7 +1837,7 @@
         }
 
         function buildLabelCandidates(point, preferred = []) {
-            const offsets = [12, 18, 24];
+            const offsets = [14, 22, 30, 38];
             const generated = [];
 
             offsets.forEach((offset) => {
@@ -1934,9 +1934,19 @@
             return index;
         }
 
-        function compareByUpload(a, b, galleryIndex) {
-            const timeA = a.place.uploadedAt ? Date.parse(a.place.uploadedAt) : Number.NaN;
-            const timeB = b.place.uploadedAt ? Date.parse(b.place.uploadedAt) : Number.NaN;
+        function placeTime(place) {
+            const visited = place?.visitedAt ? Date.parse(place.visitedAt) : Number.NaN;
+            if (!Number.isNaN(visited)) {
+                return visited;
+            }
+
+            const uploaded = place?.uploadedAt ? Date.parse(place.uploadedAt) : Number.NaN;
+            return Number.isNaN(uploaded) ? Number.NaN : uploaded;
+        }
+
+        function compareByVisit(a, b, galleryIndex) {
+            const timeA = placeTime(a.place);
+            const timeB = placeTime(b.place);
 
             if (!Number.isNaN(timeA) && !Number.isNaN(timeB) && timeA !== timeB) {
                 return timeA - timeB;
@@ -1956,13 +1966,54 @@
             return orderA - orderB;
         }
 
-        function traceQuadraticStep(from, to, bendSign = 1) {
+        function separateClosePins(points, box, minDist = 40) {
+            if (!box || points.length < 2) {
+                return points;
+            }
+
+            const separated = points.map((point) => ({ ...point }));
+            const minX = box.x + 14;
+            const maxX = box.x + box.width - 14;
+            const minY = box.y + 14;
+            const maxY = box.y + box.height - 14;
+
+            for (let iteration = 0; iteration < 16; iteration += 1) {
+                for (let i = 0; i < separated.length; i += 1) {
+                    for (let j = i + 1; j < separated.length; j += 1) {
+                        const dx = separated[j].x - separated[i].x;
+                        const dy = separated[j].y - separated[i].y;
+                        const dist = Math.hypot(dx, dy) || 0.01;
+
+                        if (dist >= minDist) {
+                            continue;
+                        }
+
+                        const push = (minDist - dist) / 2;
+                        const ux = dx / dist;
+                        const uy = dy / dist;
+                        separated[i].x -= ux * push;
+                        separated[i].y -= uy * push;
+                        separated[j].x += ux * push;
+                        separated[j].y += uy * push;
+                    }
+                }
+            }
+
+            separated.forEach((point) => {
+                point.x = Math.min(maxX, Math.max(minX, point.x));
+                point.y = Math.min(maxY, Math.max(minY, point.y));
+            });
+
+            return separated;
+        }
+
+        function traceQuadraticStep(from, to, bendSign = 1, bendOverride) {
             const midX = (from.x + to.x) / 2;
             const midY = (from.y + to.y) / 2;
             const dx = to.x - from.x;
             const dy = to.y - from.y;
             const distance = Math.hypot(dx, dy) || 1;
-            const bendFactor = (distance < 90 ? 0.24 : 0.12) * bendSign;
+            const bendFactor = (bendOverride ?? (distance < 70 ? 0.06 : 0.11)) * bendSign;
             const bendX = midX + dy * bendFactor;
             const bendY = midY - dx * bendFactor;
 
@@ -1974,7 +2025,7 @@
         }
 
         function traceLoopPair(from, to) {
-            return [traceQuadraticStep(from, to, 1), traceQuadraticStep(from, to, -1)];
+            return [traceQuadraticStep(from, to, 1, 0.14), traceQuadraticStep(from, to, -1, 0.14)];
         }
 
         function traceCrossingStep(from, to, stacked = false) {
@@ -2006,7 +2057,7 @@
                 return [];
             }
 
-            const sorted = [...points].sort((a, b) => compareByUpload(a, b, galleryIndex));
+            const sorted = [...points].sort((a, b) => compareByVisit(a, b, galleryIndex));
             const segments = [];
 
             for (let index = 1; index < sorted.length; index += 1) {
@@ -2130,12 +2181,15 @@
                     return;
                 }
 
-                projectedByCity[city] = cityPlaces
-                    .map((place) => {
-                        const point = projectPlace(place, region.box, bounds);
-                        return point ? { place, ...point } : null;
-                    })
-                    .filter(Boolean);
+                projectedByCity[city] = separateClosePins(
+                    cityPlaces
+                        .map((place) => {
+                            const point = projectPlace(place, region.box, bounds);
+                            return point ? { place, ...point } : null;
+                        })
+                        .filter(Boolean),
+                    region.box
+                );
             });
 
             const galleryIndex = buildPhotoGalleryIndex();
@@ -2293,12 +2347,12 @@
 
             if (map && allProjectedPoints.length > 0) {
                 const chronologicalNames = [...allProjectedPoints]
-                    .sort((a, b) => compareByUpload(a, b, galleryIndex))
+                    .sort((a, b) => compareByVisit(a, b, galleryIndex))
                     .map(({ place }) => place.name);
 
                 map.setAttribute(
                     'aria-label',
-                    `Upload timeline connecting favorite places: ${chronologicalNames.join(', ')}`
+                    `Visit timeline connecting favorite places: ${chronologicalNames.join(', ')}`
                 );
             }
 

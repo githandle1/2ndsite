@@ -50,13 +50,13 @@ Insert inside `<main>`, above or below other sections:
 </section>
 ```
 
-## Snaps section
+## Photos section
 
-Snaps are stored in `snaps.json` (repo root) and rendered by JavaScript. **Do not** add album `<details>` blocks directly to `index.html`.
+Photos are stored in `snaps.json` (repo root) and rendered by JavaScript. **Do not** add album `<details>` blocks directly to `index.html`.
 
 ```html
-<section aria-labelledby="snaps">
-    <h4 id="snaps" class="phrase">snaps</h4>
+<section aria-labelledby="photos">
+    <h4 id="photos" class="phrase">photos</h4>
     <div id="snaps-albums"></div>
     <!-- footsteps footer stays in index.html -->
 </section>
@@ -166,4 +166,4 @@ See `docs/add-bookmarks.md` for Safari Share Shortcut setup. Run `./scripts/inst
 - [ ] Place section in logical order inside `<main>`
 - [ ] Keep `sketchbook-link` footer last in `<main>`
 - [ ] Add bookmarks via `bookmarks.json`, not inline HTML
-- [ ] Add snaps via `snaps.json`, not inline HTML
+- [ ] Add photos via `snaps.json`, not inline HTML
