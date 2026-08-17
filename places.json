@@ -31,6 +31,7 @@
     { "name": "central park", "city": "nyc", "photos": ["photos/cursor.jpeg", "photos/williamsburg-bridge.jpeg"], "lat": 40.7775, "lon": -73.9697, "uploadedAt": "2026-08-03T01:04:54", "uploadOrder": 0 },
     { "name": "moma", "city": "nyc", "photo": "photos/moma-charlie.jpeg", "lat": 40.7614, "lon": -73.977, "uploadedAt": "2026-08-12T00:00:00", "uploadOrder": 1 },
     { "name": "chinatown", "city": "nyc", "photo": "photos/chinatown-street.jpeg", "lat": 40.7172, "lon": -73.988, "uploadedAt": "2026-08-12T23:11:00", "uploadOrder": 3 },
+    { "name": "municipal building", "city": "nyc", "photo": "photos/municipal-building.jpeg", "lat": 40.7128, "lon": -74.0039, "uploadedAt": "2026-08-17T00:29:00", "uploadOrder": 4 },
     { "name": "williamsburg bridge", "city": "nyc", "photo": "photos/sheep-meadow.jpeg", "lat": 40.706, "lon": -73.963, "uploadedAt": "2026-08-03T01:04:54", "uploadOrder": 2 },
     { "name": "nolita", "city": "nyc", "photo": "photos/mulberry-manhattan.jpeg", "lat": 40.714, "lon": -73.998, "uploadedAt": "2026-08-03T01:05:40", "uploadOrder": 0 },
     { "name": "lower east side", "city": "nyc", "photo": "photos/lower-east-side.jpeg", "lat": 40.715, "lon": -73.984, "uploadedAt": "2026-08-03T01:05:40", "uploadOrder": 1 },

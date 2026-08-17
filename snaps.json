@@ -76,6 +76,12 @@
         "city": "nyc",
         "photos": [
           {
+            "src": "photos/municipal-building.jpeg",
+            "alt": "Manhattan Municipal Building tower at night",
+            "caption": "municipal building, august 2026",
+            "ariaLabel": "Open Municipal Building photo"
+          },
+          {
             "src": "photos/cursor.jpeg",
             "alt": "Central Park, NYC",
             "caption": "central park, august 2026",
