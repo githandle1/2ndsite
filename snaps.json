@@ -41,7 +41,7 @@
             "ariaLabel": "Open Place des Vosges photo"
           },
           {
-            "src": "photos/caves-saint-gilles.jpeg",
+            "src": "photos/dscf1836.jpeg",
             "alt": "Caves Saint Gilles, Rue St Gilles, Paris",
             "caption": "caves saint gilles, july 2026",
             "ariaLabel": "Open Caves Saint Gilles photo"
@@ -70,7 +70,7 @@
   },
   {
     "label": "august 2026",
-    "defaultOpen": true,
+    "preview": 2,
     "groups": [
       {
         "city": "nyc",

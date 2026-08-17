@@ -295,6 +295,59 @@
             color: var(--toggle-tone-d);
         }
 
+        .snaps-preview-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 9px 0;
+            border: none;
+            background: none;
+            font-family: inherit;
+            font-size: var(--list-size);
+            line-height: var(--list-line-height);
+            font-weight: 400;
+            color: inherit;
+            cursor: pointer;
+            transition: color 180ms ease;
+        }
+
+        .snaps-preview-mark {
+            font-size: var(--toggle-mark-size);
+            font-weight: 400;
+            line-height: 1;
+        }
+
+        .photo-entry:nth-child(4n + 1) .snaps-preview-mark {
+            color: var(--toggle-tone-a);
+        }
+
+        .photo-entry:nth-child(4n + 2) .snaps-preview-mark {
+            color: var(--toggle-tone-b);
+        }
+
+        .photo-entry:nth-child(4n + 3) .snaps-preview-mark {
+            color: var(--toggle-tone-c);
+        }
+
+        .photo-entry:nth-child(4n + 4) .snaps-preview-mark {
+            color: var(--toggle-tone-d);
+        }
+
+        .snaps-preview-toggle:hover,
+        .snaps-preview-toggle:focus-visible {
+            color: var(--hover);
+        }
+
+        .snaps-preview-toggle:hover .snaps-preview-mark,
+        .snaps-preview-toggle:focus-visible .snaps-preview-mark {
+            color: var(--hover);
+        }
+
+        .photo-grid.is-preview .photo-item.is-extra {
+            display: none;
+        }
+
         .photo-entry[open] summary::after {
             content: "−";
         }
@@ -355,6 +408,12 @@
             padding: 10px 0 2px;
         }
 
+        .snaps-footsteps-row {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+        }
+
         .snaps-footsteps-toggle {
             display: inline-flex;
             align-items: center;
@@ -399,8 +458,8 @@
 
         .places-trace {
             fill: none;
-            stroke: rgba(36, 33, 31, 0.13);
-            stroke-width: 1;
+            stroke: rgba(36, 33, 31, 0.14);
+            stroke-width: 0.85;
             stroke-linecap: round;
             stroke-linejoin: round;
             pointer-events: none;
@@ -640,9 +699,9 @@
         }
 
         .photo-overlay[hidden] {
-            display: none !important;
-        }
-
+                display: none !important;
+            }
+            
         .photo-overlay.is-open {
             opacity: 1;
             visibility: visible;
@@ -919,30 +978,32 @@
                 </div>
             </div>
         </div>
-
+        
         <section aria-labelledby="photos">
             <h4 id="photos" class="phrase">photos</h4>
             <div id="snaps-albums"></div>
             <div class="snaps-footer">
-                <button
-                    type="button"
-                    class="snaps-footsteps-toggle"
-                    id="snaps-footsteps-toggle"
-                    aria-expanded="false"
-                    aria-controls="places-map"
-                    aria-label="Show footsteps map"
-                >
-                    <span class="snaps-footsteps-label">footsteps</span>
-                    <span class="snaps-footsteps-mark toggle-mark--tone-d" aria-hidden="true">+</span>
-                </button>
+                <div class="snaps-footsteps-row">
+                    <button
+                        type="button"
+                        class="snaps-footsteps-toggle"
+                        id="snaps-footsteps-toggle"
+                        aria-expanded="false"
+                        aria-controls="places-map"
+                        aria-label="Show footsteps map"
+                    >
+                        <span class="snaps-footsteps-label">footsteps</span>
+                        <span class="snaps-footsteps-mark toggle-mark--tone-d" aria-hidden="true">+</span>
+                    </button>
+                </div>
                 <div class="places-map" id="places-map" role="img" aria-label="Map of favorite places and walking traces" hidden>
                     <svg id="places-svg" viewBox="0 0 960 384" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
                         <g class="places-traces" id="places-traces"></g>
                         <g class="places-labels" id="places-labels"></g>
                         <g class="places-pins" id="places-pins"></g>
                     </svg>
-                </div>
             </div>
+        </div>
         </section>
 
         <section aria-labelledby="bookmarks">
@@ -975,12 +1036,12 @@
                                 <path d="M9 6l6 6-6 6"></path>
                             </svg>
                         </button>
-                    </div>
-                </div>
+            </div>
+            </div>
             </div>
         </div>
     </div>
-
+    
     <script>
         const overlay = document.getElementById('photo-overlay');
         const overlayStage = document.getElementById('photo-overlay-stage');
@@ -1002,7 +1063,7 @@
         function setToggleState(toggle, isOpen, { panel, openLabel, closeLabel, mark } = {}) {
             toggle.setAttribute('aria-expanded', String(isOpen));
 
-            const markElement = mark || toggle.querySelector('.intro-toggle-mark, .snaps-footsteps-mark');
+            const markElement = mark || toggle.querySelector('.intro-toggle-mark, .snaps-footsteps-mark, .snaps-preview-mark');
             if (markElement) {
                 markElement.textContent = isOpen ? '−' : '+';
             } else {
@@ -1076,6 +1137,24 @@
                         renderPlaces(latestPlacesData);
                     }
 
+                    playCabinetSound(nextState);
+                    return;
+                }
+
+                const previewToggle = event.target.closest('.snaps-preview-toggle');
+                if (previewToggle) {
+                    const entry = previewToggle.closest('.photo-entry');
+                    const grid = entry?.querySelector('.photo-grid');
+                    if (!grid) {
+                        return;
+                    }
+
+                    const nextState = previewToggle.getAttribute('aria-expanded') !== 'true';
+                    setToggleState(previewToggle, nextState, {
+                        openLabel: `Show more ${previewToggle.dataset.albumLabel || ''} photos`.trim(),
+                        closeLabel: `Show fewer ${previewToggle.dataset.albumLabel || ''} photos`.trim()
+                    });
+                    grid.classList.toggle('is-preview', !nextState);
                     playCabinetSound(nextState);
                     return;
                 }
@@ -1555,7 +1634,7 @@
                         'aria-label',
                         `Show ${caption.textContent} on footsteps map`
                     );
-                } else {
+            } else {
                     caption.removeAttribute('role');
                     caption.removeAttribute('tabindex');
                     caption.removeAttribute('aria-label');
@@ -1645,11 +1724,48 @@
                     return;
                 }
 
-                if (album.defaultOpen) {
-                    details.open = true;
+                const previewCount = Number(album.preview) > 0 ? Number(album.preview) : 0;
+                const usePreview = previewCount > 0 && grid.children.length > previewCount;
+
+                if (usePreview) {
+                    [...grid.children].forEach((item, index) => {
+                        if (index >= previewCount) {
+                            item.classList.add('is-extra');
+                        }
+                    });
+                    grid.classList.add('is-preview');
                 }
 
                 albumGroups.append(grid);
+
+                if (usePreview) {
+                    const entry = document.createElement('div');
+                    entry.className = 'photo-entry photo-entry--preview';
+
+                    const toggle = document.createElement('button');
+                    toggle.type = 'button';
+                    toggle.className = 'snaps-preview-toggle';
+                    toggle.dataset.albumLabel = album.label;
+                    toggle.setAttribute('aria-expanded', 'false');
+                    toggle.setAttribute('aria-label', `Show more ${album.label} photos`);
+
+                    const label = document.createElement('span');
+                    label.textContent = album.label;
+
+                    const mark = document.createElement('span');
+                    mark.className = 'snaps-preview-mark';
+                    mark.setAttribute('aria-hidden', 'true');
+                    mark.textContent = '+';
+
+                    toggle.append(label, mark);
+                    entry.append(toggle, albumGroups);
+                    root.append(entry);
+                    return;
+                }
+
+                if (album.defaultOpen) {
+                    details.open = true;
+                }
 
                 details.append(albumGroups);
                 root.append(details);
@@ -1757,6 +1873,82 @@
             if (thumbs.length > 0) {
                 openPreviewAt(thumbs, 0);
             }
+        }
+
+        function interpolateStops(stops, fromKey, toKey, query) {
+            if (query <= stops[0][fromKey]) {
+                return stops[0][toKey];
+            }
+
+            const last = stops[stops.length - 1];
+            if (query >= last[fromKey]) {
+                return last[toKey];
+            }
+
+            for (let index = 1; index < stops.length; index += 1) {
+                if (query <= stops[index][fromKey]) {
+                    const from = stops[index - 1];
+                    const to = stops[index];
+                    const span = to[fromKey] - from[fromKey] || 1;
+                    const amount = (query - from[fromKey]) / span;
+                    return from[toKey] + amount * (to[toKey] - from[toKey]);
+                }
+            }
+
+            return last[toKey];
+        }
+
+        function evenAxis(values, mix) {
+            const sorted = [...new Set(values)].sort((a, b) => a - b);
+
+            if (sorted.length < 2) {
+                const value = sorted[0] ?? 0;
+                return {
+                    forward() {
+                        return 0.5;
+                    }
+                };
+            }
+
+            const min = sorted[0];
+            const span = sorted[sorted.length - 1] - min || 1;
+            const stops = sorted.map((value, index) => ({
+                value,
+                t: (1 - mix) * ((value - min) / span) + mix * (index / (sorted.length - 1))
+            }));
+
+            for (let index = 1; index < stops.length; index += 1) {
+                if (stops[index].t <= stops[index - 1].t) {
+                    stops[index].t = stops[index - 1].t + 0.001;
+                }
+            }
+
+            const start = stops[0].t;
+            const range = stops[stops.length - 1].t - start || 1;
+            stops.forEach((stop) => {
+                stop.t = (stop.t - start) / range;
+            });
+
+            return {
+                forward(value) {
+                    return interpolateStops(stops, 'value', 't', value);
+                }
+            };
+        }
+
+        function projectPlacesLikeFullMap(places, box) {
+            const padX = box.width * 0.08;
+            const padY = box.height * 0.12;
+            const innerWidth = Math.max(1, box.width - padX * 2);
+            const innerHeight = Math.max(1, box.height - padY * 2);
+            const latAxis = evenAxis(places.map((place) => place.lat), 0.64);
+            const lonAxis = evenAxis(places.map((place) => place.lon), 0.64);
+
+            return places.map((place) => ({
+                place,
+                x: box.x + padX + lonAxis.forward(place.lon) * innerWidth,
+                y: box.y + padY + (1 - latAxis.forward(place.lat)) * innerHeight
+            }));
         }
 
         function projectPlace(place, box, bounds) {
@@ -1966,7 +2158,7 @@
             return orderA - orderB;
         }
 
-        function separateClosePins(points, box, minDist = 40) {
+        function separateClosePins(points, box, minDist = 56) {
             if (!box || points.length < 2) {
                 return points;
             }
@@ -2007,25 +2199,77 @@
             return separated;
         }
 
-        function traceQuadraticStep(from, to, bendSign = 1, bendOverride) {
-            const midX = (from.x + to.x) / 2;
-            const midY = (from.y + to.y) / 2;
+        function cityCentroid(points) {
+            if (!points.length) {
+                return null;
+            }
+
+            const total = points.reduce(
+                (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y }),
+                { x: 0, y: 0 }
+            );
+
+            return {
+                x: total.x / points.length,
+                y: total.y / points.length
+            };
+        }
+
+        function traceFullMapStep(from, to, centroid) {
             const dx = to.x - from.x;
             const dy = to.y - from.y;
             const distance = Math.hypot(dx, dy) || 1;
-            const bendFactor = (bendOverride ?? (distance < 70 ? 0.06 : 0.11)) * bendSign;
-            const bendX = midX + dy * bendFactor;
-            const bendY = midY - dx * bendFactor;
+            const bulge = distance * 0.24;
+            const midX = (from.x + to.x) / 2;
+            const midY = (from.y + to.y) / 2;
+            let sign = 1;
+
+            if (centroid) {
+                const towardCentroid = (-dy) * (centroid.x - midX) + dx * (centroid.y - midY);
+                if (towardCentroid > 0) {
+                    sign = -1;
+                }
+            }
+
+            const bendX = midX + (-dy / distance) * bulge * sign;
+            const bendY = midY + (dx / distance) * bulge * sign;
 
             return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${bendX.toFixed(1)} ${bendY.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
         }
 
-        function traceLocalStep(from, to) {
-            return traceQuadraticStep(from, to, 1);
+        function traceQuadraticStep(from, to, bendSign = 1, bulge) {
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            const distance = Math.hypot(dx, dy) || 1;
+            const arc = bulge ?? Math.max(36, Math.min(58, distance * 0.28));
+            const midX = (from.x + to.x) / 2;
+            const midY = (from.y + to.y) / 2;
+            const bendX = midX + (-dy / distance) * arc * bendSign;
+            const bendY = midY + (dx / distance) * arc * bendSign;
+
+            return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${bendX.toFixed(1)} ${bendY.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
+        }
+
+        function traceLocalStep(from, to, centroid) {
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            const midX = (from.x + to.x) / 2;
+            const midY = (from.y + to.y) / 2;
+            let bendSign = 1;
+
+            if (centroid) {
+                const towardCentroid = (-dy) * (centroid.x - midX) + dx * (centroid.y - midY);
+
+                if (towardCentroid > 0) {
+                    bendSign = -1;
+                }
+            }
+
+            return traceQuadraticStep(from, to, bendSign);
         }
 
         function traceLoopPair(from, to) {
-            return [traceQuadraticStep(from, to, 1, 0.14), traceQuadraticStep(from, to, -1, 0.14)];
+            return [traceQuadraticStep(from, to, 1, 42), traceQuadraticStep(from, to, -1, 42)];
         }
 
         function traceCrossingStep(from, to, stacked = false) {
@@ -2057,24 +2301,55 @@
                 return [];
             }
 
-            const sorted = [...points].sort((a, b) => compareByVisit(a, b, galleryIndex));
+            const pointsByCity = {};
+            points.forEach((point) => {
+                const city = point.place.city;
+                if (!pointsByCity[city]) {
+                    pointsByCity[city] = [];
+                }
+                pointsByCity[city].push(point);
+            });
+
             const segments = [];
 
-            for (let index = 1; index < sorted.length; index += 1) {
-                const previous = sorted[index - 1];
-                const current = sorted[index];
-
+            const nycPoints = [...(pointsByCity.nyc || [])].sort((a, b) => compareByVisit(a, b, galleryIndex));
+            const nycCentroid = cityCentroid(nycPoints);
+            for (let index = 1; index < nycPoints.length; index += 1) {
+                const previous = nycPoints[index - 1];
+                const current = nycPoints[index];
                 if (shouldSkipTrace(previous, current, skipPairs)) {
                     continue;
                 }
-
-                const crossing = previous.place.city !== current.place.city;
-
                 segments.push({
-                    d: crossing
-                        ? traceCrossingStep(previous, current, stacked)
-                        : traceLocalStep(previous, current),
-                    crossing
+                    d: traceFullMapStep(previous, current, nycCentroid),
+                    crossing: false
+                });
+            }
+
+            const parisPoints = [...(pointsByCity.paris || [])].sort((a, b) => compareByVisit(a, b, galleryIndex));
+            const parisCentroid = cityCentroid(parisPoints);
+            for (let index = 1; index < parisPoints.length; index += 1) {
+                const previous = parisPoints[index - 1];
+                const current = parisPoints[index];
+                if (shouldSkipTrace(previous, current, skipPairs)) {
+                    continue;
+                }
+                segments.push({
+                    d: traceLocalStep(previous, current, parisCentroid),
+                    crossing: false
+                });
+            }
+
+            const sorted = [...points].sort((a, b) => compareByVisit(a, b, galleryIndex));
+            for (let index = 1; index < sorted.length; index += 1) {
+                const previous = sorted[index - 1];
+                const current = sorted[index];
+                if (previous.place.city === current.place.city || shouldSkipTrace(previous, current, skipPairs)) {
+                    continue;
+                }
+                segments.push({
+                    d: traceCrossingStep(previous, current, stacked),
+                    crossing: true
                 });
             }
 
@@ -2133,9 +2408,9 @@
             const map = document.getElementById('places-map');
 
             if (!tracesRoot || !labelsRoot || !pinsRoot || !svg || !data) {
-                return;
-            }
-
+                    return;
+                }
+                
             latestPlacesData = data;
             const layout = getPlacesLayout(data);
 
@@ -2175,9 +2450,18 @@
 
             Object.entries(pointsByCity).forEach(([city, cityPlaces]) => {
                 const region = layout.regions?.[city];
-                const bounds = boundsByCity[city];
 
-                if (!region?.box || !bounds) {
+                if (!region?.box) {
+                    return;
+                }
+
+                if (city === 'nyc') {
+                    projectedByCity[city] = projectPlacesLikeFullMap(cityPlaces, region.box);
+                    return;
+                }
+
+                const bounds = boundsByCity[city];
+                if (!bounds) {
                     return;
                 }
 
@@ -2189,7 +2473,11 @@
                         })
                         .filter(Boolean),
                     region.box
-                );
+                ).map((point) => ({
+                    ...point,
+                    x: point.x + (point.place.mapOffset?.[0] || 0),
+                    y: point.y + (point.place.mapOffset?.[1] || 0)
+                }));
             });
 
             const galleryIndex = buildPhotoGalleryIndex();
@@ -2397,4 +2685,4 @@
             .catch(() => {});
     </script>
 </body>
-</html>
+</html> 

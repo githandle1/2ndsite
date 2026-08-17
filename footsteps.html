@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Maya's footsteps: a map of places in New York City.">
+    <title>footsteps</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=10">
+    <style>
+        :root {
+            color-scheme: light;
+            --paper: #faf9f6;
+            --ink: #24211f;
+            --hover: #8b2f32;
+            --line: rgba(139, 47, 50, 0.2);
+            --muted: rgba(36, 33, 31, 0.58);
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: "Libre Baskerville", serif;
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        .map {
+            position: fixed;
+            inset: 0;
+            background: var(--paper);
+            cursor: crosshair;
+        }
+
+        .map svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .trace {
+            fill: none;
+            stroke: rgba(36, 33, 31, 0.16);
+            stroke-width: 1.15;
+            stroke-linecap: round;
+            pointer-events: none;
+        }
+
+        .pin-hit {
+            fill: transparent;
+            cursor: pointer;
+        }
+
+        .pin-dot {
+            fill: var(--hover);
+            opacity: 0.82;
+            pointer-events: none;
+        }
+
+        .pin.is-active .pin-dot {
+            opacity: 1;
+        }
+
+        .pin-label {
+            font-family: "Libre Baskerville", serif;
+            font-size: 13px;
+            fill: var(--muted);
+            paint-order: stroke fill;
+            stroke: var(--paper);
+            stroke-width: 6px;
+            stroke-linejoin: round;
+            pointer-events: none;
+        }
+
+        .pin.is-active .pin-label {
+            fill: var(--hover);
+        }
+
+        .chrome {
+            position: fixed;
+            z-index: 3;
+            top: 22px;
+            left: 24px;
+            pointer-events: none;
+        }
+
+        .chrome a {
+            pointer-events: auto;
+        }
+
+        .back {
+            font-size: 0.78rem;
+            color: var(--muted);
+            transition: color 180ms ease;
+        }
+
+        .back:hover,
+        .back:focus-visible {
+            color: var(--hover);
+        }
+
+        .status {
+            position: fixed;
+            z-index: 5;
+            left: 50%;
+            bottom: 28px;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .status[hidden] {
+            display: none;
+        }
+
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 6;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: rgba(250, 249, 246, 0.92);
+            cursor: pointer;
+        }
+
+        .lightbox[hidden] {
+            display: none;
+        }
+
+        .lightbox img {
+            max-width: min(100%, 920px);
+            max-height: calc(100dvh - 48px);
+            object-fit: contain;
+        }
+
+        @media (max-width: 600px) {
+            .chrome {
+                top: calc(16px + var(--safe-top));
+                left: calc(16px + var(--safe-left));
+            }
+
+            .pin-label {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="map" id="map" role="application" aria-label="Footsteps map">
+        <svg id="map-svg" xmlns="http://www.w3.org/2000/svg">
+            <g id="traces"></g>
+            <g id="pins"></g>
+        </svg>
+    </div>
+    <header class="chrome">
+        <a class="back" href="index.html">filing cabinet</a>
+    </header>
+    <div class="status" id="status" hidden></div>
+    <div class="lightbox" id="lightbox" hidden>
+        <img id="lightbox-image" alt="">
+    </div>
+    <script>
+        const MATCH_METERS = 180;
+        const STORAGE_PINS = "footsteps-dropped-pins";
+        const NYC = {
+            north: 40.805,
+            south: 40.688,
+            west: -74.03,
+            east: -73.93
+        };
+
+        const svg = document.getElementById("map-svg");
+        const tracesRoot = document.getElementById("traces");
+        const pinsRoot = document.getElementById("pins");
+        const statusEl = document.getElementById("status");
+        const lightboxEl = document.getElementById("lightbox");
+        const lightboxImage = document.getElementById("lightbox-image");
+
+        let pins = [];
+        let knownPlaces = [];
+        let photoIndex = new Map();
+        let activePin = null;
+        let projection = null;
+        let dropping = false;
+
+        function showStatus(message) {
+            statusEl.textContent = message;
+            statusEl.hidden = !message;
+        }
+
+        function haversineMeters(a, b) {
+            const toRad = (value) => (value * Math.PI) / 180;
+            const dLat = toRad(b.lat - a.lat);
+            const dLon = toRad(b.lon - a.lon);
+            const lat1 = toRad(a.lat);
+            const lat2 = toRad(b.lat);
+            const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+            return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+        }
+
+        function lowercaseName(value) {
+            return String(value || "").trim().toLowerCase();
+        }
+
+        function readJson(key, fallback) {
+            try {
+                const value = JSON.parse(localStorage.getItem(key) || "null");
+                return value ?? fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        function writeJson(key, value) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function getPlacePhotos(place) {
+            if (Array.isArray(place.photos) && place.photos.length) {
+                return place.photos;
+            }
+
+            return place.photo ? [place.photo] : [];
+        }
+
+        function photosForPlace(place) {
+            return getPlacePhotos(place).map((src) => {
+                const photo = photoIndex.get(src) || { src };
+                return {
+                    src,
+                    caption: photo.caption || "",
+                    alt: photo.alt || place.name
+                };
+            });
+        }
+
+        function persistDroppedPins() {
+            writeJson(
+                STORAGE_PINS,
+                pins.filter((pin) => pin.source === "drop").map((pin) => ({
+                    id: pin.id,
+                    name: pin.name,
+                    address: pin.address,
+                    lat: pin.lat,
+                    lon: pin.lon
+                }))
+            );
+        }
+
+        function findNearbyPin(lat, lon) {
+            return pins.find((pin) => haversineMeters(pin, { lat, lon }) < MATCH_METERS) || null;
+        }
+
+        function photosNear(lat, lon) {
+            const nearby = [];
+            const seen = new Set();
+
+            knownPlaces.forEach((place) => {
+                if (haversineMeters(place, { lat, lon }) > MATCH_METERS) {
+                    return;
+                }
+
+                photosForPlace(place).forEach((photo) => {
+                    if (!seen.has(photo.src)) {
+                        seen.add(photo.src);
+                        nearby.push(photo);
+                    }
+                });
+            });
+
+            return nearby;
+        }
+
+        function size() {
+            return {
+                width: svg.clientWidth || window.innerWidth,
+                height: svg.clientHeight || window.innerHeight
+            };
+        }
+
+        function isInNyc(point) {
+            return point.lat >= NYC.south - 0.02
+                && point.lat <= NYC.north + 0.02
+                && point.lon >= NYC.west - 0.02
+                && point.lon <= NYC.east + 0.02;
+        }
+
+        function placeTime(place) {
+            const visited = place?.visitedAt ? Date.parse(place.visitedAt) : Number.NaN;
+            if (!Number.isNaN(visited)) {
+                return visited;
+            }
+
+            const uploaded = place?.uploadedAt ? Date.parse(place.uploadedAt) : Number.NaN;
+            return Number.isNaN(uploaded) ? Number.NaN : uploaded;
+        }
+
+        function comparePlacesByVisit(a, b) {
+            const timeA = placeTime(a);
+            const timeB = placeTime(b);
+
+            if (!Number.isNaN(timeA) && !Number.isNaN(timeB) && timeA !== timeB) {
+                return timeA - timeB;
+            }
+
+            if (!Number.isNaN(timeA) && Number.isNaN(timeB)) {
+                return -1;
+            }
+
+            if (Number.isNaN(timeA) && !Number.isNaN(timeB)) {
+                return 1;
+            }
+
+            return (a.uploadOrder ?? 0) - (b.uploadOrder ?? 0);
+        }
+
+        function interpolateStops(stops, fromKey, toKey, query) {
+            if (query <= stops[0][fromKey]) {
+                return stops[0][toKey];
+            }
+
+            const last = stops[stops.length - 1];
+            if (query >= last[fromKey]) {
+                return last[toKey];
+            }
+
+            for (let index = 1; index < stops.length; index += 1) {
+                if (query <= stops[index][fromKey]) {
+                    const from = stops[index - 1];
+                    const to = stops[index];
+                    const span = to[fromKey] - from[fromKey] || 1;
+                    const amount = (query - from[fromKey]) / span;
+                    return from[toKey] + amount * (to[toKey] - from[toKey]);
+                }
+            }
+
+            return last[toKey];
+        }
+
+        function evenAxis(values, mix) {
+            const sorted = [...new Set(values)].sort((a, b) => a - b);
+
+            if (sorted.length < 2) {
+                const value = sorted[0] ?? 0;
+                return {
+                    forward() {
+                        return 0.5;
+                    },
+                    inverse() {
+                        return value;
+                    }
+                };
+            }
+
+            const min = sorted[0];
+            const span = sorted[sorted.length - 1] - min || 1;
+            const stops = sorted.map((value, index) => ({
+                value,
+                t: (1 - mix) * ((value - min) / span) + mix * (index / (sorted.length - 1))
+            }));
+
+            for (let index = 1; index < stops.length; index += 1) {
+                if (stops[index].t <= stops[index - 1].t) {
+                    stops[index].t = stops[index - 1].t + 0.001;
+                }
+            }
+
+            const start = stops[0].t;
+            const range = stops[stops.length - 1].t - start || 1;
+            stops.forEach((stop) => {
+                stop.t = (stop.t - start) / range;
+            });
+
+            return {
+                forward(value) {
+                    return interpolateStops(stops, "value", "t", value);
+                },
+                inverse(t) {
+                    return interpolateStops(stops, "t", "value", t);
+                }
+            };
+        }
+
+        function buildProjection(points) {
+            const { width, height } = size();
+            const padX = Math.max(width <= 600 ? 36 : 56, width * 0.08) + safeInset("left");
+            const padY = Math.max(width <= 600 ? 64 : 72, height * 0.12) + safeInset("top");
+            const innerWidth = Math.max(1, width - padX * 2);
+            const innerHeight = Math.max(1, height - padY * 2);
+            const lats = points.length ? points.map((point) => point.lat) : [(NYC.north + NYC.south) / 2];
+            const lons = points.length ? points.map((point) => point.lon) : [(NYC.east + NYC.west) / 2];
+            const latAxis = evenAxis(lats, 0.64);
+            const lonAxis = evenAxis(lons, 0.64);
+
+            return {
+                project(point) {
+                    return {
+                        x: padX + lonAxis.forward(point.lon) * innerWidth,
+                        y: padY + (1 - latAxis.forward(point.lat)) * innerHeight
+                    };
+                },
+                invert(x, y) {
+                    return {
+                        lon: lonAxis.inverse((x - padX) / innerWidth),
+                        lat: latAxis.inverse(1 - (y - padY) / innerHeight)
+                    };
+                },
+                box: { x: padX, y: padY, width: innerWidth, height: innerHeight }
+            };
+        }
+
+        function centroidOf(points) {
+            const total = points.reduce((sum, point) => ({
+                x: sum.x + point.x,
+                y: sum.y + point.y
+            }), { x: 0, y: 0 });
+
+            return {
+                x: total.x / points.length,
+                y: total.y / points.length
+            };
+        }
+
+        function tracePath(from, to, centroid) {
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            const distance = Math.hypot(dx, dy) || 1;
+            const bulge = distance * 0.24;
+            const midX = (from.x + to.x) / 2;
+            const midY = (from.y + to.y) / 2;
+            let sign = 1;
+
+            if (centroid) {
+                const towardCentroid = (-dy) * (centroid.x - midX) + dx * (centroid.y - midY);
+                if (towardCentroid > 0) {
+                    sign = -1;
+                }
+            }
+
+            const bendX = midX + (-dy / distance) * bulge * sign;
+            const bendY = midY + (dx / distance) * bulge * sign;
+
+            return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} Q ${bendX.toFixed(1)} ${bendY.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
+        }
+
+        function safeInset(side) {
+            return Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--safe-${side}`)) || 0;
+        }
+
+        function viewFrame(width, height) {
+            const mobile = width <= 600;
+            return {
+                left: (mobile ? 14 : 18) + safeInset("left"),
+                right: width - (mobile ? 14 : 18) - safeInset("right"),
+                top: (mobile ? 46 : 54) + safeInset("top"),
+                bottom: height - (mobile ? 14 : 18) - safeInset("bottom")
+            };
+        }
+
+        function estimateLabelWidth(name) {
+            return Math.max(36, String(name || "").length * (size().width <= 600 ? 6.6 : 7.3));
+        }
+
+        function labelRect(position, name) {
+            const width = estimateLabelWidth(name);
+            const left = position.anchor === "end"
+                ? position.x - width
+                : position.anchor === "middle"
+                    ? position.x - width / 2
+                    : position.x;
+
+            return {
+                left,
+                right: left + width,
+                top: position.y - 14,
+                bottom: position.y + 6
+            };
+        }
+
+        function rectFits(rect, frame) {
+            return rect.left >= frame.left
+                && rect.right <= frame.right
+                && rect.top >= frame.top
+                && rect.bottom <= frame.bottom;
+        }
+
+        function sidePosition(pin, side) {
+            if (side === "left") {
+                return { x: pin.x - 12, y: pin.y + 4, anchor: "end" };
+            }
+
+            if (side === "right") {
+                return { x: pin.x + 12, y: pin.y + 4, anchor: "start" };
+            }
+
+            if (side === "above") {
+                return { x: pin.x, y: pin.y - 12, anchor: "middle" };
+            }
+
+            return { x: pin.x, y: pin.y + 20, anchor: "middle" };
+        }
+
+        function preferredSides(pin, centroid) {
+            const sides = [];
+
+            if (pin.labelPlacement) {
+                sides.push(pin.labelPlacement);
+            } else if (!centroid) {
+                sides.push("right");
+            } else if (pin.x < centroid.x - 8) {
+                sides.push("left");
+            } else if (pin.y > centroid.y + 18) {
+                sides.push("below");
+            } else if (pin.y < centroid.y - 18) {
+                sides.push("above");
+            } else {
+                sides.push("right");
+            }
+
+            ["right", "left", "above", "below"].forEach((side) => {
+                if (!sides.includes(side)) {
+                    sides.push(side);
+                }
+            });
+
+            return sides;
+        }
+
+        function placeLabel(pin, centroid, frame) {
+            const sides = preferredSides(pin, centroid);
+            const matching = sides
+                .map((side) => sidePosition(pin, side))
+                .find((position) => rectFits(labelRect(position, pin.name), frame));
+
+            return matching || sidePosition(pin, "right");
+        }
+
+        function keepLabelOnScreen(label, pin, frame) {
+            const shiftIntoFrame = () => {
+                const box = label.getBBox();
+                let x = Number(label.getAttribute("x"));
+                let y = Number(label.getAttribute("y"));
+
+                if (box.x < frame.left) {
+                    x += frame.left - box.x;
+                } else if (box.x + box.width > frame.right) {
+                    x -= box.x + box.width - frame.right;
+                }
+
+                if (box.y < frame.top) {
+                    y += frame.top - box.y;
+                } else if (box.y + box.height > frame.bottom) {
+                    y -= box.y + box.height - frame.bottom;
+                }
+
+                label.setAttribute("x", x);
+                label.setAttribute("y", y);
+            };
+
+            const box = label.getBBox();
+            if (box.x < frame.left || box.x + box.width > frame.right) {
+                const flipRight = box.x < frame.left;
+                label.setAttribute("text-anchor", flipRight ? "start" : "end");
+                label.setAttribute("x", flipRight ? pin.x + 12 : pin.x - 12);
+                label.setAttribute("y", pin.y + 4);
+            }
+
+            shiftIntoFrame();
+        }
+
+        function selectPin(pin, openPhoto = true) {
+            activePin = pin;
+            draw();
+
+            if (!openPhoto || !pin.photos?.length) {
+                return;
+            }
+
+            const photo = pin.photos[0];
+            lightboxImage.src = photo.src;
+            lightboxImage.alt = photo.alt || "";
+            lightboxEl.hidden = false;
+        }
+
+        function draw() {
+            const { width, height } = size();
+            svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+            tracesRoot.replaceChildren();
+            pinsRoot.replaceChildren();
+
+            projection = buildProjection(pins);
+            const projected = pins.map((pin) => ({
+                ...pin,
+                ...projection.project(pin)
+            }));
+            const centroid = projected.length ? centroidOf(projected) : null;
+            const frame = viewFrame(width, height);
+
+            projected.slice(1).forEach((point, index) => {
+                const previous = projected[index];
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("class", "trace");
+                path.setAttribute("d", tracePath(previous, point, centroid));
+                tracesRoot.append(path);
+            });
+
+            projected.forEach((pin) => {
+                const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                group.setAttribute("class", pin.id === activePin?.id ? "pin is-active" : "pin");
+
+                const hit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                hit.setAttribute("class", "pin-hit");
+                hit.setAttribute("cx", pin.x);
+                hit.setAttribute("cy", pin.y);
+                hit.setAttribute("r", 18);
+                hit.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    selectPin(pins.find((item) => item.id === pin.id) || pin);
+                });
+
+                const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                dot.setAttribute("class", "pin-dot");
+                dot.setAttribute("cx", pin.x);
+                dot.setAttribute("cy", pin.y);
+                dot.setAttribute("r", pin.id === activePin?.id ? 6.2 : 5);
+
+                const labelPos = placeLabel(pin, centroid, frame);
+                const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                label.setAttribute("class", "pin-label");
+                label.setAttribute("x", labelPos.x);
+                label.setAttribute("y", labelPos.y);
+                label.setAttribute("text-anchor", labelPos.anchor);
+                label.textContent = pin.name;
+
+                group.append(hit, dot, label);
+                pinsRoot.append(group);
+                keepLabelOnScreen(label, pin, frame);
+            });
+        }
+
+        async function lookupPlace(lat, lon) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+            const response = await fetch(url, {
+                headers: { Accept: "application/json" }
+            });
+
+            if (!response.ok) {
+                throw new Error("lookup failed");
+            }
+
+            const data = await response.json();
+            const address = data.address || {};
+            const name = lowercaseName(
+                data.name
+                || address.amenity
+                || address.tourism
+                || address.shop
+                || address.leisure
+                || address.neighbourhood
+                || address.suburb
+                || address.road
+                || "untitled pin"
+            );
+            const city = address.city || address.town || address.village || address.state;
+            const locality = address.neighbourhood || address.suburb || address.road;
+            const short = locality && city && locality.toLowerCase() !== city.toLowerCase()
+                ? `${locality}, ${city}`
+                : city || locality || "";
+
+            return {
+                name,
+                address: lowercaseName(short)
+            };
+        }
+
+        async function dropPin(lat, lon) {
+            if (dropping) {
+                return;
+            }
+
+            const existing = findNearbyPin(lat, lon);
+            if (existing) {
+                selectPin(existing);
+                return;
+            }
+
+            dropping = true;
+            showStatus("finding this place…");
+
+            try {
+                const details = await lookupPlace(lat, lon);
+                const pin = {
+                    id: `drop-${Date.now()}`,
+                    source: "drop",
+                    name: details.name,
+                    address: details.address,
+                    lat,
+                    lon,
+                    photos: photosNear(lat, lon)
+                };
+                pins.push(pin);
+                persistDroppedPins();
+                showStatus("");
+                selectPin(pin, false);
+            } catch {
+                showStatus("could not name this place.");
+            } finally {
+                dropping = false;
+            }
+        }
+
+        async function loadCollections() {
+            const [placesResponse, snapsResponse] = await Promise.all([
+                fetch("places.json", { cache: "no-store" }),
+                fetch("snaps.json", { cache: "no-store" })
+            ]);
+            const placesData = placesResponse.ok ? await placesResponse.json() : { places: [] };
+            const snaps = snapsResponse.ok ? await snapsResponse.json() : [];
+
+            (Array.isArray(snaps) ? snaps : []).forEach((album) => {
+                (album.groups || []).forEach((group) => {
+                    (group.photos || []).forEach((photo) => {
+                        if (photo?.src) {
+                            photoIndex.set(photo.src, photo);
+                        }
+                    });
+                });
+            });
+
+            knownPlaces = (placesData.places || [])
+                .filter((place) => place.city === "nyc" && place.lat != null && place.lon != null)
+                .slice()
+                .sort(comparePlacesByVisit);
+
+            pins = knownPlaces.map((place) => {
+                const photos = photosForPlace(place);
+                return {
+                    id: `place-${place.name}`,
+                    source: "place",
+                    name: place.name,
+                    address: "new york city",
+                    lat: place.lat,
+                    lon: place.lon,
+                    mapOffset: place.mapOffset,
+                    labelPlacement: place.labelPlacement,
+                    photos
+                };
+            });
+
+            readJson(STORAGE_PINS, []).forEach((pin) => {
+                if (!isInNyc(pin) || findNearbyPin(pin.lat, pin.lon)) {
+                    return;
+                }
+
+                pins.push({
+                    ...pin,
+                    source: "drop",
+                    photos: photosNear(pin.lat, pin.lon)
+                });
+            });
+        }
+
+        svg.addEventListener("click", (event) => {
+            if (!projection || event.target.closest(".pin")) {
+                return;
+            }
+
+            const point = svg.createSVGPoint();
+            point.x = event.clientX;
+            point.y = event.clientY;
+            const local = point.matrixTransform(svg.getScreenCTM().inverse());
+            const box = projection.box;
+            if (
+                local.x < box.x
+                || local.x > box.x + box.width
+                || local.y < box.y
+                || local.y > box.y + box.height
+            ) {
+                return;
+            }
+
+            const geo = projection.invert(local.x, local.y);
+            if (!isInNyc(geo)) {
+                return;
+            }
+
+            dropPin(geo.lat, geo.lon);
+        });
+
+        function closeLightbox() {
+            lightboxEl.hidden = true;
+            lightboxImage.src = "";
+        }
+
+        lightboxEl.addEventListener("click", closeLightbox);
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && !lightboxEl.hidden) {
+                closeLightbox();
+            }
+        });
+
+        window.addEventListener("resize", draw);
+
+        Promise.all([loadCollections(), document.fonts.ready]).then(draw);
+    </script>
+</body>
+</html>
