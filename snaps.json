@@ -76,6 +76,12 @@
         "city": "nyc",
         "photos": [
           {
+            "src": "photos/20260818-122224-5605.jpeg",
+            "alt": "fidi",
+            "caption": "fidi, august 2026",
+            "ariaLabel": "Open fidi"
+          },
+          {
             "src": "photos/dscf4757.jpeg",
             "alt": "Manhattan Municipal Building tower at night",
             "caption": "municipal building, august 2026",
