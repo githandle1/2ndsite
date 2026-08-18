@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Maya's filing cabinet: photos and personal notes.">
     <title>maya bakir</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -381,6 +381,7 @@
             cursor: pointer;
             font-size: var(--list-size);
             line-height: var(--list-line-height);
+            overflow-wrap: anywhere;
         }
 
         .bookmark-title {
@@ -397,7 +398,8 @@
         }
 
         .places-map {
-            padding: 14px 0 2px;
+            padding: 14px 0 8px;
+            overflow: visible;
         }
 
         .places-map[hidden] {
@@ -657,11 +659,13 @@
             line-height: 1.35;
             text-align: right;
             color: rgba(36, 33, 31, 0.62);
+            overflow-wrap: anywhere;
+            word-break: break-word;
             transition: max-height 220ms ease, opacity 220ms ease, margin-top 220ms ease;
         }
 
         .photo-caption.is-open {
-            max-height: 2.5rem;
+            max-height: 8rem;
             margin-top: 3px;
             opacity: 1;
         }
@@ -891,8 +895,9 @@
 
         @media (max-width: 600px) {
             main {
-                width: min(100% - 24px, 720px);
-                padding-top: 40px;
+                width: min(calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), 720px);
+                padding-top: max(40px, calc(24px + env(safe-area-inset-top, 0px)));
+                padding-bottom: max(72px, calc(48px + env(safe-area-inset-bottom, 0px)));
             }
 
             h1 {
@@ -997,7 +1002,7 @@
                     </button>
                 </div>
                 <div class="places-map" id="places-map" role="img" aria-label="Map of favorite places and walking traces" hidden>
-                    <svg id="places-svg" viewBox="0 0 960 384" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                    <svg id="places-svg" viewBox="0 0 960 384" preserveAspectRatio="xMidYMid meet" overflow="visible" aria-hidden="true">
                         <g class="places-traces" id="places-traces"></g>
                         <g class="places-labels" id="places-labels"></g>
                         <g class="places-pins" id="places-pins"></g>
@@ -1937,8 +1942,8 @@
         }
 
         function projectPlacesLikeFullMap(places, box) {
-            const padX = box.width * 0.08;
-            const padY = box.height * 0.12;
+            const padX = Math.max(box.width * 0.1, 28);
+            const padY = Math.max(box.height * 0.12, 24);
             const innerWidth = Math.max(1, box.width - padX * 2);
             const innerHeight = Math.max(1, box.height - padY * 2);
             const latAxis = evenAxis(places.map((place) => place.lat), 0.64);
@@ -2007,6 +2012,29 @@
             return { left, right: left + width, top: y - 12, bottom: y + 2 };
         }
 
+        function viewBoxFrame(viewBox, pad = 10) {
+            const width = viewBox?.[0] || 0;
+            const height = viewBox?.[1] || 0;
+
+            return {
+                left: pad,
+                right: width - pad,
+                top: pad,
+                bottom: height - pad
+            };
+        }
+
+        function labelOverflow(box, frame) {
+            if (!frame) {
+                return 0;
+            }
+
+            return Math.max(0, frame.left - box.left)
+                + Math.max(0, box.right - frame.right)
+                + Math.max(0, frame.top - box.top)
+                + Math.max(0, box.bottom - frame.bottom);
+        }
+
         function labelBoxesOverlap(a, b, padding = 8) {
             return !(
                 a.right + padding < b.left ||
@@ -2059,7 +2087,7 @@
             });
         }
 
-        function placeLabelPosition(point, placedLabels, name, preferred = [], charWidth = 6.2) {
+        function placeLabelPosition(point, placedLabels, name, preferred = [], charWidth = 6.2, frame = null) {
             const candidates = buildLabelCandidates(point, preferred);
             let best = candidates[0];
             let bestScore = Infinity;
@@ -2068,7 +2096,7 @@
                 const box = estimateLabelBox(name, candidate.x, candidate.y, candidate.anchor, charWidth);
                 const overlaps = countLabelOverlaps(box, placedLabels);
                 const distance = Math.hypot(candidate.x - point.x, candidate.y - point.y);
-                const score = overlaps * 1000 + distance;
+                const score = labelOverflow(box, frame) * 4000 + overlaps * 1000 + distance;
 
                 if (score < bestScore) {
                     bestScore = score;
@@ -2082,7 +2110,7 @@
             return best;
         }
 
-        function resolveLabelPosition(point, placedLabels, place, charWidth = 6.2) {
+        function resolveLabelPosition(point, placedLabels, place, charWidth = 6.2, frame = null) {
             const preferred = [];
 
             if (place.labelPlacement === 'left') {
@@ -2113,7 +2141,7 @@
                 );
             }
 
-            return placeLabelPosition(point, placedLabels, place.name, preferred, charWidth);
+            return placeLabelPosition(point, placedLabels, place.name, preferred, charWidth, frame);
         }
 
         function buildPhotoGalleryIndex() {
@@ -2356,17 +2384,18 @@
             return segments;
         }
 
-        function computeLabelLayout(projectedByCity, stacked = false, reservedLabels = []) {
+        function computeLabelLayout(projectedByCity, stacked = false, reservedLabels = [], viewBox = []) {
             const placedLabels = [...reservedLabels];
             const labelByPlaceName = new Map();
-            const charWidth = stacked ? 7.4 : 6.2;
+            const charWidth = stacked ? 6.6 : 6.2;
+            const frame = viewBoxFrame(viewBox, stacked ? 8 : 10);
 
             Object.values(projectedByCity).forEach((cityPoints) => {
                 cityPoints
                     .sort((a, b) => a.x - b.x || a.y - b.y)
                     .forEach(({ place, x, y }) => {
                         const point = { x, y };
-                        const labelPosition = resolveLabelPosition(point, placedLabels, place, charWidth);
+                        const labelPosition = resolveLabelPosition(point, placedLabels, place, charWidth, frame);
 
                         labelByPlaceName.set(place.name, {
                             labelX: place.labelX ?? labelPosition.x,
@@ -2377,6 +2406,54 @@
             });
 
             return { placedLabels, labelByPlaceName };
+        }
+
+        function keepSvgLabelInFrame(label, pinX, pinY, frame) {
+            if (!frame || !label.getBBox) {
+                return;
+            }
+
+            let box;
+            try {
+                box = label.getBBox();
+            } catch {
+                return;
+            }
+
+            if (!box.width) {
+                return;
+            }
+
+            if (box.x < frame.left || box.x + box.width > frame.right) {
+                const flipRight = box.x < frame.left;
+                label.setAttribute('text-anchor', flipRight ? 'start' : 'end');
+                label.setAttribute('x', String(flipRight ? pinX + 12 : pinX - 12));
+                label.setAttribute('y', String(pinY + 4));
+            }
+
+            try {
+                box = label.getBBox();
+            } catch {
+                return;
+            }
+
+            let x = Number(label.getAttribute('x'));
+            let y = Number(label.getAttribute('y'));
+
+            if (box.x < frame.left) {
+                x += frame.left - box.x;
+            } else if (box.x + box.width > frame.right) {
+                x -= box.x + box.width - frame.right;
+            }
+
+            if (box.y < frame.top) {
+                y += frame.top - box.y;
+            } else if (box.y + box.height > frame.bottom) {
+                y -= box.y + box.height - frame.bottom;
+            }
+
+            label.setAttribute('x', String(x));
+            label.setAttribute('y', String(y));
         }
 
         function getPlacesLayout(data) {
@@ -2504,7 +2581,8 @@
             const { placedLabels, labelByPlaceName } = computeLabelLayout(
                 projectedByCity,
                 layout.stacked,
-                regionLabelBoxes
+                regionLabelBoxes,
+                layout.viewBox
             );
 
             buildChronologicalTraces(
@@ -2546,6 +2624,8 @@
                 return Math.max(maxBottom, region.box.y + region.box.height);
             }, 0) + 18;
 
+            const frame = viewBoxFrame(layout.viewBox, layout.stacked ? 8 : 10);
+
             Object.entries(layout.regions || {}).forEach(([, region]) => {
                 if (!region?.label || !region?.box) {
                     return;
@@ -2564,6 +2644,7 @@
                 label.setAttribute('text-anchor', 'middle');
                 label.textContent = region.label;
                 labelsRoot.append(label);
+                keepSvgLabelInFrame(label, region.box.x + region.box.width / 2, Number(label.getAttribute('y')), frame);
             });
 
             Object.values(projectedByCity).forEach((cityPoints) => {
@@ -2630,6 +2711,7 @@
 
                         pin.append(hit, dot, label);
                         pinsRoot.append(pin);
+                        keepSvgLabelInFrame(label, x, y, frame);
                 });
             });
 

@@ -21,6 +21,8 @@ Bookmarks live in [`bookmarks.json`](../bookmarks.json). The homepage loads them
 
 The Mac shortcut runs [`scripts/add_bookmark.py`](../scripts/add_bookmark.py), which uses `gh` to commit to GitHub.
 
+Photos use a separate share sheet: see [add-photos.md](add-photos.md). `./scripts/install_share_shortcut.sh` installs both.
+
 ## Edit locally (Cursor / terminal)
 
 ```bash

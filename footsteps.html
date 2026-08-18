@@ -179,7 +179,7 @@
 </head>
 <body>
     <div class="map" id="map" role="application" aria-label="Footsteps map">
-        <svg id="map-svg" xmlns="http://www.w3.org/2000/svg">
+        <svg id="map-svg" xmlns="http://www.w3.org/2000/svg" overflow="visible">
             <g id="traces"></g>
             <g id="pins"></g>
         </svg>
@@ -415,8 +415,8 @@
 
         function buildProjection(points) {
             const { width, height } = size();
-            const padX = Math.max(width <= 600 ? 36 : 56, width * 0.08) + safeInset("left");
-            const padY = Math.max(width <= 600 ? 64 : 72, height * 0.12) + safeInset("top");
+            const padX = Math.max(56, width * 0.08) + safeInset("left");
+            const padY = Math.max(72, height * 0.12) + safeInset("top");
             const innerWidth = Math.max(1, width - padX * 2);
             const innerHeight = Math.max(1, height - padY * 2);
             const lats = points.length ? points.map((point) => point.lat) : [(NYC.north + NYC.south) / 2];
@@ -482,10 +482,10 @@
         function viewFrame(width, height) {
             const mobile = width <= 600;
             return {
-                left: (mobile ? 14 : 18) + safeInset("left"),
-                right: width - (mobile ? 14 : 18) - safeInset("right"),
-                top: (mobile ? 46 : 54) + safeInset("top"),
-                bottom: height - (mobile ? 14 : 18) - safeInset("bottom")
+                left: (mobile ? 18 : 18) + safeInset("left"),
+                right: width - (mobile ? 18 : 18) - safeInset("right"),
+                top: (mobile ? 52 : 54) + safeInset("top"),
+                bottom: height - (mobile ? 18 : 18) - safeInset("bottom")
             };
         }
 

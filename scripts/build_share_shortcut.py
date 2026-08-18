@@ -22,10 +22,11 @@ def build_mac_shortcut() -> dict:
     return {
         "WFWorkflowActions": [
             {
-                "WFWorkflowActionIdentifier": "is.workflow.actions.runsshscript",
+                "WFWorkflowActionIdentifier": "is.workflow.actions.runshellscript",
                 "WFWorkflowActionParameters": {
-                    "WFShellScriptActionScript": shell,
-                    "WFShellScriptActionRunAsRoot": False,
+                    "Script": shell,
+                    "Shell": "/bin/zsh",
+                    "InputMode": 0,
                     "WFInput": extension_input,
                 },
             },
@@ -57,10 +58,15 @@ def main() -> int:
     unsigned = SHORTCUTS_DIR / "add-to-filing-cabinet.unsigned.shortcut"
     signed = SHORTCUTS_DIR / "Add to filing cabinet.shortcut"
     unsigned.write_bytes(plistlib.dumps(build_mac_shortcut(), fmt=plistlib.FMT_BINARY))
-    subprocess.run(
+    sign = subprocess.run(
         ["shortcuts", "sign", "--mode", "anyone", "--input", str(unsigned), "--output", str(signed)],
-        check=True,
+        capture_output=True,
+        text=True,
     )
+    if sign.returncode != 0:
+        print(sign.stderr or sign.stdout or "Could not sign shortcut.", file=sys.stderr)
+        print(f"Unsigned shortcut written to {unsigned}", file=sys.stderr)
+        return 1
     print(signed)
     return 0
 
