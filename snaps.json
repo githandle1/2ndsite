@@ -59,7 +59,7 @@
             "ariaLabel": "Open Paris metro photo"
           },
           {
-            "src": "photos/eiffel-skyline.jpeg",
+            "src": "photos/eiffel-skyline.jpeg?v=eiffel",
             "alt": "Paris skyline with the Eiffel Tower",
             "caption": "eiffel tower, july 2026",
             "ariaLabel": "Open Eiffel Tower skyline photo"

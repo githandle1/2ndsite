@@ -29,6 +29,14 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        button,
+        a,
+        .pin-label,
+        .chrome {
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
         html,
         body {
             height: 100%;
@@ -609,7 +617,8 @@
             }
 
             const photo = pin.photos[0];
-            lightboxImage.src = photo.src;
+            const src = photo.src || "";
+            lightboxImage.src = `${src}${src.includes("?") ? "&" : "?"}view=full`;
             lightboxImage.alt = photo.alt || "";
             lightboxEl.hidden = false;
         }

@@ -34,6 +34,6 @@
     { "name": "place des vosges", "city": "paris", "photo": "photos/place-des-vosges.jpeg", "lat": 48.8556, "lon": 2.3654, "uploadedAt": "2026-08-03T01:11:15", "uploadOrder": 0 },
     { "name": "archives nationales", "city": "paris", "photo": "photos/archives-nationales.jpeg", "lat": 48.867, "lon": 2.337, "uploadedAt": "2026-08-03T01:11:15", "uploadOrder": 1 },
     { "name": "caves saint gilles", "city": "paris", "photo": "photos/dscf1836.jpeg", "lat": 48.859, "lon": 2.358, "uploadedAt": "2026-08-05T16:41:00" },
-    { "name": "eiffel tower", "city": "paris", "photo": "photos/eiffel-skyline.jpeg", "lat": 48.8584, "lon": 2.2945, "uploadedAt": "2026-08-06T15:18:00" }
+    { "name": "eiffel tower", "city": "paris", "photo": "photos/eiffel-skyline.jpeg?v=eiffel", "lat": 48.8584, "lon": 2.2945, "uploadedAt": "2026-08-06T15:18:00" }
   ]
 }

@@ -41,6 +41,21 @@
         summary {
             -webkit-appearance: none;
             appearance: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        h1,
+        h4,
+        a,
+        .intro-lead,
+        .photo-item,
+        .photo-caption,
+        .places-map,
+        .snaps-footer,
+        .bookmark-list {
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         html,
@@ -572,6 +587,7 @@
             -webkit-appearance: none;
             outline: none;
             -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
             user-select: none;
         }
 
@@ -751,15 +767,11 @@
             max-height: calc(100dvh - (2 * var(--photo-frame-margin)) - var(--photo-controls-band));
             flex: 0 1 auto;
             min-height: 0;
-            transform: scale(0.68);
             opacity: 0;
-            transition:
-                transform var(--photo-reveal-duration) var(--photo-reveal-ease),
-                opacity var(--photo-reveal-duration) var(--photo-reveal-ease);
+            transition: opacity var(--photo-reveal-duration) var(--photo-reveal-ease);
         }
 
         .photo-overlay-image.is-visible {
-            transform: scale(1);
             opacity: 1;
         }
 
@@ -1084,8 +1096,40 @@
             }
         }
 
+        const cabinetToggleSelector = [
+            '#intro-toggle',
+            '.caption-toggle',
+            '#snaps-footsteps-toggle',
+            '.snaps-preview-toggle',
+            '.photo-entry summary'
+        ].join(', ');
+
+        function cabinetToggleFrom(target) {
+            return target?.closest?.(cabinetToggleSelector) || null;
+        }
+
         function initCabinetToggles() {
+            document.addEventListener('pointerdown', (event) => {
+                if (event.isPrimary === false) {
+                    return;
+                }
+
+                primeCabinetAudio();
+
+                if (cabinetToggleFrom(event.target)) {
+                    cabinetSoundFromPointer = true;
+                    playCabinetSound();
+                }
+            }, { passive: true });
+
             document.addEventListener('click', (event) => {
+                const usedPointer = cabinetSoundFromPointer;
+                cabinetSoundFromPointer = false;
+
+                if (!usedPointer && cabinetToggleFrom(event.target)) {
+                    playCabinetSound();
+                }
+
                 const introToggle = event.target.closest('#intro-toggle');
                 if (introToggle) {
                     const introBlurb = document.getElementById('intro-blurb');
@@ -1099,7 +1143,6 @@
                         openLabel: 'Show bio',
                         closeLabel: 'Hide bio'
                     });
-                    playCabinetSound(nextState);
                     return;
                 }
 
@@ -1120,7 +1163,6 @@
                         openLabel: isTeahouse ? 'Show favorite teahouse' : 'Show caption',
                         closeLabel: isTeahouse ? 'Hide favorite teahouse' : 'Hide caption'
                     });
-                    playCabinetSound(nextState);
                     return;
                 }
 
@@ -1142,7 +1184,6 @@
                         renderPlaces(latestPlacesData);
                     }
 
-                    playCabinetSound(nextState);
                     return;
                 }
 
@@ -1160,22 +1201,20 @@
                         closeLabel: `Show fewer ${previewToggle.dataset.albumLabel || ''} photos`.trim()
                     });
                     grid.classList.toggle('is-preview', !nextState);
-                    playCabinetSound(nextState);
-                    return;
-                }
-
-                const albumSummary = event.target.closest('.photo-entry summary');
-                if (albumSummary) {
-                    const album = albumSummary.closest('.photo-entry');
-                    if (album) {
-                        playCabinetSound(!album.open);
-                    }
                 }
             });
         }
 
         function cabinetSoundsEnabled() {
             return true;
+        }
+
+        function unlockCabinetAudio(context) {
+            const buffer = context.createBuffer(1, 1, context.sampleRate);
+            const source = context.createBufferSource();
+            source.buffer = buffer;
+            source.connect(context.destination);
+            source.start(0);
         }
 
         function primeCabinetAudio() {
@@ -1189,31 +1228,42 @@
             }
         }
 
-        document.addEventListener('pointerdown', primeCabinetAudio, { once: true, passive: true });
-
         function getCabinetAudioContext() {
             if (!cabinetAudioContext) {
                 cabinetAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+                try {
+                    unlockCabinetAudio(cabinetAudioContext);
+                } catch {
+                    // First-tap unlock is best-effort.
+                }
             }
 
             return cabinetAudioContext;
         }
 
-        async function playCabinetSound() {
+        let lastCabinetSoundAt = 0;
+        let cabinetSoundFromPointer = false;
+
+        function playCabinetSound() {
             if (!cabinetSoundsEnabled()) {
                 return;
             }
+
+            const tappedAt = performance.now();
+            if (tappedAt - lastCabinetSoundAt < 40) {
+                return;
+            }
+
+            lastCabinetSoundAt = tappedAt;
 
             let context;
 
             try {
                 context = getCabinetAudioContext();
-                await context.resume();
+                if (context.state === 'suspended') {
+                    void context.resume();
+                }
             } catch {
-                return;
-            }
-
-            if (context.state !== 'running') {
                 return;
             }
 
@@ -1283,6 +1333,14 @@
             platen.stop(strikeAt + 0.032);
         }
 
+        function fullPhotoSrc(src) {
+            if (!src) {
+                return src;
+            }
+
+            return `${src}${src.includes('?') ? '&' : '?'}view=full`;
+        }
+
         function startRevealAnimation({ includeBackdrop = false } = {}) {
             const reveal = () => {
                 requestAnimationFrame(() => {
@@ -1341,7 +1399,7 @@
                 overlayImage.classList.remove('is-visible');
             }
 
-            overlayImage.src = thumb.dataset.src;
+            overlayImage.src = fullPhotoSrc(thumb.dataset.src);
             overlayImage.alt = thumb.querySelector('img')?.alt || '';
             renderDots();
             updateNavButtons();
@@ -1362,7 +1420,7 @@
             overlayImage.classList.remove('is-visible');
 
             currentPhotoIndex = index;
-            overlayImage.src = thumb.dataset.src;
+            overlayImage.src = fullPhotoSrc(thumb.dataset.src);
             overlayImage.alt = thumb.querySelector('img')?.alt || '';
             renderDots();
             updateNavButtons();
