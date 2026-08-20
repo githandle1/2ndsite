@@ -28,5 +28,17 @@
     "url": "https://www.goodreads.com/en/book/show/231363343-the-score",
     "publication": "goodreads",
     "author": "c thi nguyen"
+  },
+  {
+    "title": "the art of fiction no. 35",
+    "url": "https://www.theparisreview.org/interviews/4444/the-art-of-fiction-no-35-simone-de-beauvoir",
+    "publication": "the paris review",
+    "author": "simone de beauvoir"
+  },
+  {
+    "title": "toward an interpretive theory of culture",
+    "url": "https://hci.stanford.edu/courses/cs376/private/readings/geertz_thick_description.pdf",
+    "publication": "the interpretation of cultures",
+    "author": "clifford geertz"
   }
 ]

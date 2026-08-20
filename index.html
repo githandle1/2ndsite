@@ -412,6 +412,16 @@
             color: var(--muted);
         }
 
+        .bookmark-read-dot {
+            display: inline-block;
+            width: 0.42em;
+            height: 0.42em;
+            margin-left: 0.4em;
+            border-radius: 50%;
+            background: var(--hover);
+            vertical-align: 0.05em;
+        }
+
         .places-map {
             padding: 14px 0 8px;
             overflow: visible;
@@ -1898,11 +1908,21 @@
                 title.className = 'bookmark-title';
                 title.textContent = bookmark.title;
 
+                link.append(title);
+
+                if (bookmark.read === true) {
+                    const dot = document.createElement('span');
+                    dot.className = 'bookmark-read-dot';
+                    dot.setAttribute('aria-label', 'read');
+                    dot.title = 'read';
+                    link.append(dot);
+                }
+
                 const meta = document.createElement('span');
                 meta.className = 'bookmark-meta';
                 meta.textContent = formatBookmarkMeta(bookmark);
 
-                link.append(title, meta);
+                link.append(meta);
                 item.append(link);
                 list.append(item);
             });
