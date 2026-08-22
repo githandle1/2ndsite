@@ -81,7 +81,7 @@ Safari or Messages → **Share** → **Add to filing cabinet**.
 | `title` | yes | Lowercase link text |
 | `url` | yes | Full HTTPS URL |
 | `publication` | no | Muted grey attribution |
-| `author` | no | Shown as `publication / author` |
+| `author` | no | Shown as `publication / author`. Skip or replace if it repeats the publication name (e.g. `kevin kelly` / `substack`). |
 
 ## Files
 

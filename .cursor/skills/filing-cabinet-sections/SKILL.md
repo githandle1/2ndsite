@@ -154,7 +154,7 @@ Add share-sheet bookmarks to `bookmarks.json` and reading-log entries to `readin
 }
 ```
 
-`url` may be omitted for books or other untitled-link readings. Keep titles, publications, and authors lowercase.
+`url` may be omitted for books or other untitled-link readings. Keep titles, publications, and authors lowercase. If the publication and author would repeat the same name, keep one and use the venue instead (e.g. `kevin kelly` / `substack`).
 
 See `docs/add-bookmarks.md` for Safari Share Shortcut setup. Run `./scripts/install_share_shortcut.sh` on Mac to import the signed shortcut.
 
