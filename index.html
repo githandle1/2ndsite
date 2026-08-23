@@ -1870,6 +1870,9 @@
                         const image = document.createElement('img');
                         image.src = photo.src;
                         image.alt = photo.alt || '';
+                        if (photo.objectPosition) {
+                            image.style.objectPosition = photo.objectPosition;
+                        }
                         thumb.append(image);
 
                         const meta = document.createElement('div');

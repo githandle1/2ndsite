@@ -76,12 +76,6 @@
         "city": "nyc",
         "photos": [
           {
-            "src": "photos/chryslerrr.jpeg",
-            "alt": "Chrysler Building spire above a dark glass tower",
-            "caption": "chrysler building, august 2026",
-            "ariaLabel": "Open Chrysler Building photo"
-          },
-          {
             "src": "photos/dscf4757.jpeg",
             "alt": "Manhattan Municipal Building tower at night",
             "caption": "municipal building, august 2026",
@@ -110,6 +104,13 @@
             "alt": "Cyclist crossing a Chinatown street corner, Manhattan",
             "caption": "chinatown, august 2026",
             "ariaLabel": "Open Chinatown street photo"
+          },
+          {
+            "src": "photos/chryslerrr.jpeg",
+            "alt": "Chrysler Building spire above a dark glass tower",
+            "caption": "chrysler building, august 2026",
+            "ariaLabel": "Open Chrysler Building photo",
+            "objectPosition": "top"
           }
         ]
       }
