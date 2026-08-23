@@ -139,7 +139,7 @@ Pinned bookmarks from `bookmarks.json` stay visible. Readings show **10 at a tim
     <ul id="bookmark-list" class="bookmark-list"></ul>
     <button type="button" class="bookmark-more-toggle" id="bookmark-more-toggle" hidden>
         <span class="bookmark-more-label">more</span>
-        <span class="bookmark-more-mark" aria-hidden="true">+</span>
+        <span class="bookmark-more-mark toggle-mark--tone-d" aria-hidden="true">+</span>
     </button>
 </section>
 ```
