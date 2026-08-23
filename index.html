@@ -1981,9 +1981,10 @@
             [...(Array.isArray(bookmarks) ? bookmarks : []), ...(Array.isArray(readings) ? readings : [])]
                 .forEach((item) => {
                     const title = String(item?.title || '').trim();
+                    const href = normalizeBookmarkUrl(item.url || item.link);
                     const key = bookmarkIdentity(item);
 
-                    if (!title || !key || seen.has(key)) {
+                    if (!title || !href || !key || seen.has(key)) {
                         return;
                     }
 
