@@ -445,18 +445,17 @@
         }
 
         .bookmark-more-toggle {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 9px 0;
+            gap: 0.35rem;
+            padding: 10px 0 2px;
             border: none;
             background: none;
             font-family: inherit;
-            font-size: var(--list-size);
-            line-height: var(--list-line-height);
+            font-size: 0.72rem;
             font-weight: 400;
-            color: inherit;
+            line-height: 1;
+            color: var(--muted);
             cursor: pointer;
             transition: color 180ms ease;
         }
@@ -465,15 +464,12 @@
             display: none;
         }
 
-        .bookmark-more-label {
-            color: var(--muted);
-        }
-
         .bookmark-more-mark {
-            font-size: var(--toggle-mark-size);
+            font-size: calc(var(--toggle-mark-size) / var(--list-size) * 1em);
             font-weight: 400;
             line-height: 1;
-            color: var(--toggle-tone-b);
+            opacity: 0.82;
+            transition: opacity 180ms ease, color 180ms ease;
         }
 
         .bookmark-more-toggle:hover,
@@ -481,10 +477,9 @@
             color: var(--hover);
         }
 
-        .bookmark-more-toggle:hover .bookmark-more-label,
-        .bookmark-more-toggle:focus-visible .bookmark-more-label,
         .bookmark-more-toggle:hover .bookmark-more-mark,
         .bookmark-more-toggle:focus-visible .bookmark-more-mark {
+            opacity: 1;
             color: var(--hover);
         }
 
@@ -1002,7 +997,8 @@
                 padding: 6px 0 18px;
             }
 
-            .snaps-footsteps-toggle {
+            .snaps-footsteps-toggle,
+            .bookmark-more-toggle {
                 font-size: var(--list-size);
             }
 
