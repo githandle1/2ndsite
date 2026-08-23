@@ -135,7 +135,7 @@ Pinned bookmarks from `bookmarks.json` stay visible. Readings show **10 at a tim
 ```html
 <section aria-labelledby="bookmarks">
     <h4 id="bookmarks" class="phrase">bookmarks</h4>
-    <p class="bookmark-blurb">an ongoing collection of articles, pdfs, and books i'm reading. <a href="https://app.notion.com/p/mayascorner/3c22bb286ed9804182a7fa8d523998cb?v=3c22bb286ed980128a9b000c0ae3149f" target="_blank" rel="noopener noreferrer">here</a></p>
+    <p class="bookmark-blurb"><a href="https://app.notion.com/p/mayascorner/3c22bb286ed9804182a7fa8d523998cb?v=3c22bb286ed980128a9b000c0ae3149f" target="_blank" rel="noopener noreferrer">an ongoing collection of articles, pdfs, and books i'm reading.</a></p>
     <ul id="bookmark-list" class="bookmark-list"></ul>
     <button type="button" class="bookmark-more-toggle" id="bookmark-more-toggle" hidden>
         <span class="bookmark-more-label">more</span>
