@@ -261,11 +261,6 @@
             line-height: 1.65;
         }
 
-        section > h4 {
-            width: 100%;
-            border-bottom: 1px solid var(--line);
-        }
-
         p {
             margin: 0;
         }
@@ -954,6 +949,12 @@
         .phrase {
             width: fit-content;
             transition: color 180ms ease;
+        }
+
+        section > h4.phrase {
+            display: block;
+            width: 100%;
+            border-bottom: 1px solid var(--line);
         }
 
         .phrase:hover,
