@@ -94,10 +94,10 @@
             "ariaLabel": "Open Central Park photo"
           },
           {
-            "src": "photos/dscf4757.jpeg",
-            "alt": "Manhattan Municipal Building tower at night",
-            "caption": "municipal building, august 2026",
-            "ariaLabel": "Open Municipal Building photo"
+            "src": "photos/moma-charlie.jpeg",
+            "alt": "MoMA banner and 53 West 53, Manhattan",
+            "caption": "moma, august 2026",
+            "ariaLabel": "Open MoMA photo"
           },
           {
             "src": "photos/chryslerrr.jpeg",
@@ -113,10 +113,10 @@
             "ariaLabel": "Open Chinatown street photo"
           },
           {
-            "src": "photos/moma-charlie.jpeg",
-            "alt": "MoMA banner and 53 West 53, Manhattan",
-            "caption": "moma, august 2026",
-            "ariaLabel": "Open MoMA photo"
+            "src": "photos/dscf4757.jpeg",
+            "alt": "Manhattan Municipal Building tower at night",
+            "caption": "municipal building, august 2026",
+            "ariaLabel": "Open Municipal Building photo"
           }
         ]
       }
