@@ -100,10 +100,11 @@
             "ariaLabel": "Open Municipal Building photo"
           },
           {
-            "src": "photos/moma-charlie.jpeg",
-            "alt": "MoMA banner and 53 West 53, Manhattan",
-            "caption": "moma, august 2026",
-            "ariaLabel": "Open MoMA photo"
+            "src": "photos/chryslerrr.jpeg",
+            "alt": "Chrysler Building spire above a dark glass tower",
+            "caption": "chrysler building, august 2026",
+            "ariaLabel": "Open Chrysler Building photo",
+            "objectPosition": "top"
           },
           {
             "src": "photos/chinatown-street.jpeg",
@@ -112,11 +113,10 @@
             "ariaLabel": "Open Chinatown street photo"
           },
           {
-            "src": "photos/chryslerrr.jpeg",
-            "alt": "Chrysler Building spire above a dark glass tower",
-            "caption": "chrysler building, august 2026",
-            "ariaLabel": "Open Chrysler Building photo",
-            "objectPosition": "top"
+            "src": "photos/moma-charlie.jpeg",
+            "alt": "MoMA banner and 53 West 53, Manhattan",
+            "caption": "moma, august 2026",
+            "ariaLabel": "Open MoMA photo"
           }
         ]
       }
