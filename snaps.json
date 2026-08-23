@@ -76,12 +76,6 @@
         "city": "nyc",
         "photos": [
           {
-            "src": "photos/dscf4757.jpeg",
-            "alt": "Manhattan Municipal Building tower at night",
-            "caption": "municipal building, august 2026",
-            "ariaLabel": "Open Municipal Building photo"
-          },
-          {
             "src": "photos/cursor.jpeg",
             "alt": "Central Park, NYC",
             "caption": "central park, august 2026",
@@ -92,6 +86,12 @@
             "alt": "Central Park, NYC",
             "caption": "central park, august 2026",
             "ariaLabel": "Open Central Park photo"
+          },
+          {
+            "src": "photos/dscf4757.jpeg",
+            "alt": "Manhattan Municipal Building tower at night",
+            "caption": "municipal building, august 2026",
+            "ariaLabel": "Open Municipal Building photo"
           },
           {
             "src": "photos/moma-charlie.jpeg",
