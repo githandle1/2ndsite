@@ -1,7 +1,19 @@
 [
   {
     "label": "july 2026",
+    "preview": 2,
     "groups": [
+      {
+        "city": "paris",
+        "photos": [
+          {
+            "src": "photos/place-des-vosges.jpeg",
+            "alt": "Place des Vosges, Paris",
+            "caption": "place des vosges, july 2026",
+            "ariaLabel": "Open Place des Vosges photo"
+          }
+        ]
+      },
       {
         "city": "nyc",
         "photos": [
@@ -34,12 +46,6 @@
       {
         "city": "paris",
         "photos": [
-          {
-            "src": "photos/place-des-vosges.jpeg",
-            "alt": "Place des Vosges, Paris",
-            "caption": "place des vosges, july 2026",
-            "ariaLabel": "Open Place des Vosges photo"
-          },
           {
             "src": "photos/dscf1836.jpeg",
             "alt": "Caves Saint Gilles, Rue St Gilles, Paris",
