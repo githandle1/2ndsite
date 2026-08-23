@@ -107,6 +107,15 @@
         .profile-image{width:100%;max-width:518px;height:auto;object-fit:contain;border:none;background-color:transparent}
         .content-section{width:100%}
         .intro-text{margin-bottom:15px;font-size:16px;line-height:1.4}
+        .intro-text p{margin:0 0 12px}
+        .intro-text p:last-child{margin-bottom:0}
+        .intro-list{margin:0 0 12px;padding-left:1.2em;list-style:none}
+        .intro-list li{margin:0.25em 0}
+        .intro-list li::before{content:'→ ';margin-left:-1.2em}
+        .teahouse-toggle{border:none;background:none;padding:2px 8px;margin-left:2px;font-family:inherit;font-size:0.9em;line-height:1;cursor:pointer;color:#888;vertical-align:baseline}
+        .teahouse-toggle:hover,.teahouse-toggle:focus-visible{color:#333}
+        .teahouse-note{display:none;margin:4px 0 0;font-size:0.95em;color:#555}
+        .teahouse-note.is-open{display:block}
         .chat-window{top:100px;left:100px;width:400px;height:350px}
         .chat-content{display:flex;flex-direction:column;height:100%}
         .chat-messages{flex:1;overflow-y:auto;padding:10px;background-color:#fff;border:1px solid #ccc;margin-bottom:10px;display:flex;flex-direction:column}
@@ -281,7 +290,21 @@
                         </div>
                     </div>
                     <div class="content-section">
-                        <p class="intro-text">Hi, I'm Maya.<br><br>I'm working on brand marketing at <a href="https://cursor.com" target="_blank" style="color: inherit; text-decoration: none;" class="highlight-link">Cursor</a>.<br><br>Some things I love:<br><br>→ <a href="https://open.spotify.com/user/22nnqcb2koic642wdpyb4vfga?si=e9b14e9258244fb1" target="_blank" style="color: inherit; text-decoration: none;" class="highlight-link">Music</a><br>→ <a href="https://www.cosmos.so/babka/fashion" target="_blank" style="color: inherit; text-decoration: none;" class="highlight-link">Fashion</a><br>→ <a href="https://stalogy.com" target="_blank" style="color: inherit; text-decoration: none;" class="highlight-link">Stalogy notebooks</a><br><br><a href="mailto:mayabakir38@gmail.com" style="color: inherit; text-decoration: none;">Say hi :~)</a></p>
+                        <div class="intro-text">
+                            <p>hi, i'm maya.</p>
+                            <p>i'm currently:</p>
+                            <ul class="intro-list">
+                                <li>in nyc</li>
+                                <li>
+                                    visiting a lot of teahouses
+                                    <button type="button" class="teahouse-toggle" aria-expanded="false" aria-label="Show favorite teahouse">+</button>
+                                    <p class="teahouse-note">my current favorite: <a href="https://www.instagram.com/softhours.world/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;" class="highlight-link">soft hours</a></p>
+                                </li>
+                                <li>and collecting more files to store in my cabinet.</li>
+                            </ul>
+                            <p>previously, i led brand marketing at <a href="https://cursor.com" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;" class="highlight-link">cursor</a>. before that, i built <a href="https://www.notion.com" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;" class="highlight-link">notion's education program</a>.</p>
+                            <p>you can shoot me a message <a href="mailto:mayabakir38@gmail.com" style="color: inherit; text-decoration: none;" class="highlight-link">here</a>.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -813,6 +836,21 @@
                     setTimeout(() => {
                         this.style.color = originalColor;
                     }, 500);
+                });
+            });
+
+            document.querySelectorAll('.teahouse-toggle').forEach((toggle) => {
+                toggle.addEventListener('click', function() {
+                    const note = this.nextElementSibling;
+                    if (!note || !note.classList.contains('teahouse-note')) {
+                        return;
+                    }
+
+                    const isOpen = !note.classList.contains('is-open');
+                    note.classList.toggle('is-open', isOpen);
+                    this.textContent = isOpen ? '−' : '+';
+                    this.setAttribute('aria-expanded', String(isOpen));
+                    this.setAttribute('aria-label', isOpen ? 'Hide favorite teahouse' : 'Show favorite teahouse');
                 });
             });
             

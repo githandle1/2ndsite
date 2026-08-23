@@ -128,16 +128,23 @@ Thumbnails always fill the square grid cell with `object-fit: cover`, regardless
 
 ## Bookmarks section
 
-Bookmarks are stored in `bookmarks.json` (repo root) and rendered on the homepage by JavaScript. **Do not** add bookmark `<li>` items directly to `index.html`.
+Bookmarks are stored in `bookmarks.json` (repo root) and the Notion reading log lives in `readings.json`. JavaScript merges them (bookmarks first, then readings; duplicates by URL/title are skipped) and renders the list. **Do not** add bookmark `<li>` items directly to `index.html`.
+
+Pinned bookmarks from `bookmarks.json` stay visible. Readings show **10 at a time**. A `more +` row reveals the next 10; once everything is visible, `−` collapses back to 10 readings.
 
 ```html
 <section aria-labelledby="bookmarks">
     <h4 id="bookmarks" class="phrase">bookmarks</h4>
+    <p class="bookmark-blurb"><a href="https://app.notion.com/p/mayascorner/3c22bb286ed9804182a7fa8d523998cb?v=3c22bb286ed980128a9b000c0ae3149f" target="_blank" rel="noopener noreferrer">an ongoing collection of articles, pdfs, and books i'm reading.</a></p>
     <ul id="bookmark-list" class="bookmark-list"></ul>
+    <button type="button" class="bookmark-more-toggle" id="bookmark-more-toggle" hidden>
+        <span class="bookmark-more-label">more</span>
+        <span class="bookmark-more-mark toggle-mark--tone-d" aria-hidden="true">+</span>
+    </button>
 </section>
 ```
 
-Add entries to `bookmarks.json`:
+Add share-sheet bookmarks to `bookmarks.json` and reading-log entries to `readings.json`:
 
 ```json
 {
@@ -147,6 +154,8 @@ Add entries to `bookmarks.json`:
   "author": "author name"
 }
 ```
+
+Every entry needs a `url`. Keep titles, publications, and authors lowercase. If the publication and author would repeat the same name, keep one and use the venue instead (e.g. `kevin kelly` / `substack`).
 
 See `docs/add-bookmarks.md` for Safari Share Shortcut setup. Run `./scripts/install_share_shortcut.sh` on Mac to import the signed shortcut.
 

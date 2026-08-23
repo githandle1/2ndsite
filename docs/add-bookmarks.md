@@ -1,6 +1,6 @@
 # Add bookmarks from Safari
 
-Bookmarks live in [`bookmarks.json`](../bookmarks.json). The homepage loads them automatically.
+Bookmarks live in [`bookmarks.json`](../bookmarks.json). The Notion reading log lives in [`readings.json`](../readings.json). The homepage merges both (bookmarks first). Bookmarks stay visible; readings show 10 at a time, with a `more +` control to reveal the next page.
 
 ## Quick install (Mac)
 
@@ -81,7 +81,7 @@ Safari or Messages → **Share** → **Add to filing cabinet**.
 | `title` | yes | Lowercase link text |
 | `url` | yes | Full HTTPS URL |
 | `publication` | no | Muted grey attribution |
-| `author` | no | Shown as `publication / author` |
+| `author` | no | Shown as `publication / author`. Skip or replace if it repeats the publication name (e.g. `kevin kelly` / `substack`). |
 
 ## Files
 
