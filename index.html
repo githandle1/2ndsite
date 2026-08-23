@@ -254,7 +254,8 @@
         }
 
         h4 {
-            margin: 0 0 8px;
+            margin: 0 0 10px;
+            padding-bottom: 6px;
             font-size: 1rem;
             font-weight: 600;
             line-height: 1.65;
@@ -268,8 +269,12 @@
             border-bottom: 1px solid var(--line);
         }
 
+        .photo-entry:last-child {
+            border-bottom: none;
+        }
+
         .photo-entry:first-of-type {
-            border-top: 1px solid var(--line);
+            border-top: none;
         }
 
         .photo-entry summary {
@@ -380,7 +385,7 @@
         }
 
         .bookmark-blurb {
-            margin: 0 0 12px;
+            margin: 0 0 14px;
             color: rgba(36, 33, 31, 0.8);
             font-size: var(--list-size);
             line-height: var(--list-line-height);
@@ -401,7 +406,6 @@
             list-style: none;
             margin: 0;
             padding: 0;
-            border-top: 1px solid var(--line);
         }
 
         .bookmark-list li {
@@ -949,6 +953,12 @@
         .phrase {
             width: fit-content;
             transition: color 180ms ease;
+        }
+
+        section > h4.phrase {
+            display: block;
+            width: 100%;
+            border-bottom: 1px solid var(--line);
         }
 
         .phrase:hover,
@@ -1870,6 +1880,9 @@
                         const image = document.createElement('img');
                         image.src = photo.src;
                         image.alt = photo.alt || '';
+                        if (photo.objectPosition) {
+                            image.style.objectPosition = photo.objectPosition;
+                        }
                         thumb.append(image);
 
                         const meta = document.createElement('div');

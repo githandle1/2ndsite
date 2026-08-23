@@ -1,7 +1,19 @@
 [
   {
     "label": "july 2026",
+    "preview": 2,
     "groups": [
+      {
+        "city": "paris",
+        "photos": [
+          {
+            "src": "photos/place-des-vosges.jpeg",
+            "alt": "Place des Vosges, Paris",
+            "caption": "place des vosges, july 2026",
+            "ariaLabel": "Open Place des Vosges photo"
+          }
+        ]
+      },
       {
         "city": "nyc",
         "photos": [
@@ -34,12 +46,6 @@
       {
         "city": "paris",
         "photos": [
-          {
-            "src": "photos/place-des-vosges.jpeg",
-            "alt": "Place des Vosges, Paris",
-            "caption": "place des vosges, july 2026",
-            "ariaLabel": "Open Place des Vosges photo"
-          },
           {
             "src": "photos/dscf1836.jpeg",
             "alt": "Caves Saint Gilles, Rue St Gilles, Paris",
@@ -76,12 +82,6 @@
         "city": "nyc",
         "photos": [
           {
-            "src": "photos/dscf4757.jpeg",
-            "alt": "Manhattan Municipal Building tower at night",
-            "caption": "municipal building, august 2026",
-            "ariaLabel": "Open Municipal Building photo"
-          },
-          {
             "src": "photos/cursor.jpeg",
             "alt": "Central Park, NYC",
             "caption": "central park, august 2026",
@@ -100,10 +100,23 @@
             "ariaLabel": "Open MoMA photo"
           },
           {
+            "src": "photos/chryslerrr.jpeg",
+            "alt": "Chrysler Building spire above a dark glass tower",
+            "caption": "chrysler building, august 2026",
+            "ariaLabel": "Open Chrysler Building photo",
+            "objectPosition": "top"
+          },
+          {
             "src": "photos/chinatown-street.jpeg",
             "alt": "Cyclist crossing a Chinatown street corner, Manhattan",
             "caption": "chinatown, august 2026",
             "ariaLabel": "Open Chinatown street photo"
+          },
+          {
+            "src": "photos/dscf4757.jpeg",
+            "alt": "Manhattan Municipal Building tower at night",
+            "caption": "municipal building, august 2026",
+            "ariaLabel": "Open Municipal Building photo"
           }
         ]
       }
