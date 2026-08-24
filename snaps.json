@@ -79,6 +79,23 @@
     "preview": 2,
     "groups": [
       {
+        "city": "san diego",
+        "photos": [
+          {
+            "src": "photos/glider-port.jpeg",
+            "alt": "Two people walking the bluff at the Torrey Pines Gliderport",
+            "caption": "glider port, san diego, august 2026",
+            "ariaLabel": "Open Gliderport photo"
+          },
+          {
+            "src": "photos/glider-port-beach.jpeg",
+            "alt": "Looking down at the beach from the Torrey Pines Gliderport",
+            "caption": "glider port, san diego, august 2026",
+            "ariaLabel": "Open Gliderport beach photo"
+          }
+        ]
+      },
+      {
         "city": "nyc",
         "photos": [
           {
@@ -92,18 +109,6 @@
             "alt": "Central Park, NYC",
             "caption": "central park, august 2026",
             "ariaLabel": "Open Central Park photo"
-          },
-          {
-            "src": "photos/point-dume.jpeg",
-            "alt": "Two people walking a grassy hill at Point Dume",
-            "caption": "point dume, august 2026",
-            "ariaLabel": "Open Point Dume photo"
-          },
-          {
-            "src": "photos/zuma-beach.jpeg",
-            "alt": "Looking down at Zuma Beach from the bluffs",
-            "caption": "zuma beach, august 2026",
-            "ariaLabel": "Open Zuma Beach photo"
           },
           {
             "src": "photos/moma-charlie.jpeg",
