@@ -79,23 +79,6 @@
     "preview": 2,
     "groups": [
       {
-        "city": "nyc",
-        "photos": [
-          {
-            "src": "photos/cursor.jpeg",
-            "alt": "Central Park, NYC",
-            "caption": "central park, august 2026",
-            "ariaLabel": "Open Central Park photo"
-          },
-          {
-            "src": "photos/williamsburg-bridge.jpeg",
-            "alt": "Central Park, NYC",
-            "caption": "central park, august 2026",
-            "ariaLabel": "Open Central Park photo"
-          }
-        ]
-      },
-      {
         "city": "san diego",
         "photos": [
           {
@@ -115,6 +98,18 @@
       {
         "city": "nyc",
         "photos": [
+          {
+            "src": "photos/cursor.jpeg",
+            "alt": "Central Park, NYC",
+            "caption": "central park, august 2026",
+            "ariaLabel": "Open Central Park photo"
+          },
+          {
+            "src": "photos/williamsburg-bridge.jpeg",
+            "alt": "Central Park, NYC",
+            "caption": "central park, august 2026",
+            "ariaLabel": "Open Central Park photo"
+          },
           {
             "src": "photos/moma-charlie.jpeg",
             "alt": "MoMA banner and 53 West 53, Manhattan",
