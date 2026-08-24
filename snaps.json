@@ -94,6 +94,19 @@
             "ariaLabel": "Open Central Park photo"
           },
           {
+            "src": "photos/point-dume.jpeg",
+            "alt": "Two people walking a grassy hill at Point Dume",
+            "caption": "point dume, august 2026",
+            "ariaLabel": "Open Point Dume photo",
+            "objectPosition": "center 72%"
+          },
+          {
+            "src": "photos/zuma-beach.jpeg",
+            "alt": "Looking down at Zuma Beach from the bluffs",
+            "caption": "zuma beach, august 2026",
+            "ariaLabel": "Open Zuma Beach photo"
+          },
+          {
             "src": "photos/moma-charlie.jpeg",
             "alt": "MoMA banner and 53 West 53, Manhattan",
             "caption": "moma, august 2026",
