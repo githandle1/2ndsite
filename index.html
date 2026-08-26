@@ -1079,21 +1079,25 @@
             }
 
             .paper-stain--left {
-                top: -21%;
-                left: -18%;
-                width: min(78vw, 340px);
-                height: min(90vw, 400px);
-                opacity: 0.39;
+                top: max(10px, calc(env(safe-area-inset-top, 0px) + 6px));
+                left: 4%;
+                width: 58vw;
+                height: 66vw;
+                max-width: 240px;
+                max-height: 270px;
+                opacity: 0.42;
             }
 
             .paper-stain--right {
-                top: 72%;
-                right: -16%;
+                top: 52%;
+                right: 4%;
                 bottom: auto;
-                width: min(80vw, 360px);
-                height: min(92vw, 420px);
-                transform: translateY(-50%) rotate(14deg) scaleX(-1);
-                opacity: 0.31;
+                width: 58vw;
+                height: 66vw;
+                max-width: 240px;
+                max-height: 270px;
+                transform: rotate(12deg) scaleX(-1);
+                opacity: 0.36;
             }
         }
     </style>
