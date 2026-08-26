@@ -91,20 +91,19 @@
         }
 
         .paper-stain--left {
-            top: 22%;
+            top: -2%;
             left: calc(50% - 560px);
             width: min(42vw, 460px);
             height: min(50vw, 540px);
             transform: rotate(-8deg);
         }
 
-        .paper-stain--bottom-right {
-            top: auto;
-            bottom: 2%;
-            right: 8%;
-            width: min(50vw, 540px);
-            height: min(58vw, 620px);
-            transform: rotate(14deg) scaleX(-1);
+        .paper-stain--right {
+            top: 50%;
+            right: calc(50% - 480px);
+            width: min(46vw, 500px);
+            height: min(54vw, 580px);
+            transform: translateY(-50%) rotate(14deg) scaleX(-1);
             opacity: 0.38;
         }
 
@@ -1080,19 +1079,20 @@
             }
 
             .paper-stain--left {
-                top: 36%;
-                left: -14%;
+                top: -6%;
+                left: -10%;
                 width: min(78vw, 340px);
                 height: min(90vw, 400px);
                 opacity: 0.34;
             }
 
-            .paper-stain--bottom-right {
-                top: auto;
-                bottom: 0;
-                right: -8%;
+            .paper-stain--right {
+                top: 50%;
+                right: -10%;
+                bottom: auto;
                 width: min(80vw, 360px);
                 height: min(92vw, 420px);
+                transform: translateY(-50%) rotate(14deg) scaleX(-1);
                 opacity: 0.27;
             }
         }
@@ -1101,7 +1101,7 @@
 <body>
     <div class="paper-stains" aria-hidden="true">
         <span class="paper-stain paper-stain--left"></span>
-        <span class="paper-stain paper-stain--bottom-right"></span>
+        <span class="paper-stain paper-stain--right"></span>
     </div>
     <main>
         <h1 class="phrase">filing cabinet</h1>
