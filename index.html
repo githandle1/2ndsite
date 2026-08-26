@@ -1023,6 +1023,10 @@
         }
 
         @media (max-width: 600px) {
+            html {
+                overflow-x: clip;
+            }
+
             main {
                 width: min(calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), 720px);
                 padding-top: max(40px, calc(24px + env(safe-area-inset-top, 0px)));
@@ -1078,25 +1082,30 @@
                 max-height: calc(100dvh - 24px);
             }
 
+            .paper-stains {
+                overflow: visible;
+            }
+
             .paper-stain--left {
-                top: max(10px, calc(env(safe-area-inset-top, 0px) + 6px));
-                left: 4%;
-                width: 58vw;
-                height: 66vw;
-                max-width: 240px;
-                max-height: 270px;
+                top: 8%;
+                left: 10%;
+                width: 54vw;
+                height: 62vw;
+                max-width: 220px;
+                max-height: 250px;
+                transform: rotate(-4deg);
                 opacity: 0.42;
             }
 
             .paper-stain--right {
-                top: 52%;
-                right: 4%;
+                top: 48%;
+                right: 8%;
                 bottom: auto;
-                width: 58vw;
-                height: 66vw;
-                max-width: 240px;
-                max-height: 270px;
-                transform: rotate(12deg) scaleX(-1);
+                width: 54vw;
+                height: 62vw;
+                max-width: 220px;
+                max-height: 250px;
+                transform: rotate(10deg) scaleX(-1);
                 opacity: 0.36;
             }
         }
