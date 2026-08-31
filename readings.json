@@ -1,5 +1,9 @@
 [
   {
+    "title": "where mathematics comes from",
+    "url": "https://pages.ucsd.edu/~rnunez/COGS252_Readings/Preface_Intro.PDF"
+  },
+  {
     "title": "high-level perception, representation, and analogy",
     "url": "https://consc.net/papers/highlevel.pdf",
     "publication": "journal of experimental and theoretical artificial intelligence",
@@ -207,9 +211,5 @@
     "url": "https://aeon.co/essays/what-does-anthropology-say-about-the-emotional-lives-of-others",
     "publication": "aeon",
     "author": "andrew beatty"
-  },
-  {
-    "title": "where mathematics comes from",
-    "url": "https://pages.ucsd.edu/~rnunez/COGS252_Readings/Preface_Intro.PDF"
   }
 ]
