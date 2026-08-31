@@ -55,6 +55,7 @@
         .photo-caption,
         .places-map,
         .snaps-footer,
+        .local-date,
         .bookmark-list,
         .bookmark-more-toggle,
         .bookmark-blurb {
@@ -1016,6 +1017,21 @@
             vertical-align: baseline;
         }
 
+        .local-date {
+            position: relative;
+            z-index: 1;
+            width: min(100% - 48px, 720px);
+            margin: -64px auto max(24px, env(safe-area-inset-bottom, 0px));
+            color: color-mix(in srgb, var(--hover) 58%, var(--paper));
+            font-size: 0.72rem;
+            line-height: 1.4;
+            text-align: right;
+            overflow-wrap: anywhere;
+            text-shadow:
+                0 -1px 0 color-mix(in srgb, var(--hover) 10%, transparent),
+                0 1px 0 color-mix(in srgb, var(--paper) 82%, white);
+        }
+
         @media (max-width: 600px) {
             html {
                 overflow-x: clip;
@@ -1090,6 +1106,11 @@
                 max-height: 250px;
                 transform: rotate(10deg) scaleX(-1);
                 opacity: 0.32;
+            }
+
+            .local-date {
+                width: min(calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), 720px);
+                margin-top: -48px;
             }
         }
     </style>
@@ -1182,6 +1203,10 @@
 
         <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
     </main>
+
+    <footer class="local-date" aria-label="Your local date and time">
+        <time id="local-date-stamp"></time>
+    </footer>
 
     <div class="photo-overlay" id="photo-overlay" hidden aria-hidden="true">
         <button type="button" class="photo-overlay-backdrop" aria-label="Close photo preview"></button>
@@ -3081,6 +3106,29 @@
                 renderBookmarks(bookmarks, readings);
             }
         });
+
+        const localDateStamp = document.getElementById('local-date-stamp');
+        const localDateFormatter = new Intl.DateTimeFormat('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        const localTimeFormatter = new Intl.DateTimeFormat('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true,
+            timeZoneName: 'short'
+        });
+
+        function updateLocalDate() {
+            const now = new Date();
+            localDateStamp.dateTime = now.toISOString();
+            localDateStamp.textContent = `${localDateFormatter.format(now)} · ${localTimeFormatter.format(now)}`.toLowerCase();
+        }
+
+        updateLocalDate();
+        window.setInterval(updateLocalDate, 1000);
     </script>
 </body>
 </html> 
