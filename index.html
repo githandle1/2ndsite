@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Maya's filing cabinet: photos and personal notes.">
+    <script src="paper-time.js"></script>
     <title>maya bakir</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,6 +19,7 @@
         :root {
             color-scheme: light;
             --paper: #faf9f6;
+            --paper-frame: color-mix(in srgb, var(--paper) 70%, #ded8cf);
             --ink: #24211f;
             --hover: #8b2f32;
             --line: rgba(139, 47, 50, 0.2);
@@ -673,7 +675,7 @@
             place-items: center;
             aspect-ratio: 1;
             width: 100%;
-            background: #f1eee8;
+            background: var(--paper-frame);
             border: none;
             color: rgba(36, 33, 31, 0.48);
             font-size: 0.65rem;
@@ -697,7 +699,7 @@
         .photo-slot.photo-thumb:focus-visible,
         .photo-slot.photo-thumb:active {
             outline: none;
-            background: #f1eee8;
+            background: var(--paper-frame);
         }
 
         .photo-slot img {
@@ -931,14 +933,14 @@
             padding: 0;
             border: none;
             border-radius: 0;
-            background: rgba(250, 249, 246, 0.34);
+            background: color-mix(in srgb, var(--paper) 34%, transparent);
             cursor: pointer;
             transition: background-color 180ms ease, opacity 180ms ease, transform 180ms ease;
         }
 
         .photo-overlay-dot:hover,
         .photo-overlay-dot:focus-visible {
-            background: rgba(250, 249, 246, 0.58);
+            background: color-mix(in srgb, var(--paper) 58%, transparent);
         }
 
         .photo-overlay-dot.is-active {
@@ -949,7 +951,7 @@
         .photo-overlay-btn {
             border: none;
             background: none;
-            color: rgba(250, 249, 246, 0.72);
+            color: color-mix(in srgb, var(--paper) 72%, transparent);
             line-height: 0;
             padding: 7px 10px;
             cursor: pointer;
@@ -968,7 +970,7 @@
 
         .photo-overlay-btn:disabled:hover,
         .photo-overlay-btn:disabled:focus-visible {
-            color: rgba(250, 249, 246, 0.72);
+            color: color-mix(in srgb, var(--paper) 72%, transparent);
         }
 
         .photo-overlay-icon {
