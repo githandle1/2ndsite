@@ -1025,7 +1025,7 @@
             display: flex;
             align-items: center;
             gap: 0.55rem;
-            color: var(--muted);
+            color: color-mix(in srgb, var(--hover) 58%, var(--paper));
             font-size: 0.72rem;
             line-height: 1;
             pointer-events: none;
@@ -1036,8 +1036,6 @@
             flex: 0 0 auto;
             width: 1.7rem;
             height: 1.7rem;
-            border: 1px solid color-mix(in srgb, var(--ink) 32%, transparent);
-            border-radius: 50%;
         }
 
         .local-time-clock::after {
@@ -1059,8 +1057,8 @@
             bottom: 50%;
             width: 1px;
             height: 34%;
-            background: var(--ink);
-            opacity: 0.72;
+            background: currentColor;
+            opacity: 0.76;
             transform: translateX(-50%) rotate(var(--rotation, 0deg));
             transform-origin: 50% 100%;
         }
@@ -1077,6 +1075,9 @@
 
         .local-time-stamp {
             white-space: nowrap;
+            text-shadow:
+                0 -1px 0 color-mix(in srgb, var(--hover) 10%, transparent),
+                0 1px 0 color-mix(in srgb, var(--paper) 82%, white);
         }
 
         @media (max-width: 600px) {
