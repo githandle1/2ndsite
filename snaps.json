@@ -92,6 +92,12 @@
             "alt": "Looking down at the beach from the Torrey Pines Gliderport",
             "caption": "glider port, san diego, august 2026",
             "ariaLabel": "Open Gliderport beach photo"
+          },
+          {
+            "src": "photos/glider-port-ocean.jpeg",
+            "alt": "People on a bluff looking out at the ocean at the Torrey Pines Gliderport",
+            "caption": "glider port, san diego, august 2026",
+            "ariaLabel": "Open Gliderport ocean photo"
           }
         ]
       },
