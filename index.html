@@ -55,6 +55,7 @@
         .photo-caption,
         .places-map,
         .snaps-footer,
+        .local-time,
         .bookmark-list,
         .bookmark-more-toggle,
         .bookmark-blurb {
@@ -1016,6 +1017,68 @@
             vertical-align: baseline;
         }
 
+        .local-time {
+            position: fixed;
+            z-index: 2;
+            right: max(24px, env(safe-area-inset-right, 0px));
+            bottom: max(20px, env(safe-area-inset-bottom, 0px));
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            color: var(--muted);
+            font-size: 0.72rem;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .local-time-clock {
+            position: relative;
+            flex: 0 0 auto;
+            width: 1.7rem;
+            height: 1.7rem;
+            border: 1px solid color-mix(in srgb, var(--ink) 32%, transparent);
+            border-radius: 50%;
+        }
+
+        .local-time-clock::after {
+            content: "";
+            position: absolute;
+            z-index: 2;
+            left: 50%;
+            top: 50%;
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+            background: var(--hover);
+            transform: translate(-50%, -50%);
+        }
+
+        .local-time-hand {
+            position: absolute;
+            left: 50%;
+            bottom: 50%;
+            width: 1px;
+            height: 34%;
+            background: var(--ink);
+            opacity: 0.72;
+            transform: translateX(-50%) rotate(var(--rotation, 0deg));
+            transform-origin: 50% 100%;
+        }
+
+        .local-time-hand--hour {
+            height: 24%;
+        }
+
+        .local-time-hand--second {
+            height: 38%;
+            background: var(--hover);
+            opacity: 0.78;
+        }
+
+        .local-time-stamp {
+            white-space: nowrap;
+        }
+
         @media (max-width: 600px) {
             html {
                 overflow-x: clip;
@@ -1090,6 +1153,11 @@
                 max-height: 250px;
                 transform: rotate(10deg) scaleX(-1);
                 opacity: 0.32;
+            }
+
+            .local-time {
+                right: max(12px, env(safe-area-inset-right, 0px));
+                bottom: max(14px, env(safe-area-inset-bottom, 0px));
             }
         }
     </style>
@@ -1182,6 +1250,15 @@
 
         <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
     </main>
+
+    <div class="local-time">
+        <span class="local-time-clock" aria-hidden="true">
+            <span class="local-time-hand local-time-hand--hour"></span>
+            <span class="local-time-hand local-time-hand--minute"></span>
+            <span class="local-time-hand local-time-hand--second"></span>
+        </span>
+        <time class="local-time-stamp" id="local-time-stamp"></time>
+    </div>
 
     <div class="photo-overlay" id="photo-overlay" hidden aria-hidden="true">
         <button type="button" class="photo-overlay-backdrop" aria-label="Close photo preview"></button>
@@ -3081,6 +3158,39 @@
                 renderBookmarks(bookmarks, readings);
             }
         });
+
+        const localTimeStamp = document.getElementById('local-time-stamp');
+        const localTimeHourHand = document.querySelector('.local-time-hand--hour');
+        const localTimeMinuteHand = document.querySelector('.local-time-hand--minute');
+        const localTimeSecondHand = document.querySelector('.local-time-hand--second');
+        const localDateFormatter = new Intl.DateTimeFormat('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        const localClockFormatter = new Intl.DateTimeFormat('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true,
+            timeZoneName: 'short'
+        });
+
+        function updateLocalTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            localTimeStamp.dateTime = now.toISOString();
+            localTimeStamp.textContent = `${localDateFormatter.format(now)} · ${localClockFormatter.format(now)}`.toLowerCase();
+            localTimeHourHand.style.setProperty('--rotation', `${(hours % 12) * 30 + minutes * 0.5}deg`);
+            localTimeMinuteHand.style.setProperty('--rotation', `${minutes * 6 + seconds * 0.1}deg`);
+            localTimeSecondHand.style.setProperty('--rotation', `${seconds * 6}deg`);
+        }
+
+        updateLocalTime();
+        window.setInterval(updateLocalTime, 1000);
     </script>
 </body>
 </html> 
