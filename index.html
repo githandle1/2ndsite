@@ -19,11 +19,21 @@
         :root {
             color-scheme: light;
             --paper: #faf9f6;
-            --paper-frame: color-mix(in srgb, var(--paper) 70%, #ded8cf);
+            --paper-frame-base: #ded8cf;
+            --paper-frame-share: 70%;
+            --paper-frame: color-mix(in srgb, var(--paper) var(--paper-frame-share), var(--paper-frame-base));
             --ink: #24211f;
             --hover: #8b2f32;
             --line: rgba(139, 47, 50, 0.2);
             --muted: rgba(36, 33, 31, 0.58);
+            --overlay-ink: var(--paper);
+            --overlay-backdrop: rgba(36, 33, 31, 0.72);
+            --paper-highlight: white;
+            --toggle-mix-target: white;
+            --stain-blend: multiply;
+            --stain-opacity: 0.47;
+            --stain-right-opacity: 0.40;
+            --stain-filter: none;
             --photo-reveal-duration: 780ms;
             --photo-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
             --photo-frame-margin: 36px;
@@ -89,8 +99,9 @@
             position: absolute;
             display: block;
             background: url("stains/fingerprint.png") no-repeat center / contain;
-            mix-blend-mode: multiply;
-            opacity: 0.47;
+            mix-blend-mode: var(--stain-blend);
+            filter: var(--stain-filter);
+            opacity: var(--stain-opacity);
         }
 
         .paper-stain--right {
@@ -99,7 +110,7 @@
             width: min(46vw, 500px);
             height: min(54vw, 580px);
             transform: translateY(-50%) rotate(14deg) scaleX(-1);
-            opacity: 0.40;
+            opacity: var(--stain-right-opacity);
         }
 
         main {
@@ -112,8 +123,8 @@
             --heading-gap: 26px;
             --list-size: 15px;
             --list-line-height: 1.65;
-            --toggle-tone-a: color-mix(in srgb, var(--hover) 58%, white);
-            --toggle-tone-b: color-mix(in srgb, var(--hover) 68%, white);
+            --toggle-tone-a: color-mix(in srgb, var(--hover) 58%, var(--toggle-mix-target));
+            --toggle-tone-b: color-mix(in srgb, var(--hover) 68%, var(--toggle-mix-target));
             --toggle-tone-c: color-mix(in srgb, var(--hover) 78%, var(--hover));
             --toggle-tone-d: color-mix(in srgb, var(--hover) 88%, var(--ink));
             --toggle-mark-size: 0.9em;
@@ -416,7 +427,7 @@
 
         .bookmark-blurb {
             margin: 0 0 14px;
-            color: rgba(36, 33, 31, 0.8);
+            color: color-mix(in srgb, var(--ink) 80%, transparent);
             font-size: var(--list-size);
             line-height: var(--list-line-height);
         }
@@ -580,7 +591,7 @@
 
         .places-trace {
             fill: none;
-            stroke: rgba(36, 33, 31, 0.14);
+            stroke: color-mix(in srgb, var(--ink) 14%, transparent);
             stroke-width: 0.85;
             stroke-linecap: round;
             stroke-linejoin: round;
@@ -588,7 +599,7 @@
         }
 
         .places-trace--crossing {
-            stroke: rgba(36, 33, 31, 0.08);
+            stroke: color-mix(in srgb, var(--ink) 8%, transparent);
             stroke-dasharray: 4 7;
         }
 
@@ -678,7 +689,7 @@
             width: 100%;
             background: var(--paper-frame);
             border: none;
-            color: rgba(36, 33, 31, 0.48);
+            color: color-mix(in srgb, var(--ink) 48%, transparent);
             font-size: 0.65rem;
             overflow: hidden;
         }
@@ -780,7 +791,7 @@
             font-size: 0.58rem;
             line-height: 1.35;
             text-align: right;
-            color: rgba(36, 33, 31, 0.62);
+            color: color-mix(in srgb, var(--ink) 62%, transparent);
             overflow-wrap: anywhere;
             word-break: break-word;
             transition: max-height 220ms ease, opacity 220ms ease, margin-top 220ms ease;
@@ -837,7 +848,7 @@
         .photo-overlay-backdrop {
             position: absolute;
             inset: 0;
-            background: rgba(36, 33, 31, 0.72);
+            background: var(--overlay-backdrop);
             border: none;
             cursor: pointer;
         }
@@ -934,14 +945,14 @@
             padding: 0;
             border: none;
             border-radius: 0;
-            background: color-mix(in srgb, var(--paper) 34%, transparent);
+            background: color-mix(in srgb, var(--overlay-ink) 34%, transparent);
             cursor: pointer;
             transition: background-color 180ms ease, opacity 180ms ease, transform 180ms ease;
         }
 
         .photo-overlay-dot:hover,
         .photo-overlay-dot:focus-visible {
-            background: color-mix(in srgb, var(--paper) 58%, transparent);
+            background: color-mix(in srgb, var(--overlay-ink) 58%, transparent);
         }
 
         .photo-overlay-dot.is-active {
@@ -952,7 +963,7 @@
         .photo-overlay-btn {
             border: none;
             background: none;
-            color: color-mix(in srgb, var(--paper) 72%, transparent);
+            color: color-mix(in srgb, var(--overlay-ink) 72%, transparent);
             line-height: 0;
             padding: 7px 10px;
             cursor: pointer;
@@ -961,7 +972,7 @@
 
         .photo-overlay-btn:hover,
         .photo-overlay-btn:focus-visible {
-            color: var(--paper);
+            color: var(--overlay-ink);
         }
 
         .photo-overlay-btn:disabled {
@@ -971,7 +982,7 @@
 
         .photo-overlay-btn:disabled:hover,
         .photo-overlay-btn:disabled:focus-visible {
-            color: color-mix(in srgb, var(--paper) 72%, transparent);
+            color: color-mix(in srgb, var(--overlay-ink) 72%, transparent);
         }
 
         .photo-overlay-icon {
@@ -1029,7 +1040,7 @@
             overflow-wrap: anywhere;
             text-shadow:
                 0 -1px 0 color-mix(in srgb, var(--hover) 10%, transparent),
-                0 1px 0 color-mix(in srgb, var(--paper) 82%, white);
+                0 1px 0 color-mix(in srgb, var(--paper) 82%, var(--paper-highlight));
         }
 
         @media (max-width: 600px) {
