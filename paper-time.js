@@ -11,14 +11,14 @@
             [24, "#eee9e1"]
         ],
         dark: [
-            [0, "#211b1a"],
-            [5, "#28201f"],
-            [8, "#2d2421"],
-            [12, "#332a25"],
-            [16, "#31261f"],
-            [18.5, "#2d211d"],
-            [20.5, "#271c1c"],
-            [24, "#211b1a"]
+            [0, "#514341"],
+            [5, "#5c4a47"],
+            [8, "#645149"],
+            [12, "#6b584e"],
+            [16, "#675046"],
+            [18.5, "#60473f"],
+            [20.5, "#58413f"],
+            [24, "#514341"]
         ]
     };
 
@@ -40,20 +40,20 @@
             "--stain-filter": "none"
         },
         dark: {
-            "--ink": "#eee7dc",
-            "--hover": "#c6797d",
-            "--line": "rgba(198, 121, 125, 0.28)",
-            "--muted": "rgba(238, 231, 220, 0.60)",
-            "--overlay-ink": "#eee7dc",
+            "--ink": "#f3eadf",
+            "--hover": "#d98e92",
+            "--line": "rgba(217, 142, 146, 0.32)",
+            "--muted": "rgba(243, 234, 223, 0.65)",
+            "--overlay-ink": "#f3eadf",
             "--overlay-backdrop": "rgba(12, 10, 9, 0.82)",
-            "--paper-frame-base": "#6b5548",
+            "--paper-frame-base": "#9a7868",
             "--paper-frame-share": "82%",
-            "--paper-highlight": "#55463f",
+            "--paper-highlight": "#8a7165",
             "--toggle-mix-target": "var(--ink)",
-            "--stain-blend": "screen",
-            "--stain-opacity": "0.18",
-            "--stain-right-opacity": "0.16",
-            "--stain-filter": "saturate(0.62) brightness(0.82)"
+            "--stain-blend": "normal",
+            "--stain-opacity": "0.32",
+            "--stain-right-opacity": "0.28",
+            "--stain-filter": "none"
         }
     };
 
