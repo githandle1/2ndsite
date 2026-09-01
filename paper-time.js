@@ -50,10 +50,10 @@
             "--paper-frame-share": "82%",
             "--paper-highlight": "#8a7165",
             "--toggle-mix-target": "var(--ink)",
-            "--stain-blend": "normal",
-            "--stain-opacity": "0.32",
-            "--stain-right-opacity": "0.28",
-            "--stain-filter": "none"
+            "--stain-blend": "screen",
+            "--stain-opacity": "0.24",
+            "--stain-right-opacity": "0.22",
+            "--stain-filter": "saturate(1.25) brightness(0.74)"
         }
     };
 
