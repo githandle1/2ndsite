@@ -1,5 +1,9 @@
 [
   {
+    "title": "where mathematics comes from",
+    "url": "https://pages.ucsd.edu/~rnunez/COGS252_Readings/Preface_Intro.PDF"
+  },
+  {
     "title": "high-level perception, representation, and analogy",
     "url": "https://consc.net/papers/highlevel.pdf",
     "publication": "journal of experimental and theoretical artificial intelligence",
@@ -22,22 +26,10 @@
     "url": "https://hci.stanford.edu/courses/cs376/private/readings/geertz_thick_description.pdf"
   },
   {
-    "title": "ai=b+",
-    "url": "https://www.publicbooks.org/aib/",
-    "publication": "public books",
-    "author": "ben parker"
-  },
-  {
     "title": "a twist of the kaleidoscope",
     "url": "https://thepointmag.com/criticism/a-twist-of-the-kaleidoscope/",
     "publication": "the point",
     "author": "kasia bartoszyńska"
-  },
-  {
-    "title": "the stanford literary lab’s narrative",
-    "url": "https://www.publicbooks.org/the-stanford-literary-labs-narrative/",
-    "publication": "public books",
-    "author": "ted underwood"
   },
   {
     "title": "generative ai at work",
@@ -58,34 +50,10 @@
     "author": "amos tversky & daniel kahneman"
   },
   {
-    "title": "conditions for intuitive expertise: a failure to disagree",
-    "url": "https://pubmed.ncbi.nlm.nih.gov/19739881/",
-    "publication": "american psychologist",
-    "author": "daniel kahneman & gary klein"
-  },
-  {
-    "title": "decision theory",
-    "url": "https://plato.stanford.edu/entries/decision-theory/",
-    "publication": "encyclopedia of philosophy",
-    "author": "stanford"
-  },
-  {
     "title": "prospect theory: an analysis of decision under risk",
     "url": "https://gwern.net/doc/psychology/cognitive-bias/1979-kahneman.pdf",
     "publication": "econometrica",
     "author": "daniel kahneman & amos tversky"
-  },
-  {
-    "title": "causal decision theory",
-    "url": "https://plato.stanford.edu/entries/decision-causal/",
-    "publication": "encyclopedia of philosophy",
-    "author": "stanford"
-  },
-  {
-    "title": "the use of knowledge in society",
-    "url": "https://www.econlib.org/library/Essays/hykKnw.html",
-    "publication": "the american economic review",
-    "author": "f. a. hayek"
   },
   {
     "title": "a behavioral model of rational choice",
@@ -215,12 +183,6 @@
     "author": "kathryn bonney, cory l. breaux, emin dinlersoz, lucia s. foster, john c. haltiwanger & aditya a. pande"
   },
   {
-    "title": "your body is an archive",
-    "url": "https://aeon.co/essays/how-do-we-transmit-culture-when-it-cannot-be-put-into-words",
-    "publication": "aeon",
-    "author": "helena miton"
-  },
-  {
     "title": "anthropology in the 20th century and beyond",
     "url": "https://anthrosource.onlinelibrary.wiley.com/doi/abs/10.1525/aa.2002.104.2.423",
     "publication": "american anthropologist",
@@ -249,9 +211,5 @@
     "url": "https://aeon.co/essays/what-does-anthropology-say-about-the-emotional-lives-of-others",
     "publication": "aeon",
     "author": "andrew beatty"
-  },
-  {
-    "title": "where mathematics comes from",
-    "url": "https://pages.ucsd.edu/~rnunez/COGS252_Readings/Preface_Intro.PDF"
   }
 ]

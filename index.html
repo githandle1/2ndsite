@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Maya's filing cabinet: photos and personal notes.">
+    <script src="paper-time.js?v=4"></script>
     <title>maya bakir</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,10 +19,21 @@
         :root {
             color-scheme: light;
             --paper: #faf9f6;
+            --paper-frame-base: #ded8cf;
+            --paper-frame-share: 70%;
+            --paper-frame: color-mix(in srgb, var(--paper) var(--paper-frame-share), var(--paper-frame-base));
             --ink: #24211f;
             --hover: #8b2f32;
             --line: rgba(139, 47, 50, 0.2);
             --muted: rgba(36, 33, 31, 0.58);
+            --overlay-ink: var(--paper);
+            --overlay-backdrop: rgba(36, 33, 31, 0.72);
+            --paper-highlight: white;
+            --toggle-mix-target: white;
+            --stain-blend: multiply;
+            --stain-opacity: 0.47;
+            --stain-right-opacity: 0.40;
+            --stain-filter: none;
             --photo-reveal-duration: 780ms;
             --photo-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
             --photo-frame-margin: 36px;
@@ -53,6 +65,7 @@
         .photo-caption,
         .places-map,
         .snaps-footer,
+        .local-date,
         .bookmark-list,
         .bookmark-more-toggle,
         .bookmark-blurb {
@@ -86,8 +99,9 @@
             position: absolute;
             display: block;
             background: url("stains/fingerprint.png") no-repeat center / contain;
-            mix-blend-mode: multiply;
-            opacity: 0.47;
+            mix-blend-mode: var(--stain-blend);
+            filter: var(--stain-filter);
+            opacity: var(--stain-opacity);
         }
 
         .paper-stain--right {
@@ -96,7 +110,7 @@
             width: min(46vw, 500px);
             height: min(54vw, 580px);
             transform: translateY(-50%) rotate(14deg) scaleX(-1);
-            opacity: 0.40;
+            opacity: var(--stain-right-opacity);
         }
 
         main {
@@ -109,8 +123,8 @@
             --heading-gap: 26px;
             --list-size: 15px;
             --list-line-height: 1.65;
-            --toggle-tone-a: color-mix(in srgb, var(--hover) 58%, white);
-            --toggle-tone-b: color-mix(in srgb, var(--hover) 68%, white);
+            --toggle-tone-a: color-mix(in srgb, var(--hover) 58%, var(--toggle-mix-target));
+            --toggle-tone-b: color-mix(in srgb, var(--hover) 68%, var(--toggle-mix-target));
             --toggle-tone-c: color-mix(in srgb, var(--hover) 78%, var(--hover));
             --toggle-tone-d: color-mix(in srgb, var(--hover) 88%, var(--ink));
             --toggle-mark-size: 0.9em;
@@ -413,7 +427,7 @@
 
         .bookmark-blurb {
             margin: 0 0 14px;
-            color: rgba(36, 33, 31, 0.8);
+            color: color-mix(in srgb, var(--ink) 80%, transparent);
             font-size: var(--list-size);
             line-height: var(--list-line-height);
         }
@@ -577,7 +591,7 @@
 
         .places-trace {
             fill: none;
-            stroke: rgba(36, 33, 31, 0.14);
+            stroke: color-mix(in srgb, var(--ink) 14%, transparent);
             stroke-width: 0.85;
             stroke-linecap: round;
             stroke-linejoin: round;
@@ -585,7 +599,7 @@
         }
 
         .places-trace--crossing {
-            stroke: rgba(36, 33, 31, 0.08);
+            stroke: color-mix(in srgb, var(--ink) 8%, transparent);
             stroke-dasharray: 4 7;
         }
 
@@ -673,9 +687,9 @@
             place-items: center;
             aspect-ratio: 1;
             width: 100%;
-            background: #f1eee8;
+            background: var(--paper-frame);
             border: none;
-            color: rgba(36, 33, 31, 0.48);
+            color: color-mix(in srgb, var(--ink) 48%, transparent);
             font-size: 0.65rem;
             overflow: hidden;
         }
@@ -697,7 +711,7 @@
         .photo-slot.photo-thumb:focus-visible,
         .photo-slot.photo-thumb:active {
             outline: none;
-            background: #f1eee8;
+            background: var(--paper-frame);
         }
 
         .photo-slot img {
@@ -777,7 +791,7 @@
             font-size: 0.58rem;
             line-height: 1.35;
             text-align: right;
-            color: rgba(36, 33, 31, 0.62);
+            color: color-mix(in srgb, var(--ink) 62%, transparent);
             overflow-wrap: anywhere;
             word-break: break-word;
             transition: max-height 220ms ease, opacity 220ms ease, margin-top 220ms ease;
@@ -834,7 +848,7 @@
         .photo-overlay-backdrop {
             position: absolute;
             inset: 0;
-            background: rgba(36, 33, 31, 0.72);
+            background: var(--overlay-backdrop);
             border: none;
             cursor: pointer;
         }
@@ -931,14 +945,14 @@
             padding: 0;
             border: none;
             border-radius: 0;
-            background: rgba(250, 249, 246, 0.34);
+            background: color-mix(in srgb, var(--overlay-ink) 34%, transparent);
             cursor: pointer;
             transition: background-color 180ms ease, opacity 180ms ease, transform 180ms ease;
         }
 
         .photo-overlay-dot:hover,
         .photo-overlay-dot:focus-visible {
-            background: rgba(250, 249, 246, 0.58);
+            background: color-mix(in srgb, var(--overlay-ink) 58%, transparent);
         }
 
         .photo-overlay-dot.is-active {
@@ -949,7 +963,7 @@
         .photo-overlay-btn {
             border: none;
             background: none;
-            color: rgba(250, 249, 246, 0.72);
+            color: color-mix(in srgb, var(--overlay-ink) 72%, transparent);
             line-height: 0;
             padding: 7px 10px;
             cursor: pointer;
@@ -958,7 +972,7 @@
 
         .photo-overlay-btn:hover,
         .photo-overlay-btn:focus-visible {
-            color: var(--paper);
+            color: var(--overlay-ink);
         }
 
         .photo-overlay-btn:disabled {
@@ -968,7 +982,7 @@
 
         .photo-overlay-btn:disabled:hover,
         .photo-overlay-btn:disabled:focus-visible {
-            color: rgba(250, 249, 246, 0.72);
+            color: color-mix(in srgb, var(--overlay-ink) 72%, transparent);
         }
 
         .photo-overlay-icon {
@@ -1012,6 +1026,21 @@
             font-variant-emoji: text;
             line-height: 1;
             vertical-align: baseline;
+        }
+
+        .local-date {
+            position: relative;
+            z-index: 1;
+            width: min(100% - 48px, 720px);
+            margin: -64px auto max(24px, env(safe-area-inset-bottom, 0px));
+            color: color-mix(in srgb, var(--hover) 58%, var(--paper));
+            font-size: 0.72rem;
+            line-height: 1.4;
+            text-align: right;
+            overflow-wrap: anywhere;
+            text-shadow:
+                0 -1px 0 color-mix(in srgb, var(--hover) 10%, transparent),
+                0 1px 0 color-mix(in srgb, var(--paper) 82%, var(--paper-highlight));
         }
 
         @media (max-width: 600px) {
@@ -1088,6 +1117,11 @@
                 max-height: 250px;
                 transform: rotate(10deg) scaleX(-1);
                 opacity: 0.32;
+            }
+
+            .local-date {
+                width: min(calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), 720px);
+                margin-top: -48px;
             }
         }
     </style>
@@ -1180,6 +1214,10 @@
 
         <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
     </main>
+
+    <footer class="local-date" aria-label="Your local date and time">
+        <time id="local-date-stamp"></time>
+    </footer>
 
     <div class="photo-overlay" id="photo-overlay" hidden aria-hidden="true">
         <button type="button" class="photo-overlay-backdrop" aria-label="Close photo preview"></button>
@@ -3079,6 +3117,29 @@
                 renderBookmarks(bookmarks, readings);
             }
         });
+
+        const localDateStamp = document.getElementById('local-date-stamp');
+        const localDateFormatter = new Intl.DateTimeFormat('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        const localTimeFormatter = new Intl.DateTimeFormat('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true,
+            timeZoneName: 'short'
+        });
+
+        function updateLocalDate() {
+            const now = new Date();
+            localDateStamp.dateTime = now.toISOString();
+            localDateStamp.textContent = `${localDateFormatter.format(now)} · ${localTimeFormatter.format(now)}`.toLowerCase();
+        }
+
+        updateLocalDate();
+        window.setInterval(updateLocalDate, 1000);
     </script>
 </body>
 </html> 
