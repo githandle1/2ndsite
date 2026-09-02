@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    { "source": "/compositions", "destination": "/compositions/", "permanent": false }
+  ],
+  "functions": {
+    "api/generate.mjs": {
+      "maxDuration": 60
+    }
+  }
+}

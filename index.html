@@ -1020,6 +1020,13 @@
             margin-top: var(--block-gap);
         }
 
+        .cabinet-files {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
         .sketchbook-link {
             display: inline-block;
             flex: 0 1 auto;
@@ -1224,7 +1231,10 @@
         </section>
 
         <footer class="cabinet-footer">
-            <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
+            <div class="cabinet-files">
+                <a class="sketchbook-link phrase" href="/compositions/">compositions <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
+                <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
+            </div>
             <p class="local-date" aria-label="Your local date and time">
                 <time id="local-date-stamp"></time>
             </p>

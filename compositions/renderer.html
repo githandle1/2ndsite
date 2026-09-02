@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>renderer</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: #f3eee4;
+        overflow: hidden;
+      }
+      canvas {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="p5_loading" style="display: none"></div>
+    <script src="vendor/p5.min.js"></script>
+    <script src="vendor/p5.brush.js"></script>
+    <script src="renderer.js?v=10"></script>
+    <script type="module" src="brush-effects.js?v=27"></script>
+  </body>
+</html>
