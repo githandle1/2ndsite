@@ -1050,7 +1050,7 @@
             position: relative;
             z-index: 1;
             display: inline-flex;
-            align-items: center;
+            align-items: baseline;
             justify-content: flex-end;
             gap: 0.45em;
             flex: 1 1 auto;
@@ -1084,6 +1084,7 @@
                 0 0 0 1px color-mix(in srgb, var(--paper) 72%, transparent),
                 0 0 0.35rem color-mix(in srgb, var(--day-dot) 42%, transparent);
             cursor: pointer;
+            transform: translateY(0.08em);
             transition: background-color 700ms ease, box-shadow 700ms ease, transform 160ms ease;
         }
 
@@ -1095,7 +1096,7 @@
 
         .daylight-dot:hover,
         .daylight-dot:focus-visible {
-            transform: scale(1.16);
+            transform: translateY(0.08em) scale(1.16);
         }
 
         .daylight-picker {
