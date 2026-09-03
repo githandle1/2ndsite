@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=57" />
+    <link rel="stylesheet" href="styles.css?v=66" />
   </head>
   <body>
     <main class="studio">
@@ -195,14 +195,13 @@
       </aside>
 
       <section class="wall" id="wall" aria-live="polite">
-        <div class="empty" id="empty">
-          <p>four sheets of paper are waiting.</p>
-          <p>try a sample, or describe something you want painted.</p>
+        <div class="empty" id="empty" aria-hidden="true">
+          <canvas id="emptyPaint" width="32" height="32"></canvas>
         </div>
       </section>
     </main>
 
     <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=38"></iframe>
-    <script type="module" src="app.js?v=46"></script>
+    <script type="module" src="app.js?v=58"></script>
   </body>
 </html>

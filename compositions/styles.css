@@ -208,6 +208,9 @@ select {
   max-height: 9.6em;
   line-height: 1.5;
   border-radius: 12px;
+  /* pull the box left by its own padding so the text lines up with the sample chips */
+  padding-left: 11px;
+  margin-left: -11px;
 }
 
 #scene::-webkit-resizer {
@@ -278,7 +281,7 @@ select:focus-visible {
   width: 28px;
   height: 28px;
   border-radius: var(--radius);
-  background: var(--wash);
+  background: transparent;
   color: var(--ink);
   cursor: pointer;
 }
@@ -305,7 +308,6 @@ select:focus-visible {
 .upload:focus-visible,
 .upload.active {
   color: var(--hover);
-  background: var(--wash-hover);
 }
 
 .tools {
@@ -342,7 +344,7 @@ select:focus-visible {
   height: 28px;
   padding: 0;
   border-radius: var(--radius);
-  background: var(--wash);
+  background: transparent;
   color: var(--ink);
 }
 
@@ -373,7 +375,6 @@ select:focus-visible {
 .paint:hover,
 .paint:focus-visible {
   color: var(--hover);
-  background: var(--wash-hover);
 }
 
 .reset:hover,
@@ -534,37 +535,13 @@ select:focus-visible {
 .stick {
   position: relative;
   flex: 0 0 auto;
-  width: 88px;
-  height: 88px;
+  width: 64px;
+  height: 64px;
   border: 1px solid var(--line);
   border-radius: 50%;
   background: var(--paper);
   cursor: grab;
   touch-action: none;
-}
-
-.stick::before,
-.stick::after {
-  content: "";
-  position: absolute;
-  background: var(--line);
-  pointer-events: none;
-}
-
-.stick::before {
-  top: 50%;
-  left: 14px;
-  right: 14px;
-  height: 1px;
-  transform: translateY(-0.5px);
-}
-
-.stick::after {
-  left: 50%;
-  top: 14px;
-  bottom: 14px;
-  width: 1px;
-  transform: translateX(-0.5px);
 }
 
 .stick:focus-visible {
@@ -580,9 +557,9 @@ select:focus-visible {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 16px;
-  height: 16px;
-  margin: -8px 0 0 -8px;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
   border: 1px solid var(--hover);
   border-radius: 50%;
   background: var(--paper);
@@ -829,21 +806,26 @@ select:focus-visible {
   max-height: calc(100vh - 36px);
 }
 
+.wall:has(.empty) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 36px);
+}
+
 .empty {
-  max-width: 26rem;
-  color: var(--muted);
-  font-family: var(--serif);
-  font-size: 15px;
-  line-height: 1.6;
-  letter-spacing: 0;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
 }
 
-.empty p {
-  margin: 0;
-}
-
-.empty p + p {
-  margin-top: var(--space);
+#emptyPaint {
+  display: block;
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .grid {
@@ -1033,10 +1015,6 @@ select:focus-visible {
   .grid {
     grid-template-columns: 1fr;
     gap: 16px;
-  }
-
-  .empty {
-    font-size: 14px;
   }
 }
 

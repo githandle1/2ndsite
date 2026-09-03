@@ -1,6 +1,7 @@
 import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=14";
 import { parseColor, oklchToHex } from "./color.js";
 import { mountColorDial } from "./color-dial.js?v=7";
+import { startEmptyPaint } from "./empty-paint.js?v=11";
 
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
@@ -332,7 +333,7 @@ function mountStick(xInput, yInput) {
   thumb.className = "stick-thumb";
   well.append(thumb);
 
-  const reach = 32;
+  const reach = 22;
 
   function syncThumb() {
     const x = Number(xInput.value) / 100;
@@ -549,6 +550,21 @@ async function loadSamples() {
   }
 }
 
+const VIBES = [
+  ["Close", "held close"],
+  ["Loose", "loose"],
+  ["Wide", "airy"],
+  ["Tight", "gathered"],
+  ["Cropped", "spilling over"],
+  ["Quiet", "quiet"],
+];
+
+function vibeCaption(item, index) {
+  const match = VIBES.find(([prefix]) => String(item.variant || "").startsWith(prefix));
+  if (match) return match[1];
+  return VIBES[index % VIBES.length][1];
+}
+
 function clearWall() {
   paintQueue.length = 0;
   paintingNow = false;
@@ -576,7 +592,7 @@ function renderGrid(items) {
       <div class="caption">
         <span>${item.source === "sample" ? "sample" : item.source === "photo" ? "wash" : "sketch"} ${index + 1}</span>
         <span class="caption-meta">
-          <span>seed ${item.seed}</span>
+          <span>${vibeCaption(item, index)}</span>
           <button type="button" class="save" data-id="${item.id}" aria-label="save png" title="save" disabled>
             <svg viewBox="0 0 16 16" aria-hidden="true">
               <path d="M8 2.4v8.2" fill="none" stroke="currentColor" stroke-width="1.5" />
@@ -810,3 +826,4 @@ loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
 fitPaintKit();
 sizeScene();
+startEmptyPaint(document.querySelector("#emptyPaint"));
