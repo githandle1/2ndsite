@@ -1,8 +1,6 @@
 import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=14";
 import { parseColor, oklchToHex } from "./color.js";
 import { mountColorDial } from "./color-dial.js?v=7";
-import { startEmptyPaint } from "./empty-paint.js?v=11";
-
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
 const sceneCaption = document.querySelector("#sceneCaption");
@@ -11,12 +9,10 @@ const sceneCaptionText = document.querySelector("#sceneCaptionText");
 const countEl = document.querySelector("#count");
 const paintEl = document.querySelector("#paint");
 const wallEl = document.querySelector("#wall");
-const emptyEl = document.querySelector("#empty");
 const samplesEl = document.querySelector("#samples");
 const photoEl = document.querySelector("#photo");
 const photoChip = document.querySelector("#photoChip");
 const paintKit = document.querySelector("#paintKit");
-const codeEl = document.querySelector("#code");
 const rerenderEl = document.querySelector("#rerender");
 const downloadEl = document.querySelector("#download");
 const providerEl = document.querySelector("#provider");
@@ -527,7 +523,13 @@ async function loadSamples() {
   const data = await res.json();
   samples = data.samples || [];
   samplesEl.innerHTML = "";
-  for (const sample of samples) {
+  samples.forEach((sample, index) => {
+    if (index === 2) {
+      const br = document.createElement("span");
+      br.className = "chips-break";
+      br.setAttribute("aria-hidden", "true");
+      samplesEl.append(br);
+    }
     const button = document.createElement("button");
     button.type = "button";
     button.className = "chip";
@@ -547,7 +549,7 @@ async function loadSamples() {
       generate({ sampleId: sample.id, scene: sample.prompt });
     });
     samplesEl.append(button);
-  }
+  });
 }
 
 const VIBES = [
@@ -574,7 +576,6 @@ function clearWall() {
 }
 
 function renderGrid(items) {
-  emptyEl?.remove();
   clearWall();
   const grid = document.createElement("div");
   grid.className = "grid";
@@ -587,6 +588,7 @@ function renderGrid(items) {
     sheet.tabIndex = 0;
     sheet.innerHTML = `
       <div class="frame">
+        <button type="button" class="pick" data-id="${item.id}" aria-label="export training json" title="export for tinker" aria-pressed="false"${item.code ? "" : " disabled"}></button>
         <div class="veil">pigment settling…</div>
       </div>
       <div class="caption">
@@ -604,11 +606,11 @@ function renderGrid(items) {
       </div>
     `;
     sheet.addEventListener("click", (event) => {
-      if (event.target.closest(".save")) return;
+      if (event.target.closest(".save, .pick")) return;
       selectPainting(item.id);
     });
     sheet.addEventListener("keydown", (event) => {
-      if (event.target.closest(".save")) return;
+      if (event.target.closest(".save, .pick")) return;
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         selectPainting(item.id);
@@ -617,6 +619,10 @@ function renderGrid(items) {
     sheet.querySelector(".save").addEventListener("click", (event) => {
       event.stopPropagation();
       downloadPainting(item.id);
+    });
+    sheet.querySelector(".pick").addEventListener("click", (event) => {
+      event.stopPropagation();
+      exportTraining(item.id);
     });
     grid.append(sheet);
     cards.set(item.id, { item, sheet, dataUrl: null });
@@ -642,7 +648,7 @@ function drainQueue() {
     const ready = [...cards.values()].filter((rec) => rec.dataUrl).length;
     if (ready) {
       const photo = [...cards.values()].some((rec) => rec.item.photo);
-      setStatus(photo ? `${ready} washes ready.` : `${ready} sketches ready. click one to edit the code.`);
+      setStatus(photo ? `${ready} washes ready.` : `${ready} sketches ready.`);
     }
     flushEffects();
     return;
@@ -723,15 +729,9 @@ function onFrameMessage(event) {
 
 function selectPainting(id) {
   selectedId = id;
-  const painting = paintings.find((item) => item.id === id);
   for (const sheet of wallEl.querySelectorAll(".sheet")) {
     sheet.classList.toggle("active", sheet.dataset.id === id);
   }
-  if (!painting?.code || painting.photo) {
-    if (codeEl) codeEl.value = "";
-    return;
-  }
-  if (codeEl) codeEl.value = painting.code;
 }
 
 async function generate({ scene, sampleId } = {}) {
@@ -778,13 +778,48 @@ paintEl.addEventListener("click", () => {
 rerenderEl?.addEventListener("click", (event) => {
   event.preventDefault();
   event.stopPropagation();
-  const rec = cards.get(selectedId);
-  if (!rec) return;
-  rec.item.code = codeEl.value;
-  const painting = paintings.find((item) => item.id === selectedId);
-  if (painting) painting.code = codeEl.value;
+  if (!selectedId) return;
   queuePaint(selectedId, { replace: true });
 });
+
+function trainingExample(item) {
+  return {
+    messages: [
+      { role: "system", content: item.system || "" },
+      { role: "user", content: item.user || `Scene: ${item.prompt || ""}` },
+      { role: "assistant", content: item.code || "" },
+    ],
+    metadata: {
+      id: item.id,
+      scene: item.prompt || "",
+      seed: item.seed,
+      variant: item.variant || "",
+      source: item.source || "",
+      effects: item.effects || readEffects(),
+    },
+  };
+}
+
+function exportTraining(id) {
+  const rec = cards.get(id);
+  if (!rec?.item?.code) {
+    setStatus("nothing to train on yet.");
+    return;
+  }
+  const slug = String(rec.item.prompt || "wash")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40) || "wash";
+  const blob = new Blob([`${JSON.stringify(trainingExample(rec.item), null, 2)}\n`], {
+    type: "application/json",
+  });
+  downloadBlob(blob, `tinker-${slug}-${rec.item.seed}.json`);
+  const pick = rec.sheet.querySelector(".pick");
+  pick?.classList.add("picked");
+  pick?.setAttribute("aria-pressed", "true");
+  setStatus("saved training json.");
+}
 
 function downloadBlob(blob, name) {
   const url = URL.createObjectURL(blob);
@@ -822,8 +857,13 @@ if (renderer.contentDocument?.readyState === "complete") {
   rendererReady = true;
 }
 
+const masthead = document.querySelector(".masthead");
+masthead?.addEventListener("click", (event) => {
+  if (event.target.closest("a")) return;
+  masthead.classList.toggle("is-open");
+});
+
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
 fitPaintKit();
 sizeScene();
-startEmptyPaint(document.querySelector("#emptyPaint"));

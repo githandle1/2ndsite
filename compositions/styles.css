@@ -67,20 +67,76 @@ body {
   pointer-events: none;
 }
 
-.brand {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
+.masthead {
+  position: relative;
+  z-index: 8;
+  width: 100%;
 }
 
 h1 {
+  position: relative;
+  z-index: 2;
   margin: 0;
   font-family: var(--serif);
   font-size: 1.7rem;
   font-weight: 400;
   line-height: 1.15;
   letter-spacing: 0;
+  color: var(--hover);
+  cursor: default;
+}
+
+.about-label {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.about-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--paper) 92%, #fff);
+  box-shadow:
+    0 0 0 1px rgba(36, 33, 31, 0.045),
+    0 10px 24px rgba(36, 33, 31, 0.06);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.masthead:hover .about-menu,
+.masthead:focus-within .about-menu,
+.masthead.is-open .about-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.about-menu p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.about-menu a {
+  color: inherit;
+  overflow-wrap: anywhere;
+  text-underline-offset: 2px;
+}
+
+.about-menu a:hover,
+.about-menu a:focus-visible {
+  color: var(--hover);
 }
 
 .desk {
@@ -178,7 +234,6 @@ button {
 }
 
 #scene,
-#code,
 #apiKey,
 select {
   width: 100%;
@@ -225,7 +280,6 @@ select {
 }
 
 #scene:focus-visible,
-#code:focus-visible,
 #apiKey:focus-visible,
 select:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--hover) 45%, transparent);
@@ -245,27 +299,32 @@ select:focus-visible {
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 10px;
+  gap: 6px 8px;
   margin: 0;
+}
+
+.chips-break {
+  flex: 1 0 100%;
+  height: 0;
 }
 
 .chip {
   border: 0;
-  background: transparent;
-  padding: 1px 0;
-  border-radius: 0;
+  background: color-mix(in srgb, var(--hover) 14%, var(--paper));
+  padding: 2px 8px;
+  border-radius: 999px;
   font-size: 13px;
   line-height: 1.35;
   color: var(--muted);
   cursor: pointer;
-  transition: color 160ms ease;
+  transition: color 160ms ease, background 160ms ease;
 }
 
 .chip:hover,
 .chip:focus-visible,
 .chip.active {
   color: var(--hover);
-  background: transparent;
+  background: color-mix(in srgb, var(--hover) 22%, var(--paper));
 }
 
 .chip:focus-visible {
@@ -489,8 +548,21 @@ select:focus-visible {
 }
 
 .pane > summary .reset,
-.pane > summary .code-actions {
+.pane > summary .code-actions,
+.sketch-bar-row .code-actions {
   margin-left: 0;
+}
+
+.sketch-bar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  color: var(--muted);
+}
+
+.sketch-bar-row span {
+  flex: 1;
 }
 
 .pane > summary:hover,
@@ -787,45 +859,11 @@ select:focus-visible {
   font-size: 13px;
 }
 
-#sketch #code {
-  min-height: 180px;
-  margin-top: 4px;
-  padding: 14px 16px;
-  border-radius: 10px;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 12px;
-  line-height: 1.55;
-  white-space: pre;
-  overflow: auto;
-  resize: vertical;
-}
-
 .wall {
   padding: 14px 12px 12px 10px;
   overflow: auto;
-  max-height: calc(100vh - 36px);
-}
-
-.wall:has(.empty) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: calc(100vh - 36px);
-}
-
-.empty {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-}
-
-#emptyPaint {
-  display: block;
-  width: 64px;
-  height: 64px;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  max-height: calc(100vh - 36px);
 }
 
 .grid {
@@ -854,6 +892,54 @@ select:focus-visible {
   overflow: hidden;
   background: var(--paper-2);
   box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.frame .pick {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1.25px solid color-mix(in srgb, var(--ink) 28%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--paper) 55%, transparent);
+  color: transparent;
+  cursor: pointer;
+}
+
+.frame .pick::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.frame .pick:hover,
+.frame .pick:focus-visible {
+  border-color: var(--hover);
+}
+
+.frame .pick:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--hover) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.frame .pick.picked {
+  border-color: var(--hover);
+}
+
+.frame .pick.picked::after {
+  background: var(--hover);
+}
+
+.frame .pick:disabled {
+  opacity: 0.28;
+  cursor: default;
 }
 
 .frame img {
@@ -899,37 +985,53 @@ select:focus-visible {
 @media (max-width: 720px) {
   html,
   body {
+    height: 100dvh;
+    max-height: 100dvh;
     min-height: 100dvh;
+    overflow: hidden;
   }
 
   .studio {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
+    width: 100%;
+    height: 100dvh;
     min-height: 100dvh;
-    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
-      max(16px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    max-height: 100dvh;
+    overflow: hidden;
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   }
 
   .desk {
     position: relative;
     top: auto;
-    flex: 0 0 auto;
-    max-height: none;
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: 0;
+    max-height: 56dvh;
     margin: 0;
-    padding: 14px 14px 12px;
-    gap: 12px;
+    padding: 12px 12px 10px;
+    gap: 10px;
     border-radius: 18px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   h1 {
     font-size: 1.3rem;
   }
 
+  .about-menu {
+    max-width: 100%;
+  }
+
   #scene {
     min-height: 2.6em;
     max-height: 6.4em;
     padding: 8px 12px;
+    margin-left: 0;
   }
 
   .sample-kit > summary {
@@ -1006,10 +1108,11 @@ select:focus-visible {
   }
 
   .wall {
-    flex: 1 1 auto;
-    min-height: 58dvh;
+    flex: 1 1 0;
+    min-height: 0;
     max-height: none;
-    padding: 10px 8px 12px;
+    padding: 8px 4px 4px;
+    -webkit-overflow-scrolling: touch;
   }
 
   .grid {

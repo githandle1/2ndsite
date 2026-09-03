@@ -10,15 +10,22 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=66" />
+    <link rel="stylesheet" href="styles.css?v=81" />
   </head>
   <body>
     <main class="studio">
       <aside class="desk">
-        <div class="brand">
+        <div class="masthead">
           <h1>compositions</h1>
+          <p class="about-label">what is this?</p>
+          <div class="about-menu">
+            <p>
+              this is a mini generative art experiment, inspired by this project on painting with code.
+              <a href="https://surya.website/rling-qwen-to-paint-with-code" target="_blank" rel="noopener noreferrer">https://surya.website/rling-qwen-to-paint-with-code</a>.
+            </p>
+            <p>to get started upload an image or select a preset scene below. click paint to adjust each image.</p>
+          </div>
         </div>
-
         <div class="stack">
           <div class="field">
             <span>scene</span>
@@ -164,16 +171,15 @@
               <div class="effect-groups" id="effectGroups"></div>
             </details>
 
-            <details class="pane" id="sketch">
-              <summary>
+            <div class="pane sketch-bar" id="sketch">
+              <div class="sketch-bar-row">
                 <span>sketch</span>
                 <div class="code-actions">
                   <button id="rerender" type="button">re-render</button>
                   <button id="download" type="button">png</button>
                 </div>
-              </summary>
-              <textarea id="code" spellcheck="false" placeholder="click a wash to see its sketch"></textarea>
-            </details>
+              </div>
+            </div>
 
             <details class="keys">
               <summary>api key</summary>
@@ -194,14 +200,10 @@
         </details>
       </aside>
 
-      <section class="wall" id="wall" aria-live="polite">
-        <div class="empty" id="empty" aria-hidden="true">
-          <canvas id="emptyPaint" width="32" height="32"></canvas>
-        </div>
-      </section>
+      <section class="wall" id="wall" aria-live="polite"></section>
     </main>
 
     <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=38"></iframe>
-    <script type="module" src="app.js?v=58"></script>
+    <script type="module" src="app.js?v=65"></script>
   </body>
 </html>
