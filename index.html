@@ -1017,18 +1017,17 @@
 
         .cabinet-footer {
             display: flex;
-            align-items: flex-end;
-            align-items: last baseline;
-            justify-content: space-between;
-            gap: 12px 24px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
             margin-top: var(--block-gap);
         }
 
-        .cabinet-files {
+        .cabinet-footer-row {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px 24px;
         }
 
         .sketchbook-link {
@@ -1215,9 +1214,8 @@
                 opacity: 0.32;
             }
 
-            .cabinet-footer {
+            .cabinet-footer-row {
                 flex-wrap: nowrap;
-                align-items: flex-end;
             }
 
             .local-date {
@@ -1313,11 +1311,10 @@
         </section>
 
         <footer class="cabinet-footer">
-            <div class="cabinet-files">
-                <a class="sketchbook-link phrase" href="/compositions/">compositions <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
+            <a class="sketchbook-link phrase" href="/compositions/">compositions <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
+            <div class="cabinet-footer-row">
                 <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
-            </div>
-            <p class="local-date" aria-label="Your local date and time">
+                <p class="local-date" aria-label="Your local date and time">
                 <span class="daylight-control" id="daylight-control">
                     <button
                         type="button"
@@ -1342,7 +1339,8 @@
                     </span>
                 </span>
                 <time id="local-date-stamp"></time>
-            </p>
+                </p>
+            </div>
         </footer>
     </main>
 
