@@ -1074,6 +1074,7 @@
         }
 
         .daylight-dot {
+            position: relative;
             width: 0.52rem;
             height: 0.52rem;
             padding: 0;
@@ -1085,6 +1086,12 @@
                 0 0 0.35rem color-mix(in srgb, var(--day-dot) 42%, transparent);
             cursor: pointer;
             transition: background-color 700ms ease, box-shadow 700ms ease, transform 160ms ease;
+        }
+
+        .daylight-dot::after {
+            content: "";
+            position: absolute;
+            inset: -0.45rem;
         }
 
         .daylight-dot:hover,
