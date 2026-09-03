@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Maya's filing cabinet: photos and personal notes.">
-    <script src="paper-time.js?v=4"></script>
+    <script src="paper-time.js?v=5"></script>
     <title>maya bakir</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,6 +34,7 @@
             --stain-opacity: 0.47;
             --stain-right-opacity: 0.40;
             --stain-filter: none;
+            --day-dot: #d8c46a;
             --photo-reveal-duration: 780ms;
             --photo-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
             --photo-frame-margin: 36px;
@@ -66,6 +67,8 @@
         .places-map,
         .snaps-footer,
         .local-date,
+        .daylight-dot,
+        .daylight-picker,
         .bookmark-list,
         .bookmark-more-toggle,
         .bookmark-blurb {
@@ -1014,7 +1017,8 @@
 
         .cabinet-footer {
             display: flex;
-            align-items: baseline;
+            align-items: flex-end;
+            align-items: last baseline;
             justify-content: space-between;
             gap: 12px 24px;
             margin-top: var(--block-gap);
@@ -1046,6 +1050,10 @@
         .local-date {
             position: relative;
             z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.45em;
             flex: 1 1 auto;
             margin: 0;
             color: color-mix(in srgb, var(--hover) 58%, var(--paper));
@@ -1056,6 +1064,72 @@
             text-shadow:
                 0 -1px 0 color-mix(in srgb, var(--hover) 10%, transparent),
                 0 1px 0 color-mix(in srgb, var(--paper) 82%, var(--paper-highlight));
+        }
+
+        .daylight-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35em;
+            flex: 0 0 auto;
+        }
+
+        .daylight-dot {
+            width: 0.52rem;
+            height: 0.52rem;
+            padding: 0;
+            border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+            border-radius: 50%;
+            background: var(--day-dot);
+            box-shadow:
+                0 0 0 1px color-mix(in srgb, var(--paper) 72%, transparent),
+                0 0 0.35rem color-mix(in srgb, var(--day-dot) 42%, transparent);
+            cursor: pointer;
+            transition: background-color 700ms ease, box-shadow 700ms ease, transform 160ms ease;
+        }
+
+        .daylight-dot:hover,
+        .daylight-dot:focus-visible {
+            transform: scale(1.16);
+        }
+
+        .daylight-picker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2em;
+        }
+
+        .daylight-picker[hidden] {
+            display: none;
+        }
+
+        .daylight-scheme {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.15rem;
+            height: 1.15rem;
+            padding: 0;
+            border: none;
+            background: none;
+            color: var(--muted);
+            cursor: pointer;
+            transition: color 180ms ease, transform 160ms ease;
+        }
+
+        .daylight-scheme:hover,
+        .daylight-scheme:focus-visible {
+            color: var(--hover);
+            transform: translateY(-1px);
+        }
+
+        .daylight-scheme[aria-pressed="true"] {
+            color: var(--hover);
+        }
+
+        .daylight-scheme svg {
+            display: block;
+            width: 0.86rem;
+            height: 0.86rem;
         }
 
         @media (max-width: 600px) {
@@ -1135,11 +1209,12 @@
             }
 
             .cabinet-footer {
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
+                align-items: flex-end;
             }
 
             .local-date {
-                min-width: min(100%, 16rem);
+                min-width: 0;
             }
         }
     </style>
@@ -1236,6 +1311,29 @@
                 <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
             </div>
             <p class="local-date" aria-label="Your local date and time">
+                <span class="daylight-control" id="daylight-control">
+                    <button
+                        type="button"
+                        class="daylight-dot"
+                        id="daylight-dot"
+                        aria-expanded="false"
+                        aria-controls="daylight-picker"
+                        aria-label="Change site lighting"
+                    ></button>
+                    <span class="daylight-picker" id="daylight-picker" hidden role="group" aria-label="Site lighting">
+                        <button type="button" class="daylight-scheme" data-scheme="light" aria-pressed="false" aria-label="Light mode">
+                            <svg viewBox="0 0 16 16" aria-hidden="true">
+                                <circle cx="8" cy="8" r="2.35" fill="none" stroke="currentColor" stroke-width="1.15"></circle>
+                                <path d="M8 2.15v1.35M8 12.5v1.35M2.15 8h1.35M12.5 8h1.35M3.85 3.85l.95.95M11.2 11.2l.95.95M3.85 12.15l.95-.95M11.2 4.8l.95-.95" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="daylight-scheme" data-scheme="dark" aria-pressed="false" aria-label="Dark mode">
+                            <svg viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M9.15 3.05a5.05 5.05 0 1 0 3.85 8.7 4.2 4.2 0 1 1-3.85-8.7z" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linejoin="round"></path>
+                            </svg>
+                        </button>
+                    </span>
+                </span>
                 <time id="local-date-stamp"></time>
             </p>
         </footer>

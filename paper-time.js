@@ -22,6 +22,17 @@
         ]
     };
 
+    const skyStops = [
+        [0, "#6f6a9a"],
+        [5, "#d08a78"],
+        [8, "#e0b06a"],
+        [12, "#d8c46a"],
+        [16, "#d49258"],
+        [18.5, "#c46e4a"],
+        [20.5, "#9a6a86"],
+        [24, "#6f6a9a"]
+    ];
+
     const themes = {
         light: {
             "--ink": "#24211f",
@@ -57,13 +68,15 @@
         }
     };
 
+    const STORAGE_KEY = "cabinet-scheme";
+
     const toRgb = (hex) => [
         Number.parseInt(hex.slice(1, 3), 16),
         Number.parseInt(hex.slice(3, 5), 16),
         Number.parseInt(hex.slice(5, 7), 16)
     ];
 
-    const paperAt = (palette, hour) => {
+    const colorAt = (palette, hour) => {
         const normalizedHour = ((hour % 24) + 24) % 24;
         const endIndex = palette.findIndex(([stop]) => stop >= normalizedHour);
         const [startHour, startHex] = palette[Math.max(0, endIndex - 1)];
@@ -83,9 +96,38 @@
     const requestedScheme = params.get("scheme");
     const preferredScheme = window.matchMedia("(prefers-color-scheme: dark)");
 
+    const readStoredScheme = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored === "light" || stored === "dark") {
+                return stored;
+            }
+        } catch {
+            // Private mode can block storage.
+        }
+
+        return null;
+    };
+
+    const writeStoredScheme = (scheme) => {
+        try {
+            if (scheme === "light" || scheme === "dark") {
+                localStorage.setItem(STORAGE_KEY, scheme);
+            } else {
+                localStorage.removeItem(STORAGE_KEY);
+            }
+        } catch {
+            // Ignore quota / privacy failures.
+        }
+    };
+
+    let chosenScheme = requestedScheme === "dark" || requestedScheme === "light"
+        ? requestedScheme
+        : readStoredScheme();
+
     const activeScheme = () => {
-        if (requestedScheme === "dark" || requestedScheme === "light") {
-            return requestedScheme;
+        if (chosenScheme === "dark" || chosenScheme === "light") {
+            return chosenScheme;
         }
 
         return preferredScheme.matches ? "dark" : "light";
@@ -100,16 +142,80 @@
         return now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
     };
 
+    const syncPicker = () => {
+        const scheme = activeScheme();
+
+        document.querySelectorAll("[data-scheme]").forEach((button) => {
+            button.setAttribute("aria-pressed", button.dataset.scheme === scheme ? "true" : "false");
+        });
+    };
+
     const updatePaper = () => {
         const root = document.documentElement;
         const scheme = activeScheme();
+        const hour = localHour();
 
         root.dataset.scheme = scheme;
         root.style.colorScheme = scheme;
-        root.style.setProperty("--paper", paperAt(palettes[scheme], localHour()));
+        root.style.setProperty("--paper", colorAt(palettes[scheme], hour));
+        root.style.setProperty("--day-dot", colorAt(skyStops, hour));
         Object.entries(themes[scheme]).forEach(([name, value]) => {
             root.style.setProperty(name, value);
         });
+        syncPicker();
+    };
+
+    const setScheme = (scheme) => {
+        if (scheme !== "light" && scheme !== "dark") {
+            return;
+        }
+
+        chosenScheme = scheme;
+        writeStoredScheme(scheme);
+        updatePaper();
+    };
+
+    const initDaylightControl = () => {
+        const control = document.getElementById("daylight-control");
+        const dot = document.getElementById("daylight-dot");
+        const picker = document.getElementById("daylight-picker");
+
+        if (!control || !dot || !picker) {
+            return;
+        }
+
+        const setOpen = (open) => {
+            control.classList.toggle("is-open", open);
+            picker.hidden = !open;
+            dot.setAttribute("aria-expanded", open ? "true" : "false");
+        };
+
+        dot.addEventListener("click", (event) => {
+            event.stopPropagation();
+            setOpen(picker.hidden);
+        });
+
+        picker.querySelectorAll("[data-scheme]").forEach((button) => {
+            button.addEventListener("click", (event) => {
+                event.stopPropagation();
+                setScheme(button.dataset.scheme);
+                setOpen(false);
+            });
+        });
+
+        document.addEventListener("click", (event) => {
+            if (!control.contains(event.target)) {
+                setOpen(false);
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                setOpen(false);
+            }
+        });
+
+        syncPicker();
     };
 
     updatePaper();
@@ -120,4 +226,16 @@
     } else if (typeof preferredScheme.addListener === "function") {
         preferredScheme.addListener(updatePaper);
     }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initDaylightControl);
+    } else {
+        initDaylightControl();
+    }
+
+    window.paperTime = {
+        setScheme,
+        getScheme: activeScheme,
+        updatePaper
+    };
 })();
