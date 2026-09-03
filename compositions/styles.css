@@ -18,7 +18,7 @@
   --control: 6.5rem;
   --control-sm: 3.2rem;
   --pad: 28px;
-  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ui: "Libre Baskerville", serif;
   --serif: "Libre Baskerville", serif;
 }
 
@@ -34,8 +34,8 @@ body {
   color: var(--ink);
   font-family: var(--ui);
   font-size: 14px;
-  line-height: 1.45;
-  letter-spacing: -0.011em;
+  line-height: 1.5;
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -48,8 +48,11 @@ body {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(280px, 340px) 1fr;
+  grid-template-columns: minmax(268px, 320px) 1fr;
+  gap: 20px;
+  align-items: start;
   min-height: 100vh;
+  padding: 18px 22px 18px 18px;
   background: var(--paper);
 }
 
@@ -80,33 +83,21 @@ h1 {
   letter-spacing: 0;
 }
 
-.cabinet {
-  font-size: 12px;
-  letter-spacing: 0;
-  color: var(--muted);
-  text-decoration: none;
-}
-
-.cabinet:hover,
-.cabinet:focus-visible {
-  color: var(--hover);
-}
-
-.cabinet:focus-visible {
-  outline: 1px solid var(--hover);
-  outline-offset: 2px;
-}
-
 .desk {
-  position: relative;
+  position: sticky;
+  top: 18px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: var(--pad);
-  border-right: 1px solid var(--line);
-  background: var(--paper);
+  gap: 20px;
+  max-height: calc(100vh - 36px);
+  padding: 22px 22px 24px;
+  border: 0;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--paper) 88%, #fff);
+  box-shadow:
+    0 0 0 1px rgba(36, 33, 31, 0.045),
+    0 18px 48px rgba(36, 33, 31, 0.07);
   overflow: auto;
-  max-height: 100vh;
 }
 
 .stack {
@@ -123,10 +114,59 @@ h1 {
   min-width: 0;
 }
 
-.field span {
+.field > span {
   font-size: 12px;
   letter-spacing: 0;
   color: var(--muted);
+}
+
+.scene-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scene-row #scene,
+.scene-caption {
+  flex: 1;
+  min-width: 0;
+}
+
+.scene-caption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+
+.scene-caption[hidden] {
+  display: none;
+}
+
+.scene-caption img {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--paper-2);
+}
+
+.scene-caption span {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-row.has-photo #scene {
+  display: none;
 }
 
 textarea,
@@ -142,21 +182,21 @@ button {
 #apiKey,
 select {
   width: 100%;
-  border: 0;
-  background: var(--fill);
-  border-radius: var(--field);
-  padding: 9px 11px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 9px 14px;
 }
 
 select {
-  height: 28px;
-  padding: 0 22px 0 10px;
+  height: 32px;
+  padding: 0 28px 0 14px;
   font-size: 13px;
   appearance: none;
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='none' stroke='%2324211f' stroke-opacity='0.45' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round' d='M1.2 1.2 5 4.8 8.8 1.2'/></svg>");
   background-repeat: no-repeat;
-  background-position: right 8px center;
+  background-position: right 12px center;
 }
 
 #scene {
@@ -164,9 +204,10 @@ select {
   overflow-x: hidden;
   overflow-y: auto;
   field-sizing: content;
-  min-height: 2.75em;
+  min-height: 3.2em;
   max-height: 9.6em;
-  line-height: 1.45;
+  line-height: 1.5;
+  border-radius: 12px;
 }
 
 #scene::-webkit-resizer {
@@ -174,10 +215,10 @@ select {
 }
 
 #count {
-  width: var(--control-sm);
-  height: 28px;
-  padding: 0 8px;
-  font-size: 13px;
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  height: 32px;
 }
 
 #scene:focus-visible,
@@ -186,6 +227,16 @@ select {
 select:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--hover) 45%, transparent);
   outline-offset: 1px;
+}
+
+.sample-kit {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sample-kit > summary {
+  display: none;
 }
 
 .chips {
@@ -219,15 +270,60 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
+.upload {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  background: var(--wash);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.upload svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.upload input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+
+.upload:hover,
+.upload:focus-visible,
+.upload.active {
+  color: var(--hover);
+  background: var(--wash-hover);
+}
+
 .tools {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .tools .slide {
   flex: 1;
-  --control: var(--control-sm);
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.tools .slide select {
+  flex: 1;
+  width: auto;
+  margin-left: 0;
 }
 
 .paint,
@@ -237,12 +333,25 @@ select:focus-visible {
   display: grid;
   place-items: center;
   border: 0;
-  background: var(--wash);
-  color: var(--ink);
   cursor: pointer;
 }
 
-.paint,
+.paint {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: var(--radius);
+  background: var(--wash);
+  color: var(--ink);
+}
+
+.paint svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
 .reset,
 .save {
   flex: 0 0 auto;
@@ -250,9 +359,10 @@ select:focus-visible {
   height: 28px;
   padding: 0;
   border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
 }
 
-.paint svg,
 .reset svg,
 .save svg {
   display: block;
@@ -261,7 +371,11 @@ select:focus-visible {
 }
 
 .paint:hover,
-.paint:focus-visible,
+.paint:focus-visible {
+  color: var(--hover);
+  background: var(--wash-hover);
+}
+
 .reset:hover,
 .reset:focus-visible,
 .save:hover,
@@ -269,7 +383,6 @@ select:focus-visible {
 .code-actions button:hover,
 .code-actions button:focus-visible {
   color: var(--hover);
-  background: var(--wash-hover);
 }
 
 .paint:focus-visible,
@@ -291,38 +404,99 @@ select:focus-visible {
 }
 
 .status {
-  flex: 1;
-  min-width: 0;
   margin: 0;
   color: var(--muted);
   font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .status:empty {
   display: none;
 }
 
-.brush,
-.placement,
-.effects,
-.keys,
-.code-panel {
+.paint-kit {
   margin: 0;
   padding-top: 14px;
   border-top: 1px solid var(--line);
 }
 
-.brush h2,
-.placement h2,
-.effects h2 {
-  margin: 0;
-  font-size: 12px;
+.paint-kit > summary,
+.pane > summary,
+.keys summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0;
+  color: var(--ink);
+}
+
+.paint-kit > summary::-webkit-details-marker,
+.pane > summary::-webkit-details-marker,
+.keys summary::-webkit-details-marker {
+  display: none;
+}
+
+.paint-kit > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+}
+
+.paint-kit > summary::after,
+.pane > summary::after,
+.keys > summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.45;
+}
+
+.paint-kit[open] > summary::after,
+.pane[open] > summary::after,
+.keys[open] > summary::after {
+  transform: rotate(-135deg);
+  margin-top: 4px;
+}
+
+.paint-kit-body {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+}
+
+.pane,
+.paint-kit-body > .keys {
+  margin: 0;
+  padding: 4px 0;
+  border-top: 1px solid var(--line);
+}
+
+.pane > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
   color: var(--muted);
+}
+
+.pane > summary span {
+  flex: 1;
+}
+
+.pane > summary .reset,
+.pane > summary .code-actions {
+  margin-left: 0;
+}
+
+.pane > summary:hover,
+.pane > summary:focus-visible,
+.paint-kit > summary:hover,
+.paint-kit > summary:focus-visible {
+  color: var(--hover);
 }
 
 .effects-head {
@@ -338,22 +512,115 @@ select:focus-visible {
 #placementControls {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+}
+
+.place-board {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.place-board .slide {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.place-board .slide input[type="range"] {
+  margin-left: 0;
+}
+
+.stick {
+  position: relative;
+  flex: 0 0 auto;
+  width: 88px;
+  height: 88px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  cursor: grab;
+  touch-action: none;
+}
+
+.stick::before,
+.stick::after {
+  content: "";
+  position: absolute;
+  background: var(--line);
+  pointer-events: none;
+}
+
+.stick::before {
+  top: 50%;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  transform: translateY(-0.5px);
+}
+
+.stick::after {
+  left: 50%;
+  top: 14px;
+  bottom: 14px;
+  width: 1px;
+  transform: translateX(-0.5px);
+}
+
+.stick:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--hover) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.stick.is-dragging {
+  cursor: grabbing;
+}
+
+.stick-thumb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 1px solid var(--hover);
+  border-radius: 50%;
+  background: var(--paper);
+  pointer-events: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#brushControls .slide:has(select),
+.slide:has(select) + .slide {
+  margin-top: 0;
 }
 
 #brushControls .slide:has(select) {
-  margin-bottom: 14px;
+  margin-bottom: 22px;
 }
 
-.effects-head .reset {
+.effects-head .reset,
+.pane > summary .reset {
   margin-left: auto;
 }
 
 .color-field {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
-  margin: 0 0 var(--space-2);
+  gap: 8px;
+  margin: 0 0 22px;
 }
 
 .color-field > span {
@@ -367,26 +634,29 @@ select:focus-visible {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: start;
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 8px;
   width: auto;
+  flex: 0 0 auto;
 }
 
 .dial canvas {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
   touch-action: none;
   cursor: pointer;
 }
 
 .dial input {
-  width: 5.8em;
-  height: 28px;
-  border: 0;
-  background: var(--fill);
-  border-radius: 8px;
-  padding: 0 8px;
+  flex: 0 0 auto;
+  width: 6.2em;
+  height: 32px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 0 10px;
   text-align: center;
   letter-spacing: 0.02em;
   font-size: 12px;
@@ -427,7 +697,8 @@ select:focus-visible {
 .slide {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 10px;
   margin: 0;
   min-height: 28px;
 }
@@ -448,7 +719,7 @@ select:focus-visible {
   width: var(--control);
   min-width: 0;
   height: 16px;
-  margin: 0;
+  margin: 0 0 0 auto;
   padding: 0;
   background: transparent;
   accent-color: var(--hover);
@@ -460,11 +731,12 @@ select:focus-visible {
 .slide select {
   flex: 0 0 var(--control);
   width: var(--control);
-  height: 28px;
-  padding: 0 22px 0 10px;
-  border: 0;
-  background-color: var(--fill);
-  border-radius: 8px;
+  margin: 0 0 0 auto;
+  height: 32px;
+  padding: 0 28px 0 12px;
+  border: 1px solid var(--line);
+  background-color: var(--paper);
+  border-radius: var(--radius);
   font-size: 13px;
 }
 
@@ -504,17 +776,17 @@ select:focus-visible {
   margin-top: var(--space-2);
 }
 
-.keys summary {
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0;
-  color: var(--muted);
+.paint-kit-body > .keys {
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
 }
 
-.keys summary:hover,
-.keys summary:focus-visible {
-  color: var(--hover);
+.paint-kit-body > .keys > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+  color: var(--muted);
 }
 
 .hint {
@@ -524,45 +796,37 @@ select:focus-visible {
   line-height: 1.45;
 }
 
-.code-panel[hidden] {
-  display: none;
-}
-
-.code-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0 0 var(--space);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0;
-  color: var(--muted);
-}
-
 .code-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
 .code-actions button {
   height: 28px;
-  padding: 0 12px;
+  padding: 0 10px;
   border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
   font-size: 13px;
 }
 
-#code {
-  min-height: 280px;
+#sketch #code {
+  min-height: 180px;
+  margin-top: 4px;
+  padding: 14px 16px;
+  border-radius: 10px;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.55;
+  white-space: pre;
+  overflow: auto;
   resize: vertical;
 }
 
 .wall {
-  padding: var(--pad);
+  padding: 14px 12px 12px 10px;
   overflow: auto;
-  max-height: 100vh;
+  max-height: calc(100vh - 36px);
 }
 
 .empty {
@@ -651,17 +915,133 @@ select:focus-visible {
 }
 
 @media (max-width: 720px) {
+  html,
+  body {
+    min-height: 100dvh;
+  }
+
   .studio {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 100dvh;
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   }
 
   .desk {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
+    position: relative;
+    top: auto;
+    flex: 0 0 auto;
     max-height: none;
+    margin: 0;
+    padding: 14px 14px 12px;
+    gap: 12px;
+    border-radius: 18px;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+  }
+
+  #scene {
+    min-height: 2.6em;
+    max-height: 6.4em;
+    padding: 8px 12px;
+  }
+
+  .sample-kit > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 36px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .sample-kit > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .sample-kit > summary::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: rotate(45deg);
+    opacity: 0.45;
+  }
+
+  .sample-kit[open] > summary::after {
+    transform: rotate(-135deg);
+    margin-top: 4px;
+  }
+
+  .chips {
+    gap: 2px 8px;
+    padding-bottom: 4px;
+  }
+
+  .chip {
+    font-size: 12px;
+  }
+
+  .paint,
+  .upload,
+  .reset {
+    width: 36px;
+    height: 36px;
+  }
+
+  .paint svg,
+  .upload svg,
+  .reset svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .paint-kit[open] {
+    max-height: 42vh;
+    overflow: auto;
+  }
+
+  .paint-kit > summary,
+  .pane > summary,
+  .keys > summary {
+    min-height: 44px;
+  }
+
+  .slide {
+    min-height: 36px;
+  }
+
+  .slide input[type="range"] {
+    flex-basis: min(10.5rem, 58vw);
+    width: min(10.5rem, 58vw);
   }
 
   .wall {
+    flex: 1 1 auto;
+    min-height: 58dvh;
     max-height: none;
+    padding: 10px 8px 12px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .empty {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 720px) and (min-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
   }
 }

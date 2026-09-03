@@ -3,13 +3,18 @@ import { parseColor, oklchToHex } from "./color.js";
 import { mountColorDial } from "./color-dial.js?v=7";
 
 const sceneEl = document.querySelector("#scene");
+const sceneRow = document.querySelector(".scene-row");
+const sceneCaption = document.querySelector("#sceneCaption");
+const sceneCaptionImg = document.querySelector("#sceneCaptionImg");
+const sceneCaptionText = document.querySelector("#sceneCaptionText");
 const countEl = document.querySelector("#count");
 const paintEl = document.querySelector("#paint");
-const statusEl = document.querySelector("#status");
 const wallEl = document.querySelector("#wall");
 const emptyEl = document.querySelector("#empty");
 const samplesEl = document.querySelector("#samples");
-const codePanel = document.querySelector(".code-panel");
+const photoEl = document.querySelector("#photo");
+const photoChip = document.querySelector("#photoChip");
+const paintKit = document.querySelector("#paintKit");
 const codeEl = document.querySelector("#code");
 const rerenderEl = document.querySelector("#rerender");
 const downloadEl = document.querySelector("#download");
@@ -38,6 +43,8 @@ let waitingId = null;
 let effects = clampEffects(stored.effects || {});
 let effectTimer = null;
 let effectsDirty = false;
+let currentPhoto = null;
+let paintWatch = 0;
 
 window.addEventListener("message", onFrameMessage);
 
@@ -55,6 +62,181 @@ function sizeScene() {
 }
 
 sceneEl.addEventListener("input", sizeScene);
+
+function setPhotoLabel(name) {
+  const label = name ? name : "upload photo";
+  photoChip.setAttribute("aria-label", label);
+  photoChip.title = label;
+  photoChip.classList.toggle("active", Boolean(name));
+}
+
+function captionFromName(name) {
+  return String(name || "")
+    .replace(/\.[^.]+$/, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase() || "photograph";
+}
+
+function showSceneCaption(dataUrl, name) {
+  const caption = captionFromName(name);
+  sceneEl.value = caption;
+  if (sceneCaptionImg) sceneCaptionImg.src = dataUrl || "";
+  if (sceneCaptionText) sceneCaptionText.textContent = caption;
+  if (sceneCaption) sceneCaption.hidden = false;
+  sceneRow?.classList.add("has-photo");
+  sizeScene();
+}
+
+function hideSceneCaption() {
+  if (sceneCaption) sceneCaption.hidden = true;
+  if (sceneCaptionImg) sceneCaptionImg.removeAttribute("src");
+  if (sceneCaptionText) sceneCaptionText.textContent = "";
+  sceneRow?.classList.remove("has-photo");
+  sizeScene();
+}
+
+function clearPhoto() {
+  currentPhoto = null;
+  photoEl.value = "";
+  setPhotoLabel("");
+  hideSceneCaption();
+}
+
+function averageHex(img) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 24;
+  canvas.height = 24;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, 24, 24);
+  const data = ctx.getImageData(0, 0, 24, 24).data;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  let n = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i] + data[i + 1] + data[i + 2] > 700) continue;
+    r += data[i];
+    g += data[i + 1];
+    b += data[i + 2];
+    n += 1;
+  }
+  if (!n) return "#8b2f32";
+  const hex = (v) => Math.round(v / n).toString(16).padStart(2, "0");
+  return `#${hex(r)}${hex(g)}${hex(b)}`;
+}
+
+function rasterizePhoto(source) {
+  const width = source.naturalWidth || source.width;
+  const height = source.naturalHeight || source.height;
+  if (!width || !height) throw new Error("that photograph would not open.");
+  const max = 1400;
+  const scale = Math.min(1, max / Math.max(width, height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(width * scale));
+  canvas.height = Math.max(1, Math.round(height * scale));
+  canvas.getContext("2d").drawImage(source, 0, 0, canvas.width, canvas.height);
+  return {
+    dataUrl: canvas.toDataURL("image/jpeg", 0.86),
+    hex: averageHex(source),
+  };
+}
+
+function loadImageUrl(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("that photograph would not open."));
+    img.src = url;
+  });
+}
+
+async function readPhotoFile(file) {
+  const name = file.name.replace(/\.[^.]+$/, "").toLowerCase() || "photograph";
+  if (typeof createImageBitmap === "function") {
+    try {
+      const bitmap = await createImageBitmap(file);
+      const next = rasterizePhoto(bitmap);
+      bitmap.close?.();
+      return { ...next, name };
+    } catch {
+      /* fall through and try a blob url */
+    }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await loadImageUrl(url);
+    return { ...rasterizePhoto(img), name };
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function onPhotoChosen() {
+  const file = photoEl.files?.[0];
+  if (!file) return;
+  setStatus("opening the photograph…");
+  try {
+    const photo = await readPhotoFile(file);
+    currentPhoto = photo.dataUrl;
+    setPhotoLabel(photo.name);
+    if (photo.hex) colorDial?.setValue(photo.hex);
+    persistSettings();
+    showSceneCaption(photo.dataUrl, photo.name);
+    paintPhoto();
+  } catch (err) {
+    setStatus(err.message || "that photograph would not open.");
+  }
+}
+
+function paintPhoto() {
+  if (!currentPhoto) return;
+  const n = Math.max(1, Math.min(6, Number(countEl.value) || 4));
+  const base = Math.floor(Math.random() * 8000);
+  paintings = Array.from({ length: n }, (_, i) => ({
+    id: `photo-${base}-${i + 1}`,
+    prompt: sceneEl.value.trim() || "photograph",
+    seed: 11 + i * 97,
+    photo: currentPhoto,
+    code: "",
+    source: "photo",
+  }));
+  paintEl.disabled = true;
+  setStatus("washing the photograph…");
+  renderGrid(paintings);
+  paintEl.disabled = false;
+}
+
+photoEl.addEventListener("change", onPhotoChosen);
+
+function bindReset(id, fn) {
+  document.querySelector(id)?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    fn();
+  });
+}
+
+function openPaintSections() {
+  for (const id of ["brush", "placement", "effects", "sketch"]) {
+    const pane = document.querySelector(`#${id}`);
+    if (pane) pane.open = true;
+  }
+}
+
+function fitPaintKit() {
+  if (!paintKit || fitPaintKit.done) return;
+  const mobile = window.matchMedia("(max-width: 720px)").matches;
+  paintKit.open = false;
+  openPaintSections();
+  const samples = document.querySelector("#sampleKit");
+  if (samples) samples.open = !mobile;
+  paintKit.addEventListener("toggle", () => {
+    if (paintKit.open) openPaintSections();
+  });
+  fitPaintKit.done = true;
+}
 
 function persistSettings() {
   effects = readEffects();
@@ -127,11 +309,91 @@ function mountBrushPanel() {
   }
 }
 
+function hiddenRange(id, value) {
+  const input = document.createElement("input");
+  input.type = "range";
+  input.min = "0";
+  input.max = "100";
+  input.step = "1";
+  input.dataset.effect = id;
+  input.value = String(Math.round((value ?? 0.5) * 100));
+  input.className = "visually-hidden";
+  input.setAttribute("aria-label", id === "placeX" ? "across" : "up");
+  return input;
+}
+
+function mountStick(xInput, yInput) {
+  const well = document.createElement("div");
+  well.className = "stick";
+  well.tabIndex = 0;
+  well.setAttribute("role", "slider");
+  well.setAttribute("aria-label", "placement stick");
+  const thumb = document.createElement("div");
+  thumb.className = "stick-thumb";
+  well.append(thumb);
+
+  const reach = 32;
+
+  function syncThumb() {
+    const x = Number(xInput.value) / 100;
+    const y = Number(yInput.value) / 100;
+    thumb.style.transform = `translate(${(x - 0.5) * 2 * reach}px, ${(0.5 - y) * 2 * reach}px)`;
+  }
+
+  function setFromPointer(clientX, clientY) {
+    const box = well.getBoundingClientRect();
+    const dx = clientX - (box.left + box.width / 2);
+    const dy = clientY - (box.top + box.height / 2);
+    const dist = Math.hypot(dx, dy) || 1;
+    const clamped = Math.min(dist, reach);
+    const nx = (dx / dist) * clamped;
+    const ny = (dy / dist) * clamped;
+    xInput.value = String(Math.round((0.5 + nx / reach / 2) * 100));
+    yInput.value = String(Math.round((0.5 - ny / reach / 2) * 100));
+    syncThumb();
+    onEffectInput();
+  }
+
+  well.addEventListener("pointerdown", (event) => {
+    well.classList.add("is-dragging");
+    well.setPointerCapture(event.pointerId);
+    setFromPointer(event.clientX, event.clientY);
+  });
+  well.addEventListener("pointermove", (event) => {
+    if (!well.classList.contains("is-dragging")) return;
+    setFromPointer(event.clientX, event.clientY);
+  });
+  const endDrag = () => well.classList.remove("is-dragging");
+  well.addEventListener("pointerup", endDrag);
+  well.addEventListener("pointercancel", endDrag);
+  well.addEventListener("keydown", (event) => {
+    const step = event.shiftKey ? 8 : 3;
+    const move = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowDown: [0, -step], ArrowUp: [0, step] }[event.key];
+    if (!move) return;
+    event.preventDefault();
+    xInput.value = String(Math.min(100, Math.max(0, Number(xInput.value) + move[0])));
+    yInput.value = String(Math.min(100, Math.max(0, Number(yInput.value) + move[1])));
+    syncThumb();
+    onEffectInput();
+  });
+
+  xInput.addEventListener("input", syncThumb);
+  yInput.addEventListener("input", syncThumb);
+  syncThumb();
+  well.syncThumb = syncThumb;
+  return well;
+}
+
 function mountPlacementPanel() {
   placementControlsEl.innerHTML = "";
-  for (const key of PLACEMENT_SLIDERS) {
-    placementControlsEl.append(makeSlider(key.id, key.label, effects[key.id]));
-  }
+  const xInput = hiddenRange("placeX", effects.placeX);
+  const yInput = hiddenRange("placeY", effects.placeY);
+  const board = document.createElement("div");
+  board.className = "place-board";
+  const stick = mountStick(xInput, yInput);
+  stick.id = "placeStick";
+  board.append(stick, makeSlider("composition", "size", effects.composition));
+  placementControlsEl.append(xInput, yInput, board);
 }
 
 function mountEffects() {
@@ -158,9 +420,9 @@ function mountEffects() {
     onChange: onEffectInput,
   });
 
-  document.querySelector("#resetEffects").addEventListener("click", resetEffects);
-  document.querySelector("#resetBrush").addEventListener("click", resetBrush);
-  document.querySelector("#resetPlacement").addEventListener("click", resetPlacement);
+  bindReset("#resetEffects", resetEffects);
+  bindReset("#resetBrush", resetBrush);
+  bindReset("#resetPlacement", resetPlacement);
 
   const root = document.querySelector("#effects");
   root.addEventListener("input", onEffectInput);
@@ -187,6 +449,7 @@ function resetPlacement() {
   for (const input of placementControlsEl.querySelectorAll("input[type=range]")) {
     input.value = "50";
   }
+  document.querySelector("#placeStick")?.syncThumb?.();
   persistSettings();
   scheduleEffectRender();
 }
@@ -207,7 +470,7 @@ function onEffectInput() {
 }
 
 function scheduleEffectRender() {
-  if (![...cards.values()].some((rec) => rec.item.code)) return;
+  if (![...cards.values()].some((rec) => rec.item.code || rec.item.photo)) return;
   effectsDirty = true;
   clearTimeout(effectTimer);
   effectTimer = setTimeout(flushEffects, 280);
@@ -218,7 +481,7 @@ function flushEffects() {
   if (paintingNow) return;
   const ids = [];
   for (const [id, rec] of cards) {
-    if (rec?.item.code) ids.push(id);
+    if (rec?.item.code || rec?.item.photo) ids.push(id);
   }
   if (!ids.length) {
     effectsDirty = false;
@@ -246,9 +509,7 @@ function queuePaint(id, { replace = false } = {}) {
   drainQueue();
 }
 
-function setStatus(text) {
-  statusEl.textContent = text || "";
-}
+function setStatus(_text) {}
 
 function authHeaders() {
   const headers = { "content-type": "application/json" };
@@ -281,6 +542,7 @@ async function loadSamples() {
         if (typeEl && BRUSH_TYPES.includes(sample.brushType)) typeEl.value = sample.brushType;
       }
       if (sample.color || sample.brushType) persistSettings();
+      clearPhoto();
       generate({ sampleId: sample.id, scene: sample.prompt });
     });
     samplesEl.append(button);
@@ -312,7 +574,7 @@ function renderGrid(items) {
         <div class="veil">pigment settling…</div>
       </div>
       <div class="caption">
-        <span>${item.source === "sample" ? "sample" : "sketch"} ${index + 1}</span>
+        <span>${item.source === "sample" ? "sample" : item.source === "photo" ? "wash" : "sketch"} ${index + 1}</span>
         <span class="caption-meta">
           <span>seed ${item.seed}</span>
           <button type="button" class="save" data-id="${item.id}" aria-label="save png" title="save" disabled>
@@ -343,7 +605,7 @@ function renderGrid(items) {
     grid.append(sheet);
     cards.set(item.id, { item, sheet, dataUrl: null });
 
-    if (item.error || !item.code) {
+    if (item.error || (!item.code && !item.photo)) {
       const veil = sheet.querySelector(".veil");
       veil.classList.add("error");
       veil.textContent = item.error || "no sketch returned";
@@ -352,7 +614,7 @@ function renderGrid(items) {
     paintQueue.push(item.id);
   });
 
-  const first = items.find((item) => item.code);
+  const first = items.find((item) => item.code || item.photo);
   if (first) selectPainting(first.id);
   drainQueue();
 }
@@ -362,21 +624,41 @@ function drainQueue() {
   const id = paintQueue.shift();
   if (!id) {
     const ready = [...cards.values()].filter((rec) => rec.dataUrl).length;
-    if (ready) setStatus(`${ready} sketches ready. click one to edit the code.`);
+    if (ready) {
+      const photo = [...cards.values()].some((rec) => rec.item.photo);
+      setStatus(photo ? `${ready} washes ready.` : `${ready} sketches ready. click one to edit the code.`);
+    }
     flushEffects();
     return;
   }
   const rec = cards.get(id);
-  if (!rec?.item.code) {
+  if (!rec?.item.code && !rec?.item.photo) {
     drainQueue();
     return;
   }
   paintingNow = true;
   waitingId = id;
-  renderer.contentWindow.postMessage(
+  clearTimeout(paintWatch);
+  paintWatch = setTimeout(() => {
+    if (!paintingNow || waitingId !== id) return;
+    paintingNow = false;
+    waitingId = null;
+    const stuck = cards.get(id);
+    const veil = stuck?.sheet.querySelector(".veil");
+    if (veil) {
+      veil.classList.add("error");
+      veil.textContent = "the wash never dried. try the photo again.";
+    }
+    setStatus("the wash never dried. try the photo again.");
+    drainQueue();
+  }, 20000);
+  const frame = renderer.contentWindow;
+  if (frame) frame.__pendingPhoto = rec.item.photo || null;
+  frame?.postMessage(
     {
       type: "paint",
       code: rec.item.code,
+      photo: Boolean(rec.item.photo),
       seed: rec.item.seed,
       size: 720,
       density: 1,
@@ -398,6 +680,7 @@ function onFrameMessage(event) {
   const rec = cards.get(waitingId);
   paintingNow = false;
   waitingId = null;
+  clearTimeout(paintWatch);
 
   if (rec) {
     const veil = rec.sheet.querySelector(".veil");
@@ -428,12 +711,11 @@ function selectPainting(id) {
   for (const sheet of wallEl.querySelectorAll(".sheet")) {
     sheet.classList.toggle("active", sheet.dataset.id === id);
   }
-  if (!painting?.code) {
-    codePanel.hidden = true;
+  if (!painting?.code || painting.photo) {
+    if (codeEl) codeEl.value = "";
     return;
   }
-  codePanel.hidden = false;
-  codeEl.value = painting.code;
+  if (codeEl) codeEl.value = painting.code;
 }
 
 async function generate({ scene, sampleId } = {}) {
@@ -469,9 +751,17 @@ async function generate({ scene, sampleId } = {}) {
   }
 }
 
-paintEl.addEventListener("click", () => generate());
+paintEl.addEventListener("click", () => {
+  if (currentPhoto) {
+    paintPhoto();
+    return;
+  }
+  generate();
+});
 
-rerenderEl.addEventListener("click", () => {
+rerenderEl?.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
   const rec = cards.get(selectedId);
   if (!rec) return;
   rec.item.code = codeEl.value;
@@ -501,7 +791,11 @@ async function downloadPainting(id) {
   setStatus("saved png.");
 }
 
-downloadEl.addEventListener("click", () => downloadPainting(selectedId));
+downloadEl?.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  downloadPainting(selectedId);
+});
 
 renderer.addEventListener("load", () => {
   rendererReady = true;
@@ -514,4 +808,5 @@ if (renderer.contentDocument?.readyState === "complete") {
 
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
+fitPaintKit();
 sizeScene();

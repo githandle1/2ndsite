@@ -42,14 +42,14 @@ function snapshotCanvas(canvas) {
   }
 }
 
-function finish(error, canvas) {
+function finish(error, canvas, dataUrl = null) {
   window.__PAINTING_ERROR = error;
   window.__PAINTING_DONE = true;
   parent.postMessage(
     {
       type: "painted",
       error,
-      dataUrl: error ? null : snapshotCanvas(canvas),
+      dataUrl: error ? null : dataUrl || snapshotCanvas(canvas),
     },
     "*"
   );
@@ -97,12 +97,40 @@ function ensureInstance(size, density) {
   return instance;
 }
 
-window.renderPainting = function renderPainting({ code, seed = 1, size = 720, density = 1, effects = null }) {
+window.renderPainting = function renderPainting({
+  code,
+  photo,
+  seed = 1,
+  size = 720,
+  density = 1,
+  effects = null,
+}) {
   window.__PAINTING_DONE = false;
   window.__PAINTING_ERROR = null;
   currentSeed = seed;
   if (typeof window.__setBrushEffects === "function") {
     window.__setBrushEffects(effects);
+  }
+
+  const photoSrc = photo === true ? window.__pendingPhoto : photo;
+  if (photoSrc) {
+    const start = Date.now();
+    const run = () => {
+      const wash = window.__renderPhotoWash;
+      if (typeof wash !== "function") {
+        if (Date.now() - start > 2500) {
+          finish("photo wash is not ready.");
+          return;
+        }
+        requestAnimationFrame(run);
+        return;
+      }
+      wash({ photo: photoSrc, seed, size, effects })
+        .then((dataUrl) => finish(null, null, dataUrl))
+        .catch((err) => finish(String(err.message || err)));
+    };
+    run();
+    return;
   }
 
   try {

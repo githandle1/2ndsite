@@ -2,32 +2,63 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>compositions</title>
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=39" />
+    <link rel="stylesheet" href="styles.css?v=57" />
   </head>
   <body>
     <main class="studio">
       <aside class="desk">
         <div class="brand">
           <h1>compositions</h1>
-          <a class="cabinet" href="https://www.mayabakir.com/">filing cabinet</a>
         </div>
 
         <div class="stack">
-          <label class="field">
+          <div class="field">
             <span>scene</span>
-            <textarea id="scene" rows="2" placeholder="fingerprints"></textarea>
-          </label>
-          <div class="chips" id="samples"></div>
+            <div class="scene-row">
+              <textarea id="scene" rows="2" placeholder="fingerprints" aria-label="scene"></textarea>
+              <div class="scene-caption" id="sceneCaption" hidden>
+                <img id="sceneCaptionImg" alt="" />
+                <span id="sceneCaptionText"></span>
+              </div>
+              <label class="upload" id="photoChip" aria-label="upload photo" title="upload photo">
+                <input id="photo" type="file" accept="image/*" />
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M12 16V5"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M8 8.5 12 4.5 16 8.5"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M5 16.5v1.2c0 1 .8 1.8 1.8 1.8h10.4c1 0 1.8-.8 1.8-1.8v-1.2"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </label>
+            </div>
+          </div>
+          <details class="sample-kit" id="sampleKit" open>
+            <summary>samples</summary>
+            <div class="chips" id="samples"></div>
+          </details>
         </div>
 
         <div class="stack">
@@ -40,7 +71,6 @@
                 <option value="6">6</option>
               </select>
             </label>
-            <p class="status" id="status"></p>
             <button id="paint" class="paint" type="button" aria-label="paint" title="paint">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path
@@ -62,105 +92,106 @@
           </div>
         </div>
 
-        <section class="brush" id="brush">
-          <div class="effects-head">
-            <h2>brush</h2>
-            <button id="resetBrush" class="reset" type="button" aria-label="reset brush" title="reset">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path
-                  d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            </button>
-          </div>
-          <div id="brushControls"></div>
-        </section>
+        <details class="paint-kit" id="paintKit">
+          <summary>paint</summary>
+          <div class="paint-kit-body">
+            <details class="pane" id="brush">
+              <summary>
+                <span>brush</span>
+                <button id="resetBrush" class="reset" type="button" aria-label="reset brush" title="reset">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    />
+                    <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  </svg>
+                </button>
+              </summary>
+              <div id="brushControls"></div>
+            </details>
 
-        <section class="placement" id="placement">
-          <div class="effects-head">
-            <h2>placement</h2>
-            <button id="resetPlacement" class="reset" type="button" aria-label="reset placement" title="reset">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path
-                  d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            </button>
-          </div>
-          <div id="placementControls"></div>
-        </section>
+            <details class="pane" id="placement">
+              <summary>
+                <span>placement</span>
+                <button id="resetPlacement" class="reset" type="button" aria-label="reset placement" title="reset">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    />
+                    <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  </svg>
+                </button>
+              </summary>
+              <div id="placementControls"></div>
+            </details>
 
-        <section class="effects" id="effects">
-          <div class="effects-head">
-            <h2>affect</h2>
-            <button id="resetEffects" class="reset" type="button" aria-label="reset affect" title="reset">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path
-                  d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            </button>
-          </div>
-          <div class="field compact color-field">
-            <span>color</span>
-            <div class="dial">
-              <input
-                id="pigmentColor"
-                type="text"
-                value="#8b2f32"
-                maxlength="7"
-                autocomplete="off"
-                spellcheck="false"
-                aria-label="hex"
-              />
-              <canvas id="colorDial" width="50" height="50" aria-label="color dial"></canvas>
-            </div>
-          </div>
-          <div class="effect-groups" id="effectGroups"></div>
-        </section>
+            <details class="pane" id="effects">
+              <summary>
+                <span>affect</span>
+                <button id="resetEffects" class="reset" type="button" aria-label="reset affect" title="reset">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    />
+                    <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  </svg>
+                </button>
+              </summary>
+              <div class="field compact color-field">
+                <span>color</span>
+                <div class="dial">
+                  <input
+                    id="pigmentColor"
+                    type="text"
+                    value="#8b2f32"
+                    maxlength="7"
+                    autocomplete="off"
+                    spellcheck="false"
+                    aria-label="hex"
+                  />
+                  <canvas id="colorDial" width="50" height="50" aria-label="color dial"></canvas>
+                </div>
+              </div>
+              <div class="effect-groups" id="effectGroups"></div>
+            </details>
 
-        <details class="keys">
-          <summary>api key</summary>
-          <p class="hint">
-            needed to invent new scenes. samples work without one. grok keys come from
-            console.x.ai — cursor’s own grok access does not work here.
-          </p>
-          <label class="field compact">
-            <span>provider</span>
-            <select id="provider">
-              <option value="grok">grok (xai)</option>
-              <option value="anthropic">anthropic</option>
-              <option value="openai">openai</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>key</span>
-            <input id="apiKey" type="password" autocomplete="off" placeholder="xai-…" />
-          </label>
+            <details class="pane" id="sketch">
+              <summary>
+                <span>sketch</span>
+                <div class="code-actions">
+                  <button id="rerender" type="button">re-render</button>
+                  <button id="download" type="button">png</button>
+                </div>
+              </summary>
+              <textarea id="code" spellcheck="false" placeholder="click a wash to see its sketch"></textarea>
+            </details>
+
+            <details class="keys">
+              <summary>api key</summary>
+              <label class="field compact">
+                <span>provider</span>
+                <select id="provider">
+                  <option value="grok">grok (xai)</option>
+                  <option value="anthropic">anthropic</option>
+                  <option value="openai">openai</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>key</span>
+                <input id="apiKey" type="password" autocomplete="off" placeholder="xai-…" />
+              </label>
+            </details>
+          </div>
         </details>
-
-        <section class="code-panel" hidden>
-          <div class="code-head">
-            <span>sketch</span>
-            <div class="code-actions">
-              <button id="rerender" type="button">re-render</button>
-              <button id="download" type="button">png</button>
-            </div>
-          </div>
-          <textarea id="code" spellcheck="false"></textarea>
-        </section>
       </aside>
 
       <section class="wall" id="wall" aria-live="polite">
@@ -171,7 +202,7 @@
       </section>
     </main>
 
-    <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=28"></iframe>
-    <script type="module" src="app.js?v=37"></script>
+    <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=38"></iframe>
+    <script type="module" src="app.js?v=46"></script>
   </body>
 </html>
