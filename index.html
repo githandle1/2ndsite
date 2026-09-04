@@ -1113,25 +1113,24 @@
             padding: 0;
             border: none;
             background: none;
-            color: inherit;
-            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Libre Baskerville", serif;
+            color: color-mix(in srgb, var(--hover) 58%, var(--paper));
+            font-family: inherit;
             font-size: 1.05rem;
             font-style: normal;
-            font-variant-emoji: emoji;
+            font-variant-emoji: text;
             line-height: 1;
-            opacity: 0.55;
             cursor: pointer;
-            transition: opacity 180ms ease, transform 160ms ease;
+            transition: color 180ms ease, transform 160ms ease;
         }
 
         .daylight-scheme:hover,
         .daylight-scheme:focus-visible {
-            opacity: 1;
+            color: color-mix(in srgb, var(--hover) 58%, var(--paper));
             transform: translateY(-1px);
         }
 
         .daylight-scheme[aria-pressed="true"] {
-            opacity: 1;
+            color: color-mix(in srgb, var(--hover) 58%, var(--paper));
         }
 
         @media (max-width: 600px) {
@@ -1313,8 +1312,8 @@
                 <span class="daylight-control" id="daylight-control">
                     <span class="daylight-dot" id="daylight-dot" aria-hidden="true"></span>
                     <span class="daylight-picker" id="daylight-picker" role="group" aria-label="Site lighting">
-                        <button type="button" class="daylight-scheme" data-scheme="light" aria-pressed="false" aria-label="Light mode">&#x2600;&#xFE0F;</button>
-                        <button type="button" class="daylight-scheme" data-scheme="dark" aria-pressed="false" aria-label="Dark mode">&#x1F319;</button>
+                        <button type="button" class="daylight-scheme" data-scheme="light" aria-pressed="false" aria-label="Light mode">&#x2600;&#xFE0E;</button>
+                        <button type="button" class="daylight-scheme" data-scheme="dark" aria-pressed="false" aria-label="Dark mode">&#x263E;&#xFE0E;</button>
                     </span>
                 </span>
                 <time id="local-date-stamp"></time>
