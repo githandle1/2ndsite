@@ -1019,23 +1019,29 @@
         }
 
         .cabinet-footer {
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 8px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas:
+                "files ."
+                "sketchbook stamp";
+            align-items: baseline;
+            column-gap: 24px;
+            row-gap: 8px;
             margin-top: var(--block-gap);
         }
 
-        .cabinet-footer-row {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 16px 24px;
+        .cabinet-footer-files {
+            grid-area: files;
+            justify-self: start;
+        }
+
+        .cabinet-footer-sketchbook {
+            grid-area: sketchbook;
+            justify-self: start;
         }
 
         .sketchbook-link {
             display: inline-block;
-            flex: 0 1 auto;
             font-size: 0.8rem;
         }
 
@@ -1056,7 +1062,8 @@
             align-items: baseline;
             justify-content: flex-end;
             gap: 0.45em;
-            flex: 1 1 auto;
+            grid-area: stamp;
+            justify-self: end;
             margin: 0;
             color: color-mix(in srgb, var(--hover) 58%, var(--paper));
             font-size: 0.72rem;
@@ -1203,8 +1210,8 @@
                 opacity: 0.32;
             }
 
-            .cabinet-footer-row {
-                flex-wrap: nowrap;
+            .cabinet-footer {
+                column-gap: 16px;
             }
 
             .local-date {
@@ -1300,10 +1307,9 @@
         </section>
 
         <footer class="cabinet-footer">
-            <a class="sketchbook-link phrase" href="/compositions/">compositions <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
-            <div class="cabinet-footer-row">
-                <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
-                <p class="local-date" aria-label="Your local date and time">
+            <a class="sketchbook-link phrase cabinet-footer-files" href="/compositions/">compositions <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
+            <a class="sketchbook-link phrase cabinet-footer-sketchbook" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
+            <p class="local-date" aria-label="Your local date and time">
                 <span class="daylight-control" id="daylight-control">
                     <span class="daylight-dot" id="daylight-dot" aria-hidden="true"></span>
                     <span class="daylight-picker" id="daylight-picker" role="group" aria-label="Site lighting">
@@ -1321,8 +1327,7 @@
                     </span>
                 </span>
                 <time id="local-date-stamp"></time>
-                </p>
-            </div>
+            </p>
         </footer>
     </main>
 
