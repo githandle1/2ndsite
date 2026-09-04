@@ -250,7 +250,7 @@ function point(x, y, e) {
   const cx = typeof window.width === "number" ? window.width / 2 : 400;
   const cy = typeof window.height === "number" ? window.height / 2 : 400;
   let scale = 1;
-  scale *= amp(e.composition, 0.58, 1.48);
+  scale *= amp(e.composition, 0.82, 1.82);
   scale *= amp(e.openness, 1.16, 0.78);
   scale *= amp(e.intimacy, 0.86, 1.2);
   scale *= amp(e.grandeur, 0.88, 1.24);
@@ -264,7 +264,7 @@ function point(x, y, e) {
 }
 
 function radius(r, e) {
-  return r * amp(e.composition, 0.84, 1.14) * amp(e.grandeur, 0.9, 1.16);
+  return r * amp(e.composition, 0.94, 1.36) * amp(e.grandeur, 0.9, 1.16);
 }
 
 function irregularity(value, e) {

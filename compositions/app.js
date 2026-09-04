@@ -666,7 +666,7 @@ function drainQueue() {
       code: rec.item.code,
       photo: Boolean(rec.item.photo),
       seed: rec.item.seed,
-      size: 720,
+      size: 800,
       density: 1,
       effects: readEffects(),
     },
