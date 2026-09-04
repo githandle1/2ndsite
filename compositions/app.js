@@ -1146,7 +1146,7 @@ function mountDeskScroll() {
   desk.addEventListener("scroll", sync, { passive: true });
   new ResizeObserver(sync).observe(desk);
   new ResizeObserver(sync).observe(rail);
-  desk.addEventListener("toggle", () => requestAnimationFrame(sync), true);
+  desk.addEventListener("toggle", sync, true);
   sync();
 }
 
