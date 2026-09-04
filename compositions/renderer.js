@@ -25,7 +25,14 @@ function bindHelpers(p) {
 }
 
 function compilePaint(code) {
-  const paint = new Function(`${code}\n; return typeof paint === "function" ? paint : null;`)();
+  const lib = window.brush;
+  if (!lib) {
+    throw new Error("p5.brush failed to load");
+  }
+  const paint = new Function(
+    "brush",
+    `${code}\n; return typeof paint === "function" ? paint : null;`
+  )(lib);
   if (typeof paint !== "function") {
     throw new Error("paint() was not defined");
   }
@@ -59,8 +66,8 @@ function ensureInstance(size, density) {
   if (instance) return instance;
 
   const sketch = (p) => {
-    if (typeof brush !== "undefined" && brush.instance) {
-      brush.instance(p);
+    if (window.brush?.instance) {
+      window.brush.instance(p);
     }
 
     p.setup = () => {
@@ -71,10 +78,10 @@ function ensureInstance(size, density) {
       p.pixelDensity(density);
       p.noLoop();
       p.angleMode(p.DEGREES);
-      if (typeof brush !== "undefined" && brush.scaleBrushes) {
-        brush.scaleBrushes(2.8);
+      if (window.brush?.scaleBrushes) {
+        window.brush.scaleBrushes(2.8);
       }
-      window.__brushReady = true;
+      window.__brushReady = Boolean(window.brush);
     };
 
     p.draw = () => {
