@@ -22,17 +22,6 @@
         ]
     };
 
-    const skyStops = [
-        [0, "#6f6a9a"],
-        [5, "#d08a78"],
-        [8, "#e0b06a"],
-        [12, "#d8c46a"],
-        [16, "#d49258"],
-        [18.5, "#c46e4a"],
-        [20.5, "#9a6a86"],
-        [24, "#6f6a9a"]
-    ];
-
     const themes = {
         light: {
             "--ink": "#24211f",
@@ -150,7 +139,6 @@
         root.dataset.scheme = scheme;
         root.style.colorScheme = scheme;
         root.style.setProperty("--paper", colorAt(palettes[scheme], hour));
-        root.style.setProperty("--day-dot", colorAt(skyStops, hour));
         Object.entries(themes[scheme]).forEach(([name, value]) => {
             root.style.setProperty(name, value);
         });
