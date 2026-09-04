@@ -1417,10 +1417,6 @@ select.choice-native {
     font-size: 12px;
   }
 
-  .about-menu {
-    max-width: 100%;
-  }
-
   .stack {
     gap: 12px;
   }
