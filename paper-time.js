@@ -176,43 +176,16 @@
     };
 
     const initDaylightControl = () => {
-        const control = document.getElementById("daylight-control");
-        const dot = document.getElementById("daylight-dot");
         const picker = document.getElementById("daylight-picker");
 
-        if (!control || !dot || !picker) {
+        if (!picker) {
             return;
         }
 
-        const setOpen = (open) => {
-            control.classList.toggle("is-open", open);
-            picker.hidden = !open;
-            dot.setAttribute("aria-expanded", open ? "true" : "false");
-        };
-
-        dot.addEventListener("click", (event) => {
-            event.stopPropagation();
-            setOpen(picker.hidden);
-        });
-
         picker.querySelectorAll("[data-scheme]").forEach((button) => {
-            button.addEventListener("click", (event) => {
-                event.stopPropagation();
+            button.addEventListener("click", () => {
                 setScheme(button.dataset.scheme);
-                setOpen(false);
             });
-        });
-
-        document.addEventListener("click", (event) => {
-            if (!control.contains(event.target)) {
-                setOpen(false);
-            }
-        });
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") {
-                setOpen(false);
-            }
         });
 
         syncPicker();
