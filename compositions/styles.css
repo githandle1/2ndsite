@@ -15,6 +15,8 @@
   --space-2: 14px;
   --space-3: 22px;
   --space-4: 32px;
+  --label-gap: 12px;
+  --label-col: 6rem;
   --control: 6.5rem;
   --control-sm: 3.2rem;
   --pad: 28px;
@@ -35,8 +37,6 @@
 
 *::-webkit-scrollbar-track {
   background: transparent;
-  margin-block: 25%;
-  margin-inline: 25%;
 }
 
 *::-webkit-scrollbar-thumb {
@@ -161,9 +161,15 @@ h1 {
   color: var(--hover);
 }
 
-.desk {
+.desk-shell {
   position: sticky;
   top: 18px;
+  max-height: calc(100vh - 36px);
+  min-width: 0;
+}
+
+.desk {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -176,6 +182,45 @@ h1 {
     0 0 0 1px rgba(36, 33, 31, 0.045),
     0 18px 48px rgba(36, 33, 31, 0.07);
   overflow: auto;
+  scrollbar-width: none;
+}
+
+.desk::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.desk-rail {
+  position: absolute;
+  top: 20px;
+  right: 4px;
+  bottom: 20px;
+  z-index: 4;
+  width: 18px;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.desk-rail[hidden] {
+  display: none;
+}
+
+.desk-scroll {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 3px;
+  height: 64px;
+  margin-left: -1.5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hover) 40%, transparent);
+  pointer-events: none;
+}
+
+.desk-rail:hover .desk-scroll,
+.desk-rail.is-dragging .desk-scroll {
+  background: color-mix(in srgb, var(--hover) 65%, transparent);
 }
 
 .stack {
@@ -201,7 +246,7 @@ h1 {
 .scene-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--label-gap);
 }
 
 .scene-row #scene,
@@ -300,9 +345,128 @@ select {
 
 #scene:focus-visible,
 #apiKey:focus-visible,
-select:focus-visible {
+select:focus-visible,
+.choice-trigger:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--hover) 45%, transparent);
   outline-offset: 1px;
+}
+
+.choice {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+select.choice-native {
+  position: absolute;
+  inset: 0;
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  pointer-events: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  flex: none;
+}
+
+.choice-trigger {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 32px;
+  padding: 0 28px 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  line-height: 32px;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: none;
+}
+
+.choice-trigger::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-right: 1.2px solid currentColor;
+  border-bottom: 1.2px solid currentColor;
+  opacity: 0.45;
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.choice.is-open .choice-trigger::after {
+  transform: translateY(-30%) rotate(-135deg);
+}
+
+.choice-menu {
+  box-sizing: border-box;
+  position: fixed;
+  inset: unset;
+  z-index: 40;
+  margin: 0;
+  padding: 6px;
+  width: max-content;
+  min-width: 4.5rem;
+  height: fit-content;
+  max-height: min(240px, calc(100vh - 16px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--paper) 92%, #fff);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  list-style: none;
+  box-shadow:
+    0 0 0 1px rgba(36, 33, 31, 0.045),
+    0 10px 24px rgba(36, 33, 31, 0.06);
+}
+
+.choice-menu[hidden] {
+  display: none;
+}
+
+.choice-menu [role="option"] {
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.choice-menu [role="option"]:hover,
+.choice-menu [role="option"]:focus {
+  background: var(--wash-hover);
+  color: var(--hover);
+  outline: none;
+}
+
+.choice-menu [role="option"].is-selected {
+  background: var(--wash);
+  color: var(--hover);
+}
+
+.choice-menu [role="option"].is-selected:hover,
+.choice-menu [role="option"].is-selected:focus {
+  background: var(--wash-hover);
 }
 
 .sample-kit {
@@ -391,7 +555,7 @@ select:focus-visible {
 .tools {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--label-gap);
 }
 
 .tools .slide {
@@ -400,7 +564,8 @@ select:focus-visible {
   justify-content: flex-start;
 }
 
-.tools .slide select {
+.tools .slide select,
+.tools .slide .choice {
   flex: 1;
   width: auto;
   margin-left: 0;
@@ -518,27 +683,33 @@ select:focus-visible {
 .paint-kit > summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 8px;
   min-height: 36px;
+  line-height: 1;
 }
 
 .paint-kit > summary::after,
 .pane > summary::after,
 .keys > summary::after {
   content: "";
+  display: block;
+  flex: 0 0 auto;
   width: 6px;
   height: 6px;
-  border-right: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
+  margin-top: 1px;
+  border-right: 1.15px solid currentColor;
+  border-bottom: 1.15px solid currentColor;
   transform: rotate(45deg);
+  transform-origin: center;
   opacity: 0.45;
 }
 
 .paint-kit[open] > summary::after,
 .pane[open] > summary::after,
 .keys[open] > summary::after {
+  margin-top: 3px;
   transform: rotate(-135deg);
-  margin-top: 4px;
 }
 
 .paint-kit-body {
@@ -557,13 +728,13 @@ select:focus-visible {
 .pane > summary {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--label-gap);
   min-height: 36px;
   color: var(--muted);
 }
 
 .pane > summary span {
-  flex: 1;
+  flex: 0 0 auto;
 }
 
 .pane > summary .reset,
@@ -575,13 +746,13 @@ select:focus-visible {
 .sketch-bar-row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--label-gap);
   min-height: 36px;
   color: var(--muted);
 }
 
 .sketch-bar-row span {
-  flex: 1;
+  flex: 0 0 auto;
 }
 
 .pane > summary:hover,
@@ -594,8 +765,8 @@ select:focus-visible {
 .effects-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
+  justify-content: flex-start;
+  gap: var(--label-gap);
   min-height: 28px;
   margin: 0 0 12px;
 }
@@ -610,16 +781,24 @@ select:focus-visible {
 .place-board {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--label-gap);
 }
 
 .place-board .slide {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
-  justify-content: flex-end;
+  justify-content: flex-start;
+}
+
+.place-board .slide span {
+  flex: 0 0 auto;
+  width: auto;
 }
 
 .place-board .slide input[type="range"] {
+  flex: 0 1 7.5rem;
+  width: 7.5rem;
+  max-width: 7.5rem;
   margin-left: 0;
 }
 
@@ -628,9 +807,8 @@ select:focus-visible {
   flex: 0 0 auto;
   width: 64px;
   height: 64px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--paper);
+  border: 0;
+  background: transparent;
   cursor: grab;
   touch-action: none;
 }
@@ -670,54 +848,54 @@ select:focus-visible {
 }
 
 #brushControls .slide:has(select),
-.slide:has(select) + .slide {
+#brushControls .slide:has(.choice),
+.slide:has(select) + .slide,
+.slide:has(.choice) + .slide {
   margin-top: 0;
 }
 
-#brushControls .slide:has(select) {
+#brushControls .slide:has(select),
+#brushControls .slide:has(.choice) {
   margin-bottom: 22px;
 }
 
 .effects-head .reset,
 .pane > summary .reset {
-  margin-left: auto;
+  margin-left: 0;
 }
 
 .color-field {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 22px;
-}
-
-.color-field > span {
-  flex: 0 0 auto;
-  font-size: 13px;
-  letter-spacing: 0;
-  color: var(--ink);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin: 10px 0 0;
 }
 
 .dial {
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 10px;
   width: auto;
-  flex: 0 0 auto;
 }
 
 .dial canvas {
   display: block;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+  flex: 0 0 96px;
   touch-action: none;
   cursor: pointer;
 }
 
-.dial input {
+.dial-light {
+  margin: 0;
+}
+
+.dial input[type="text"] {
   flex: 0 0 auto;
   width: 6.2em;
   height: 32px;
@@ -730,7 +908,28 @@ select:focus-visible {
   font-size: 12px;
 }
 
-.dial input:focus-visible {
+.pigments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pigments button {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid rgba(36, 33, 31, 0.16);
+  border-radius: 50%;
+  background: var(--swatch, var(--paper));
+  cursor: pointer;
+}
+
+.pigments button[aria-selected="true"] {
+  outline: 1px solid var(--hover);
+  outline-offset: 2px;
+}
+
+.dial input[type="text"]:focus-visible {
   outline: 1px solid var(--hover);
   outline-offset: 1px;
 }
@@ -766,7 +965,7 @@ select:focus-visible {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
+  gap: var(--label-gap);
   margin: 0;
   min-height: 28px;
 }
@@ -775,8 +974,11 @@ select:focus-visible {
   margin-top: var(--space);
 }
 
-.slide span {
-  flex: 0 0 auto;
+.slide span,
+.color-field > span,
+.tools .slide span {
+  flex: 0 0 var(--label-col);
+  width: var(--label-col);
   font-size: 13px;
   letter-spacing: 0;
   color: var(--ink);
@@ -796,7 +998,8 @@ select:focus-visible {
   -webkit-appearance: none;
 }
 
-.slide select {
+.slide select,
+.slide .choice {
   flex: 0 0 var(--control);
   width: var(--control);
   margin: 0;
@@ -806,6 +1009,21 @@ select:focus-visible {
   background-color: var(--paper);
   border-radius: var(--radius);
   font-size: 13px;
+}
+
+.slide .choice {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  height: auto;
+}
+
+.slide .choice .choice-trigger {
+  padding: 0 28px 0 12px;
+}
+
+.field .choice {
+  width: 100%;
 }
 
 .slide input[type="range"]::-webkit-slider-runnable-track {
@@ -852,7 +1070,8 @@ select:focus-visible {
 .paint-kit-body > .keys > summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: var(--label-gap);
   min-height: 36px;
   color: var(--muted);
 }
@@ -972,7 +1191,7 @@ select:focus-visible {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--label-gap);
   padding: 10px 2px 0;
   border-top: 0;
   font-size: 12px;
@@ -1023,10 +1242,18 @@ select:focus-visible {
       max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   }
 
-  .desk {
+  .desk-shell {
     position: relative;
     top: auto;
     flex: 0 1 auto;
+    min-width: 0;
+    min-height: 0;
+    max-height: 56dvh;
+  }
+
+  .desk {
+    position: relative;
+    top: auto;
     min-width: 0;
     min-height: 0;
     max-height: 56dvh;
@@ -1055,7 +1282,8 @@ select:focus-visible {
   .sample-kit > summary {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: var(--label-gap);
     min-height: 36px;
     cursor: pointer;
     list-style: none;
@@ -1069,17 +1297,21 @@ select:focus-visible {
 
   .sample-kit > summary::after {
     content: "";
+    display: block;
+    flex: 0 0 auto;
     width: 6px;
     height: 6px;
-    border-right: 1px solid currentColor;
-    border-bottom: 1px solid currentColor;
+    margin-top: 1px;
+    border-right: 1.15px solid currentColor;
+    border-bottom: 1.15px solid currentColor;
     transform: rotate(45deg);
+    transform-origin: center;
     opacity: 0.45;
   }
 
   .sample-kit[open] > summary::after {
+    margin-top: 3px;
     transform: rotate(-135deg);
-    margin-top: 4px;
   }
 
   .chips {

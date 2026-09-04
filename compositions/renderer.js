@@ -81,6 +81,13 @@ function ensureInstance(size, density) {
       if (window.brush?.scaleBrushes) {
         window.brush.scaleBrushes(2.8);
       }
+      if (typeof window.brush?.load === "function") {
+        try {
+          window.brush.load();
+        } catch {
+          // instance() already bound the sketch
+        }
+      }
       window.__brushReady = Boolean(window.brush);
     };
 
@@ -123,8 +130,8 @@ window.renderPainting = function renderPainting({
   if (photoSrc) {
     const start = Date.now();
     const run = () => {
-      const wash = window.__renderPhotoWash;
-      if (typeof wash !== "function") {
+      const build = window.__buildPhotoPaint;
+      if (typeof build !== "function") {
         if (Date.now() - start > 2500) {
           finish("photo wash is not ready.");
           return;
@@ -132,8 +139,13 @@ window.renderPainting = function renderPainting({
         requestAnimationFrame(run);
         return;
       }
-      wash({ photo: photoSrc, seed, size, effects })
-        .then((dataUrl) => finish(null, null, dataUrl))
+      build({ photo: photoSrc, seed, size, effects })
+        .then((fn) => {
+          paintFn = fn;
+          const existed = Boolean(instance);
+          const p = ensureInstance(size, density);
+          if (existed && typeof p.redraw === "function") p.redraw();
+        })
         .catch((err) => finish(String(err.message || err)));
     };
     run();

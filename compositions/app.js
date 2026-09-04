@@ -1,12 +1,13 @@
-import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=14";
+import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=15";
 import { parseColor, oklchToHex } from "./color.js";
-import { mountColorDial } from "./color-dial.js?v=7";
+import { mountColorDial } from "./color-dial.js?v=8";
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
 const sceneCaption = document.querySelector("#sceneCaption");
 const sceneCaptionImg = document.querySelector("#sceneCaptionImg");
 const sceneCaptionText = document.querySelector("#sceneCaptionText");
 const countEl = document.querySelector("#count");
+const nativeSelectValue = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
 const paintEl = document.querySelector("#paint");
 const wallEl = document.querySelector("#wall");
 const samplesEl = document.querySelector("#samples");
@@ -51,6 +52,197 @@ providerEl.addEventListener("change", () => {
 });
 apiKeyEl.addEventListener("change", persistSettings);
 apiKeyEl.placeholder = providerEl.value === "grok" ? "xai-…" : "sk-…";
+
+function closeChoiceMenus(except) {
+  for (const wrap of document.querySelectorAll(".choice.is-open")) {
+    if (wrap === except) continue;
+    wrap._choiceClose?.();
+  }
+}
+
+function mountChoice(select) {
+  if (!select || select.closest(".choice")) return select;
+  select.classList.add("choice-native");
+  select.setAttribute("tabindex", "-1");
+  select.setAttribute("aria-hidden", "true");
+
+  const wrap = document.createElement("div");
+  wrap.className = "choice";
+  select.before(wrap);
+  wrap.append(select);
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "choice-trigger";
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+  const label = select.getAttribute("aria-label") || "choose";
+  trigger.setAttribute("aria-label", label);
+
+  const menu = document.createElement("ul");
+  menu.className = "choice-menu";
+  menu.setAttribute("role", "listbox");
+  menu.setAttribute("aria-label", label);
+  menu.hidden = true;
+  wrap.append(trigger, menu);
+
+  const menuId = `choice-menu-${select.id || "anon"}`;
+  menu.id = menuId;
+  trigger.setAttribute("aria-controls", menuId);
+
+  function optionList() {
+    return [...select.options].map((opt) => ({ value: opt.value, label: opt.textContent }));
+  }
+
+  function sync() {
+    const current = nativeSelectValue.get.call(select);
+    const match = optionList().find((opt) => opt.value === current);
+    trigger.textContent = match?.label ?? current;
+    for (const item of menu.querySelectorAll("[role=option]")) {
+      const on = item.dataset.value === current;
+      item.classList.toggle("is-selected", on);
+      item.setAttribute("aria-selected", on ? "true" : "false");
+    }
+  }
+
+  function renderMenu() {
+    menu.replaceChildren();
+    for (const opt of optionList()) {
+      const item = document.createElement("li");
+      item.setAttribute("role", "option");
+      item.dataset.value = opt.value;
+      item.textContent = opt.label;
+      item.tabIndex = -1;
+      menu.append(item);
+    }
+    sync();
+  }
+
+  function placeMenu() {
+    const rect = trigger.getBoundingClientRect();
+    const gap = 6;
+    menu.style.minWidth = `${Math.max(rect.width, 72)}px`;
+    menu.style.left = `${rect.left}px`;
+    menu.style.top = `${rect.bottom + gap}px`;
+    const box = menu.getBoundingClientRect();
+    if (box.bottom > window.innerHeight - 8 && rect.top > box.height + gap + 8) {
+      menu.style.top = `${rect.top - box.height - gap}px`;
+    }
+    if (box.right > window.innerWidth - 8) {
+      menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
+    }
+  }
+
+  function close() {
+    if (!wrap.classList.contains("is-open")) return;
+    wrap.classList.remove("is-open");
+    trigger.setAttribute("aria-expanded", "false");
+    menu.hidden = true;
+    wrap.append(menu);
+  }
+
+  function open() {
+    closeChoiceMenus(wrap);
+    renderMenu();
+    wrap.classList.add("is-open");
+    trigger.setAttribute("aria-expanded", "true");
+    document.body.append(menu);
+    menu.hidden = false;
+    placeMenu();
+    const selected = menu.querySelector("[role=option].is-selected") || menu.querySelector("[role=option]");
+    selected?.focus();
+  }
+
+  function pick(value) {
+    const current = nativeSelectValue.get.call(select);
+    if (current !== value) {
+      nativeSelectValue.set.call(select, value);
+      select.dispatchEvent(new Event("input", { bubbles: true }));
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    sync();
+    close();
+    trigger.focus();
+  }
+
+  wrap._choiceClose = close;
+
+  trigger.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (wrap.classList.contains("is-open")) close();
+    else open();
+  });
+
+  trigger.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!wrap.classList.contains("is-open")) open();
+      const items = [...menu.querySelectorAll("[role=option]")];
+      if (event.key === "ArrowUp") items.at(-1)?.focus();
+    } else if (event.key === "Escape" && wrap.classList.contains("is-open")) {
+      event.preventDefault();
+      close();
+    }
+  });
+
+  menu.addEventListener("click", (event) => {
+    const item = event.target.closest("[role=option]");
+    if (item) pick(item.dataset.value);
+  });
+
+  menu.addEventListener("keydown", (event) => {
+    const items = [...menu.querySelectorAll("[role=option]")];
+    const index = items.indexOf(document.activeElement);
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+      trigger.focus();
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      items[Math.min(items.length - 1, Math.max(0, index) + 1)]?.focus();
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      items[Math.max(0, index - 1)]?.focus();
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      items[0]?.focus();
+    } else if (event.key === "End") {
+      event.preventDefault();
+      items.at(-1)?.focus();
+    } else if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      const item = document.activeElement?.closest("[role=option]");
+      if (item) pick(item.dataset.value);
+    } else if (event.key === "Tab") {
+      close();
+    }
+  });
+
+  Object.defineProperty(select, "value", {
+    configurable: true,
+    get() {
+      return nativeSelectValue.get.call(this);
+    },
+    set(next) {
+      nativeSelectValue.set.call(this, next);
+      sync();
+    },
+  });
+
+  renderMenu();
+  return select;
+}
+
+document.addEventListener("pointerdown", (event) => {
+  if (event.target.closest(".choice") || event.target.closest(".choice-menu")) return;
+  closeChoiceMenus();
+});
+
+window.addEventListener("resize", () => closeChoiceMenus());
+document.addEventListener("scroll", () => closeChoiceMenus(), true);
+
+mountChoice(countEl);
+mountChoice(providerEl);
 
 function sizeScene() {
   sceneEl.style.height = "0px";
@@ -284,7 +476,7 @@ function makeSlider(id, label, value) {
 function mountBrushPanel() {
   brushControlsEl.innerHTML = "";
 
-  const typeRow = document.createElement("label");
+  const typeRow = document.createElement("div");
   typeRow.className = "slide";
   const typeName = document.createElement("span");
   typeName.textContent = "type";
@@ -300,6 +492,7 @@ function mountBrushPanel() {
   typeSelect.value = effects.brushType || "HB";
   typeRow.append(typeName, typeSelect);
   brushControlsEl.append(typeRow);
+  mountChoice(typeSelect);
 
   for (const key of BRUSH_SLIDERS) {
     brushControlsEl.append(makeSlider(key.id, key.label, effects[key.id]));
@@ -394,7 +587,10 @@ function mountPlacementPanel() {
 }
 
 function mountEffects() {
-  effectGroupsEl.innerHTML = "";
+  const colorGroup = effectGroupsEl.querySelector(".color-group");
+  for (const el of [...effectGroupsEl.children]) {
+    if (el !== colorGroup) el.remove();
+  }
   mountBrushPanel();
   mountPlacementPanel();
   EFFECT_GROUPS.forEach((group, index) => {
@@ -408,6 +604,9 @@ function mountEffects() {
     }
     effectGroupsEl.append(details);
   });
+  if (colorGroup && effectGroupsEl.firstElementChild !== colorGroup) {
+    effectGroupsEl.prepend(colorGroup);
+  }
 
   pigmentColorEl.value = oklchToHex(effects.color || DEFAULT_COLOR);
   colorDial = mountColorDial({
@@ -415,6 +614,9 @@ function mountEffects() {
     input: pigmentColorEl,
     value: effects.color || DEFAULT_COLOR,
     onChange: onEffectInput,
+  });
+  colorGroup?.addEventListener("toggle", () => {
+    if (colorGroup.open) colorDial?.setValue(pigmentColorEl.value);
   });
 
   bindReset("#resetEffects", resetEffects);
@@ -657,7 +859,7 @@ function drainQueue() {
     }
     setStatus("the wash never dried. try the photo again.");
     drainQueue();
-  }, 20000);
+  }, 35000);
   const frame = renderer.contentWindow;
   if (frame) frame.__pendingPhoto = rec.item.photo || null;
   frame?.postMessage(
@@ -847,7 +1049,80 @@ masthead?.addEventListener("click", (event) => {
   masthead.classList.toggle("is-open");
 });
 
+function mountDeskScroll() {
+  const desk = document.querySelector(".desk");
+  const rail = document.querySelector(".desk-rail");
+  const thumb = document.querySelector(".desk-scroll");
+  if (!desk || !rail || !thumb) return;
+
+  const thumbH = 64;
+  let dragging = false;
+
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+  const metrics = () => {
+    const max = Math.max(0, desk.scrollHeight - desk.clientHeight);
+    const travel = Math.max(1, rail.clientHeight - thumbH);
+    return { max, travel };
+  };
+
+  const sync = () => {
+    const { max, travel } = metrics();
+    if (max <= 4) {
+      rail.hidden = true;
+      return;
+    }
+    rail.hidden = false;
+    const ratio = desk.scrollTop / max;
+    thumb.style.top = `${ratio * travel}px`;
+    rail.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
+    rail.setAttribute("aria-valuemin", "0");
+    rail.setAttribute("aria-valuemax", "100");
+  };
+
+  const scrollToClientY = (clientY) => {
+    const { max, travel } = metrics();
+    if (max <= 4) return;
+    const y = clamp(clientY - rail.getBoundingClientRect().top - thumbH / 2, 0, travel);
+    desk.scrollTop = (y / travel) * max;
+    thumb.style.top = `${y}px`;
+  };
+
+  rail.addEventListener("pointerdown", (event) => {
+    if (event.button != null && event.button !== 0) return;
+    event.preventDefault();
+    dragging = true;
+    rail.classList.add("is-dragging");
+    try {
+      rail.setPointerCapture(event.pointerId);
+    } catch {
+      /* ignore */
+    }
+    scrollToClientY(event.clientY);
+  });
+
+  rail.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+    event.preventDefault();
+    scrollToClientY(event.clientY);
+  });
+
+  const endDrag = () => {
+    dragging = false;
+    rail.classList.remove("is-dragging");
+  };
+  rail.addEventListener("pointerup", endDrag);
+  rail.addEventListener("pointercancel", endDrag);
+
+  desk.addEventListener("scroll", sync, { passive: true });
+  new ResizeObserver(sync).observe(desk);
+  new ResizeObserver(sync).observe(rail);
+  desk.addEventListener("toggle", () => requestAnimationFrame(sync), true);
+  sync();
+}
+
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
 fitPaintKit();
 sizeScene();
+mountDeskScroll();

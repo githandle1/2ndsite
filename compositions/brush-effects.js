@@ -13,23 +13,23 @@ const CANVAS_SCALE = 2.8;
 const BRUSH_PRESETS = {
   HB: {
     type: "default",
-    weight: 0.3,
-    scatter: 0.6,
-    sharpness: 0.3,
-    grain: 0.7,
-    opacity: 170,
-    spacing: 0.1,
-    pressure: { curve: [0.15, 0.2], min_max: [1.1, 0.9] },
+    weight: 0.46,
+    scatter: 0.78,
+    sharpness: 0.26,
+    grain: 1.05,
+    opacity: 196,
+    spacing: 0.09,
+    pressure: { curve: [0.12, 0.28], min_max: [1.16, 0.86] },
   },
   "2B": {
     type: "default",
-    weight: 0.3,
-    scatter: 0.75,
-    sharpness: 0.45,
-    grain: 0.8,
-    opacity: 180,
-    spacing: 0.1,
-    pressure: { curve: [0.1, 0.3], min_max: [1.1, 0.9] },
+    weight: 0.4,
+    scatter: 0.86,
+    sharpness: 0.4,
+    grain: 1.02,
+    opacity: 194,
+    spacing: 0.09,
+    pressure: { curve: [0.1, 0.34], min_max: [1.14, 0.86] },
   },
   "2H": {
     type: "default",
@@ -99,9 +99,9 @@ const TYPE_FILL = {
   charcoal: { texture: 1.7, bleed: 0.48, border: 0.72, irregularity: 1.25, scatter: true, line: 1.45 },
   cpencil: { texture: 0.78, bleed: 0.34, border: 1.45, irregularity: 0.7, scatter: false, line: 1.15 },
   crayon: { texture: 1.55, bleed: 0.26, border: 1.12, irregularity: 1.2, scatter: true, line: 1.7 },
-  "2B": { texture: 1.32, bleed: 1.22, border: 0.82, irregularity: 1.14, line: 1.1 },
+  "2B": { texture: 1.5, bleed: 0.98, border: 1.12, irregularity: 1.28, line: 1.22 },
   "2H": { texture: 0.42, bleed: 0.38, border: 1.55, irregularity: 0.62, scatter: false, line: 0.85 },
-  HB: { texture: 1, bleed: 1, border: 1, irregularity: 1, line: 1 },
+  HB: { texture: 1.42, bleed: 0.72, border: 1.4, irregularity: 1.32, line: 1.22 },
 };
 
 const TYPE_MASS = {
@@ -177,6 +177,12 @@ function endMass(used) {
 
 function styleColor(color, e) {
   let ok = parseColor(color) || parseColor("#8b2f32");
+  if (window.__photoPaint) {
+    ok = saturate(ok, amp(e.density, 1.05, 1.28));
+    const pigment = parseColor(e.color);
+    if (pigment) ok = mixOklch(ok, pigment, amp(e.intimacy, 0.04, 0.18));
+    return oklchToHex(ok);
+  }
   const pigment = parseColor(e.color);
   if (pigment) ok = mixOklch(ok, pigment, amp(e.pigment, 0.22, 0.88));
 
@@ -200,6 +206,11 @@ function styleColor(color, e) {
 function styleOpacity(opacity, e) {
   let next = Number(opacity);
   if (!Number.isFinite(next)) next = 80;
+  if (window.__photoPaint) {
+    next *= amp(e.brushWeight, 0.92, 1.22);
+    next *= amp(e.density, 0.94, 1.22);
+    return clamp(next, 48, 228);
+  }
   next *= amp(e.transparency, 1.45, 0.52);
   next *= amp(e.density, 0.62, 1.38);
   next *= amp(e.pigment, 0.7, 1.32);
@@ -207,22 +218,23 @@ function styleOpacity(opacity, e) {
   next *= amp(e.dreaminess, 1.08, 0.78);
   next *= amp(e.eventImminence, 0.88, 1.18);
   next *= amp(e.luminosity, 1.12, 0.86);
-  next *= amp(e.brushWeight, 0.78, 1.22);
+  next *= amp(e.brushWeight, 0.9, 1.32);
   if (TYPE_MASS[e.brushType]) next *= 0.78;
+  else next *= 1.18;
   if (e.brushType === "marker") next *= 1.2;
-  return clamp(next, 10, 230);
+  return clamp(next, 24, 228);
 }
 
 function styleBleed(strength, e) {
   let next = Number(strength);
   if (!Number.isFinite(next)) next = 0.45;
-  next *= amp(e.bleed, 0.25, 1.7);
-  next *= amp(e.edgeSoftness, 0.45, 1.55);
-  next *= amp(e.dreaminess, 0.8, 1.45);
-  next *= amp(e.temporalAmbiguity, 0.82, 1.4);
-  next *= amp(e.stillness, 1.2, 0.7);
-  next *= amp(e.brushWeight, 0.55, 1.55);
-  next *= amp(e.brushSharpness, 1.35, 0.55);
+  next *= amp(e.bleed, 0.22, 1.45);
+  next *= amp(e.edgeSoftness, 0.42, 1.42);
+  next *= amp(e.dreaminess, 0.82, 1.32);
+  next *= amp(e.temporalAmbiguity, 0.86, 1.28);
+  next *= amp(e.stillness, 1.12, 0.74);
+  next *= amp(e.brushWeight, 0.62, 1.38);
+  next *= amp(e.brushSharpness, 1.28, 0.58);
   next *= typeBias(e).bleed;
   return clamp(next, 0, 1);
 }
@@ -230,23 +242,24 @@ function styleBleed(strength, e) {
 function styleTexture(texture, border, e) {
   let t = Number(texture);
   let b = Number(border);
-  if (!Number.isFinite(t)) t = 0.2;
-  if (!Number.isFinite(b)) b = 0.12;
-  t *= amp(e.granulation, 0.15, 1.85);
-  t *= amp(e.brushGrain, 0.2, 1.9);
-  t *= amp(e.brushScatter, 0.7, 1.35);
-  t *= amp(e.density, 0.7, 1.3);
-  t *= amp(e.nostalgia, 0.9, 1.25);
+  if (!Number.isFinite(t)) t = 0.4;
+  if (!Number.isFinite(b)) b = 0.26;
+  t *= amp(e.granulation, 0.4, 2.05);
+  t *= amp(e.brushGrain, 0.5, 2.1);
+  t *= amp(e.brushScatter, 0.82, 1.42);
+  t *= amp(e.density, 0.82, 1.34);
+  t *= amp(e.nostalgia, 0.94, 1.2);
   t *= typeBias(e).texture;
-  b *= amp(e.edgeSoftness, 1.4, 0.45);
-  b *= amp(e.brushSharpness, 0.45, 1.5);
-  b *= amp(e.brushWeight, 1.15, 0.75);
-  b *= amp(e.stillness, 0.75, 1.2);
+  b *= amp(e.edgeSoftness, 1.22, 0.58);
+  b *= amp(e.brushSharpness, 0.62, 1.38);
+  b *= amp(e.brushWeight, 0.92, 1.28);
+  b *= amp(e.stillness, 0.86, 1.14);
   b *= typeBias(e).border;
-  return [clamp(t, 0, 1), clamp(b, 0, 1)];
+  return [clamp(t, 0.14, 1), clamp(b, 0.12, 1)];
 }
 
 function point(x, y, e) {
+  if (window.__photoPaint) return { x, y };
   const cx = typeof window.width === "number" ? window.width / 2 : 400;
   const cy = typeof window.height === "number" ? window.height / 2 : 400;
   let scale = 1;
@@ -264,29 +277,30 @@ function point(x, y, e) {
 }
 
 function radius(r, e) {
+  if (window.__photoPaint) return r;
   return r * amp(e.composition, 0.84, 1.14) * amp(e.grandeur, 0.9, 1.16);
 }
 
 function irregularity(value, e) {
   let next = Number(value);
-  if (!Number.isFinite(next)) next = 0.35;
-  next *= amp(e.stillness, 1.45, 0.28);
-  next *= amp(e.arousal, 0.7, 1.4);
-  next *= amp(e.dreaminess, 0.85, 1.25);
-  next *= amp(e.brushScatter, 0.55, 1.55);
+  if (!Number.isFinite(next)) next = 0.44;
+  next *= amp(e.stillness, 1.32, 0.34);
+  next *= amp(e.arousal, 0.78, 1.38);
+  next *= amp(e.dreaminess, 0.88, 1.22);
+  next *= amp(e.brushScatter, 0.62, 1.52);
   next *= typeBias(e).irregularity;
-  return clamp(next, 0, 1);
+  return clamp(next, 0.08, 1);
 }
 
 function applyStudioBrushes() {
   const brush = window.brush;
   const e = current;
   if (!brush?.add || !e) return;
-  const w = amp(e.brushWeight, 0.55, 1.55);
-  const sc = amp(e.brushScatter, 0.5, 1.6);
-  const g = amp(e.brushGrain, 0.5, 1.6);
+  const w = amp(e.brushWeight, 0.7, 1.62);
+  const sc = amp(e.brushScatter, 0.58, 1.58);
+  const g = amp(e.brushGrain, 0.68, 1.72);
   const sp = amp(e.brushSpacing, 0.55, 1.55);
-  const sh = amp(e.brushSharpness, 0.55, 1.55);
+  const sh = amp(e.brushSharpness, 0.52, 1.48);
   for (const [name, base] of Object.entries(BRUSH_PRESETS)) {
     const params = {
       type: base.type || "default",

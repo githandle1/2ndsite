@@ -10,11 +10,12 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=86" />
+    <link rel="stylesheet" href="styles.css?v=101" />
   </head>
   <body>
     <main class="studio">
-      <aside class="desk">
+      <div class="desk-shell">
+      <aside class="desk" id="desk">
         <div class="masthead">
           <h1>compositions</h1>
           <p class="about-label">what is this?</p>
@@ -70,14 +71,14 @@
 
         <div class="stack">
           <div class="tools">
-            <label class="slide">
+            <div class="slide">
               <span>variations</span>
-              <select id="count">
+              <select id="count" aria-label="variations">
                 <option value="3">3</option>
                 <option value="4" selected>4</option>
                 <option value="6">6</option>
               </select>
-            </label>
+            </div>
             <button id="paint" class="paint" type="button" aria-label="paint" title="paint">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path
@@ -153,22 +154,30 @@
                   </svg>
                 </button>
               </summary>
-              <div class="field compact color-field">
-                <span>color</span>
-                <div class="dial">
-                  <input
-                    id="pigmentColor"
-                    type="text"
-                    value="#8b2f32"
-                    maxlength="7"
-                    autocomplete="off"
-                    spellcheck="false"
-                    aria-label="hex"
-                  />
-                  <canvas id="colorDial" width="50" height="50" aria-label="color dial"></canvas>
-                </div>
+              <div class="effect-groups" id="effectGroups">
+                <details class="color-group">
+                  <summary>color</summary>
+                  <div class="color-field">
+                    <div class="dial">
+                      <canvas id="colorDial" width="96" height="96" aria-label="color dial"></canvas>
+                      <label class="slide dial-light">
+                        <span>light</span>
+                        <input id="colorLight" type="range" min="8" max="94" value="48" aria-label="lightness" />
+                      </label>
+                      <input
+                        id="pigmentColor"
+                        type="text"
+                        value="#8b2f32"
+                        maxlength="7"
+                        autocomplete="off"
+                        spellcheck="false"
+                        aria-label="hex"
+                      />
+                    </div>
+                    <div class="pigments" id="pigments" role="listbox" aria-label="pigments"></div>
+                  </div>
+                </details>
               </div>
-              <div class="effect-groups" id="effectGroups"></div>
             </details>
 
             <div class="pane sketch-bar" id="sketch">
@@ -183,14 +192,14 @@
 
             <details class="keys">
               <summary>api key</summary>
-              <label class="field compact">
+              <div class="field compact">
                 <span>provider</span>
-                <select id="provider">
+                <select id="provider" aria-label="provider">
                   <option value="grok">grok (xai)</option>
                   <option value="anthropic">anthropic</option>
                   <option value="openai">openai</option>
                 </select>
-              </label>
+              </div>
               <label class="field">
                 <span>key</span>
                 <input id="apiKey" type="password" autocomplete="off" placeholder="xai-…" />
@@ -199,11 +208,22 @@
           </div>
         </details>
       </aside>
+      <div
+        class="desk-rail"
+        hidden
+        role="scrollbar"
+        aria-label="menu"
+        aria-orientation="vertical"
+        aria-controls="desk"
+      >
+        <div class="desk-scroll"></div>
+      </div>
+      </div>
 
       <section class="wall" id="wall" aria-live="polite"></section>
     </main>
 
-    <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=40"></iframe>
-    <script type="module" src="app.js?v=66"></script>
+    <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=52"></iframe>
+    <script type="module" src="app.js?v=74"></script>
   </body>
 </html>

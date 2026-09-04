@@ -97,6 +97,10 @@ export const EFFECT_GROUPS = [
 export function defaultEffects() {
   const effects = { color: { ...DEFAULT_COLOR }, brushType: "HB" };
   for (const key of EFFECT_KEYS) effects[key] = 0.5;
+  effects.granulation = 0.62;
+  effects.brushGrain = 0.64;
+  effects.brushWeight = 0.58;
+  effects.brushScatter = 0.56;
   return effects;
 }
 
