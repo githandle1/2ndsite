@@ -440,6 +440,8 @@ function fitPaintKit() {
   if (samples) samples.open = true;
   paintKit.addEventListener("toggle", () => {
     if (paintKit.open) openPaintSections();
+    const desk = document.querySelector(".desk");
+    if (!paintKit.open && desk) desk.scrollTop = 0;
   });
   fitPaintKit.done = true;
 }

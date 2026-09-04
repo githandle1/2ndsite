@@ -137,6 +137,7 @@ h1 {
     0 0 0 1px rgba(36, 33, 31, 0.045),
     0 10px 24px rgba(36, 33, 31, 0.06);
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
   transform: translateY(-4px);
   transition: opacity 160ms ease, transform 160ms ease;
@@ -155,6 +156,7 @@ h1 {
 .about:focus-within .about-menu,
 .about.is-open .about-menu {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
   transform: none;
 }
@@ -180,8 +182,13 @@ h1 {
 .desk-shell {
   position: sticky;
   top: 18px;
-  display: grid;
   max-height: calc(100vh - 36px);
+  min-width: 0;
+}
+
+.desk-frame {
+  position: relative;
+  max-height: inherit;
   min-width: 0;
 }
 
@@ -189,9 +196,8 @@ h1 {
   position: relative;
   display: flex;
   flex-direction: column;
-  grid-area: 1 / 1;
   gap: 20px;
-  max-height: calc(100vh - 36px);
+  max-height: inherit;
   padding: 22px 22px 24px;
   border: 0;
   border-radius: 24px;
@@ -210,13 +216,12 @@ h1 {
 }
 
 .desk-rail {
-  position: relative;
-  grid-area: 1 / 1;
-  align-self: stretch;
-  justify-self: end;
+  position: absolute;
+  top: 22px;
+  right: 5px;
+  bottom: 22px;
   z-index: 4;
   width: 18px;
-  margin: 22px 5px;
   overflow: hidden;
   cursor: ns-resize;
   touch-action: none;
