@@ -1135,11 +1135,14 @@
             }
 
             .cabinet-footer {
-                flex-wrap: wrap;
+                flex-direction: column;
+                align-items: flex-start;
             }
 
             .local-date {
-                min-width: min(100%, 16rem);
+                flex: none;
+                min-width: 0;
+                text-align: left;
             }
         }
     </style>
