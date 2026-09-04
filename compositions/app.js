@@ -970,13 +970,7 @@ async function generate({ scene, sampleId } = {}) {
   }
 }
 
-paintEl.addEventListener("pointerdown", (event) => {
-  event.preventDefault();
-  event.stopPropagation();
-});
-paintEl.addEventListener("click", (event) => {
-  event.preventDefault();
-  event.stopPropagation();
+paintEl.addEventListener("click", () => {
   if (currentPhoto) {
     paintPhoto();
     return;
@@ -1053,10 +1047,20 @@ if (renderer.contentDocument?.readyState === "complete") {
   rendererReady = true;
 }
 
-const masthead = document.querySelector(".masthead");
-masthead?.addEventListener("click", (event) => {
+const about = document.querySelector(".about");
+about?.addEventListener("click", (event) => {
   if (event.target.closest("a")) return;
-  masthead.classList.toggle("is-open");
+  about.classList.toggle("is-open");
+});
+about?.addEventListener("mouseleave", () => {
+  about.classList.remove("is-open");
+});
+document.addEventListener("pointerdown", (event) => {
+  if (!about || !(event.target instanceof Element) || event.target.closest(".about")) return;
+  about.classList.remove("is-open");
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") about?.classList.remove("is-open");
 });
 
 function mountDeskScroll() {
@@ -1083,7 +1087,7 @@ function mountDeskScroll() {
       return;
     }
     rail.hidden = false;
-    const ratio = desk.scrollTop / max;
+    const ratio = clamp(desk.scrollTop / max, 0, 1);
     thumb.style.top = `${ratio * travel}px`;
     rail.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
     rail.setAttribute("aria-valuemin", "0");

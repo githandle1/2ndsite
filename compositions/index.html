@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=112" />
+    <link rel="stylesheet" href="styles.css?v=115" />
   </head>
   <body>
     <main class="studio">
@@ -18,13 +18,15 @@
       <aside class="desk" id="desk">
         <div class="masthead">
           <h1>compositions</h1>
-          <p class="about-label">what is this?</p>
-          <div class="about-menu">
-            <p>
-              this is a mini generative art experiment, inspired by
-              <a href="https://surya.website/rling-qwen-to-paint-with-code" target="_blank" rel="noopener noreferrer">this project on painting with code</a>.
-            </p>
-            <p>to get started upload an image or select a preset scene below. click paint to adjust each image.</p>
+          <div class="about">
+            <p class="about-label">what is this?</p>
+            <div class="about-menu">
+              <p>
+                this is a mini generative art experiment, inspired by
+                <a href="https://surya.website/rling-qwen-to-paint-with-code" target="_blank" rel="noopener noreferrer">this project on painting with code</a>.
+              </p>
+              <p>to get started upload an image or select a preset scene below. click paint to adjust each image.</p>
+            </div>
           </div>
         </div>
         <div class="stack">
@@ -43,31 +45,51 @@
                 <img id="sceneCaptionImg" alt="" />
                 <span id="sceneCaptionText"></span>
               </div>
-              <label class="upload" id="photoChip" aria-label="upload photo" title="upload photo">
-                <input id="photo" type="file" accept="image/*" />
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path
-                    d="M12 16V5"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M8 8.5 12 4.5 16 8.5"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M5 16.5v1.2c0 1 .8 1.8 1.8 1.8h10.4c1 0 1.8-.8 1.8-1.8v-1.2"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </label>
+              <div class="scene-actions">
+                <label class="upload" id="photoChip" aria-label="upload photo" title="upload photo">
+                  <input id="photo" type="file" accept="image/*" />
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M12 16V5"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                    />
+                    <path
+                      d="M8 8.5 12 4.5 16 8.5"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M5 16.5v1.2c0 1 .8 1.8 1.8 1.8h10.4c1 0 1.8-.8 1.8-1.8v-1.2"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </label>
+                <button id="paint" class="paint" type="button" aria-label="paint" title="paint">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
           <details class="sample-kit" id="sampleKit" open>
@@ -77,27 +99,7 @@
         </div>
 
         <details class="paint-kit" id="paintKit">
-          <summary>
-            <span>customize</span>
-            <button id="paint" class="paint" type="button" aria-label="paint" title="paint">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </button>
-          </summary>
+          <summary>customize</summary>
           <div class="paint-kit-body">
             <details class="pane" id="brush">
               <summary>
@@ -210,6 +212,6 @@
     </main>
 
     <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=52"></iframe>
-    <script type="module" src="app.js?v=81"></script>
+    <script type="module" src="app.js?v=84"></script>
   </body>
 </html>
