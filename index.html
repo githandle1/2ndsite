@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Maya's filing cabinet: photos and personal notes.">
-    <script src="paper-time.js?v=7"></script>
+    <script src="paper-time.js?v=8"></script>
     <title>maya bakir</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,6 @@
             --stain-opacity: 0.47;
             --stain-right-opacity: 0.40;
             --stain-filter: none;
-            --day-dot: #d8c46a;
             --photo-reveal-duration: 780ms;
             --photo-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
             --photo-frame-margin: 36px;
@@ -67,7 +66,6 @@
         .places-map,
         .snaps-footer,
         .local-date,
-        .daylight-dot,
         .bookmark-list,
         .bookmark-more-toggle,
         .bookmark-blurb {
@@ -1074,29 +1072,6 @@
                 0 1px 0 color-mix(in srgb, var(--paper) 82%, var(--paper-highlight));
         }
 
-        .daylight-control {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.28em;
-            flex: 0 0 auto;
-            color: var(--ink);
-            text-shadow: none;
-        }
-
-        .daylight-dot {
-            width: 0.52rem;
-            height: 0.52rem;
-            flex: 0 0 auto;
-            border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
-            border-radius: 50%;
-            background: var(--day-dot);
-            box-shadow:
-                0 0 0 1px color-mix(in srgb, var(--paper) 72%, transparent),
-                0 0 0.35rem color-mix(in srgb, var(--day-dot) 42%, transparent);
-            transform: translateY(0.08em);
-            transition: background-color 700ms ease, box-shadow 700ms ease;
-        }
-
         @media (max-width: 600px) {
             html {
                 overflow-x: clip;
@@ -1273,9 +1248,6 @@
             <a class="sketchbook-link phrase cabinet-footer-files" href="/compositions/">compositions <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
             <a class="sketchbook-link phrase cabinet-footer-sketchbook" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
             <p class="local-date" aria-label="Your local date and time">
-                <span class="daylight-control" id="daylight-control">
-                    <span class="daylight-dot" id="daylight-dot" aria-hidden="true"></span>
-                </span>
                 <time id="local-date-stamp"></time>
             </p>
         </footer>
