@@ -236,6 +236,7 @@ h1 {
   border-radius: 999px;
   background: color-mix(in srgb, var(--hover) 40%, transparent);
   pointer-events: none;
+  will-change: transform;
 }
 
 .desk-rail:hover .desk-scroll,

@@ -1071,11 +1071,11 @@ function mountDeskScroll() {
 
   const minThumbH = 32;
   let dragging = false;
+  let syncFrame = 0;
 
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
-  const metrics = () => {
-    const max = Math.max(0, desk.scrollHeight - desk.clientHeight);
+  const metrics = (max = Math.max(0, desk.scrollHeight - desk.clientHeight)) => {
     const thumbH = clamp(
       rail.clientHeight * (desk.clientHeight / desk.scrollHeight),
       minThumbH,
@@ -1085,19 +1085,28 @@ function mountDeskScroll() {
     return { max, thumbH, travel };
   };
 
-  const sync = () => {
-    const { max, thumbH, travel } = metrics();
+  const render = () => {
+    const max = Math.max(0, desk.scrollHeight - desk.clientHeight);
     if (max <= 4) {
       rail.hidden = true;
       return;
     }
     rail.hidden = false;
+    const { thumbH, travel } = metrics(max);
     const ratio = clamp(desk.scrollTop / max, 0, 1);
     thumb.style.height = `${thumbH}px`;
     thumb.style.transform = `translate3d(0, ${ratio * travel}px, 0)`;
     rail.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
     rail.setAttribute("aria-valuemin", "0");
     rail.setAttribute("aria-valuemax", "100");
+  };
+
+  const sync = () => {
+    if (syncFrame) return;
+    syncFrame = requestAnimationFrame(() => {
+      syncFrame = 0;
+      render();
+    });
   };
 
   const scrollToClientY = (clientY) => {
