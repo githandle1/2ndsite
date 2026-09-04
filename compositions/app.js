@@ -58,7 +58,7 @@ function closeChoiceMenus(except) {
   }
 }
 
-function mountChoice(select) {
+function mountChoice(select, options = {}) {
   if (!select || select.closest(".choice")) return select;
   select.classList.add("choice-native");
   select.setAttribute("tabindex", "-1");
@@ -66,6 +66,7 @@ function mountChoice(select) {
 
   const wrap = document.createElement("div");
   wrap.className = "choice";
+  if (select.id === "count") wrap.classList.add("is-count");
   select.before(wrap);
   wrap.append(select);
 
@@ -78,7 +79,7 @@ function mountChoice(select) {
   trigger.setAttribute("aria-label", label);
 
   const menu = document.createElement("ul");
-  menu.className = "choice-menu";
+  menu.className = select.id === "count" ? "choice-menu is-count" : "choice-menu";
   menu.setAttribute("role", "listbox");
   menu.setAttribute("aria-label", label);
   menu.hidden = true;
@@ -95,7 +96,12 @@ function mountChoice(select) {
   function sync() {
     const current = nativeSelectValue.get.call(select);
     const match = optionList().find((opt) => opt.value === current);
-    trigger.textContent = match?.label ?? current;
+    const text = match?.label ?? current;
+    if (typeof options.renderTrigger === "function") {
+      options.renderTrigger(trigger, current, text);
+    } else {
+      trigger.textContent = text;
+    }
     for (const item of menu.querySelectorAll("[role=option]")) {
       const on = item.dataset.value === current;
       item.classList.toggle("is-selected", on);
@@ -119,14 +125,18 @@ function mountChoice(select) {
   function placeMenu() {
     const rect = trigger.getBoundingClientRect();
     const gap = 6;
-    menu.style.minWidth = `${Math.max(rect.width, 72)}px`;
-    menu.style.left = `${rect.left}px`;
+    const compact = wrap.classList.contains("is-count");
+    menu.style.minWidth = compact ? "2.6rem" : `${Math.max(rect.width, 72)}px`;
+    menu.style.left = compact ? `${rect.right}px` : `${rect.left}px`;
     menu.style.top = `${rect.bottom + gap}px`;
     const box = menu.getBoundingClientRect();
+    if (compact) {
+      menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
+    }
     if (box.bottom > window.innerHeight - 8 && rect.top > box.height + gap + 8) {
       menu.style.top = `${rect.top - box.height - gap}px`;
     }
-    if (box.right > window.innerWidth - 8) {
+    if (!compact && box.right > window.innerWidth - 8) {
       menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
     }
   }
@@ -239,13 +249,23 @@ document.addEventListener("pointerdown", (event) => {
 window.addEventListener("resize", () => closeChoiceMenus());
 document.addEventListener("scroll", () => closeChoiceMenus(), true);
 
-mountChoice(countEl);
+mountChoice(countEl, {
+  renderTrigger(trigger, _value, label) {
+    const word = document.createElement("span");
+    word.className = "count-word";
+    word.textContent = "variations";
+    const num = document.createElement("span");
+    num.className = "count-num";
+    num.textContent = label;
+    trigger.replaceChildren(word, num);
+  },
+});
 mountChoice(providerEl);
 
 function sizeScene() {
   sceneEl.style.height = "0px";
-  const next = Math.min(sceneEl.scrollHeight, 160);
-  sceneEl.style.height = `${Math.max(next, 44)}px`;
+  const next = Math.min(sceneEl.scrollHeight, 280);
+  sceneEl.style.height = `${Math.max(next, 96)}px`;
 }
 
 sceneEl.addEventListener("input", sizeScene);
@@ -950,7 +970,13 @@ async function generate({ scene, sampleId } = {}) {
   }
 }
 
-paintEl.addEventListener("click", () => {
+paintEl.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+});
+paintEl.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
   if (currentPhoto) {
     paintPhoto();
     return;
