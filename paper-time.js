@@ -142,14 +142,6 @@
         return now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
     };
 
-    const syncPicker = () => {
-        const scheme = activeScheme();
-
-        document.querySelectorAll("[data-scheme]").forEach((button) => {
-            button.setAttribute("aria-pressed", button.dataset.scheme === scheme ? "true" : "false");
-        });
-    };
-
     const updatePaper = () => {
         const root = document.documentElement;
         const scheme = activeScheme();
@@ -162,7 +154,6 @@
         Object.entries(themes[scheme]).forEach(([name, value]) => {
             root.style.setProperty(name, value);
         });
-        syncPicker();
     };
 
     const setScheme = (scheme) => {
@@ -175,22 +166,6 @@
         updatePaper();
     };
 
-    const initDaylightControl = () => {
-        const picker = document.getElementById("daylight-picker");
-
-        if (!picker) {
-            return;
-        }
-
-        picker.querySelectorAll("[data-scheme]").forEach((button) => {
-            button.addEventListener("click", () => {
-                setScheme(button.dataset.scheme);
-            });
-        });
-
-        syncPicker();
-    };
-
     updatePaper();
     window.setInterval(updatePaper, 60_000);
 
@@ -198,12 +173,6 @@
         preferredScheme.addEventListener("change", updatePaper);
     } else if (typeof preferredScheme.addListener === "function") {
         preferredScheme.addListener(updatePaper);
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initDaylightControl);
-    } else {
-        initDaylightControl();
     }
 
     window.paperTime = {
