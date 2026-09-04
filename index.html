@@ -362,18 +362,17 @@
         }
 
         .snaps-preview-toggle {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 9px 0;
+            gap: 0.35rem;
+            padding: 2px 0 8px;
             border: none;
             background: none;
             font-family: inherit;
-            font-size: var(--list-size);
-            line-height: var(--list-line-height);
+            font-size: var(--toggle-mark-size);
             font-weight: 400;
-            color: inherit;
+            line-height: 1;
+            color: var(--muted);
             cursor: pointer;
             transition: color 180ms ease;
         }
@@ -661,7 +660,7 @@
         }
 
         .snaps-album-groups {
-            padding-top: 12px;
+            padding-top: 0;
         }
 
         .photo-grid {
@@ -1506,12 +1505,15 @@
                         return;
                     }
 
-                    const nextState = previewToggle.getAttribute('aria-expanded') !== 'true';
-                    setToggleState(previewToggle, nextState, {
-                        openLabel: `Show more ${previewToggle.dataset.albumLabel || ''} photos`.trim(),
-                        closeLabel: `Show fewer ${previewToggle.dataset.albumLabel || ''} photos`.trim()
-                    });
-                    grid.classList.toggle('is-preview', !nextState);
+                    const photoCount = grid.querySelectorAll('.photo-item').length;
+
+                    if (photoVisibleCount >= photoCount) {
+                        photoVisibleCount = PHOTO_PAGE_SIZE;
+                    } else {
+                        photoVisibleCount += PHOTO_PAGE_SIZE;
+                    }
+
+                    updatePhotoVisibility();
                     return;
                 }
 
@@ -2037,6 +2039,68 @@
             });
         }
 
+        const PHOTO_PAGE_SIZE = 4;
+        let photoVisibleCount = PHOTO_PAGE_SIZE;
+
+        function flattenAlbumPhotos(albums) {
+            const photos = [];
+
+            [...albums]
+                .sort((a, b) => albumSortKey(b) - albumSortKey(a))
+                .forEach((album) => {
+                    if (!Array.isArray(album?.groups)) {
+                        return;
+                    }
+
+                    album.groups.forEach((group) => {
+                        if (!Array.isArray(group?.photos)) {
+                            return;
+                        }
+
+                        group.photos.forEach((photo) => {
+                            if (photo?.src) {
+                                photos.push(photo);
+                            }
+                        });
+                    });
+                });
+
+            return photos;
+        }
+
+        function updatePhotoVisibility() {
+            const grid = document.querySelector('#snaps-albums .photo-grid');
+            const toggle = document.getElementById('snaps-more-toggle');
+
+            if (!grid) {
+                return;
+            }
+
+            const items = [...grid.children];
+            const showingAll = photoVisibleCount >= items.length;
+
+            items.forEach((item, index) => {
+                item.classList.toggle('is-extra', index >= photoVisibleCount);
+            });
+            grid.classList.toggle('is-preview', !showingAll);
+
+            if (!toggle) {
+                return;
+            }
+
+            if (items.length <= PHOTO_PAGE_SIZE) {
+                toggle.hidden = true;
+                return;
+            }
+
+            toggle.hidden = false;
+            setToggleState(toggle, showingAll, {
+                openLabel: 'Show more photos',
+                closeLabel: 'Show fewer photos',
+                mark: toggle.querySelector('.snaps-preview-mark')
+            });
+        }
+
         function renderSnaps(albums) {
             const root = document.getElementById('snaps-albums');
             if (!root || !Array.isArray(albums)) {
@@ -2045,130 +2109,80 @@
 
             root.replaceChildren();
 
-            [...albums]
-                .sort((a, b) => albumSortKey(b) - albumSortKey(a))
-                .forEach((album) => {
-                if (!album?.label || !Array.isArray(album.groups) || album.groups.length === 0) {
-                    return;
+            const photos = flattenAlbumPhotos(albums);
+            if (photos.length === 0) {
+                return;
+            }
+
+            const entry = document.createElement('div');
+            entry.className = 'photo-entry photo-entry--preview';
+
+            const albumGroups = document.createElement('div');
+            albumGroups.className = 'snaps-album-groups';
+            albumGroups.dataset.snapsAlbum = '';
+
+            const grid = document.createElement('div');
+            grid.className = 'photo-grid';
+            grid.setAttribute('aria-label', 'Photos');
+
+            photos.forEach((photo, captionToggleIndex) => {
+                const item = document.createElement('div');
+                item.className = 'photo-item';
+
+                const thumb = document.createElement('button');
+                thumb.type = 'button';
+                thumb.className = 'photo-slot photo-thumb';
+                thumb.dataset.src = photo.src;
+                thumb.setAttribute(
+                    'aria-label',
+                    photo.ariaLabel || `Open ${photo.alt || 'photo'}`
+                );
+
+                const image = document.createElement('img');
+                image.src = photo.src;
+                image.alt = photo.alt || '';
+                if (photo.objectPosition) {
+                    image.style.objectPosition = photo.objectPosition;
                 }
+                thumb.append(image);
 
-                const details = document.createElement('details');
-                details.className = 'photo-entry';
+                const meta = document.createElement('div');
+                meta.className = 'photo-meta';
 
-                const summary = document.createElement('summary');
-                summary.textContent = album.label;
-                details.append(summary);
+                const captionToggle = document.createElement('button');
+                captionToggle.type = 'button';
+                captionToggle.className = `caption-toggle ${toggleToneClasses[captionToggleIndex % toggleToneClasses.length]}`;
+                captionToggle.setAttribute('aria-expanded', 'false');
+                captionToggle.setAttribute('aria-label', 'Show caption');
+                captionToggle.textContent = '+';
 
-                const albumGroups = document.createElement('div');
-                albumGroups.className = 'snaps-album-groups';
-                albumGroups.dataset.snapsAlbum = '';
+                const caption = buildPhotoCaptionElement(photo);
 
-                const grid = document.createElement('div');
-                grid.className = 'photo-grid';
-                grid.setAttribute('aria-label', `${album.label} photos`);
-
-                let captionToggleIndex = 0;
-
-                album.groups.forEach((group) => {
-                    if (!group?.city || !Array.isArray(group.photos) || group.photos.length === 0) {
-                        return;
-                    }
-
-                    group.photos.forEach((photo) => {
-                        if (!photo?.src) {
-                            return;
-                        }
-
-                        const item = document.createElement('div');
-                        item.className = 'photo-item';
-
-                        const thumb = document.createElement('button');
-                        thumb.type = 'button';
-                        thumb.className = 'photo-slot photo-thumb';
-                        thumb.dataset.src = photo.src;
-                        thumb.setAttribute(
-                            'aria-label',
-                            photo.ariaLabel || `Open ${photo.alt || 'photo'}`
-                        );
-
-                        const image = document.createElement('img');
-                        image.src = photo.src;
-                        image.alt = photo.alt || '';
-                        if (photo.objectPosition) {
-                            image.style.objectPosition = photo.objectPosition;
-                        }
-                        thumb.append(image);
-
-                        const meta = document.createElement('div');
-                        meta.className = 'photo-meta';
-
-                        const captionToggle = document.createElement('button');
-                        captionToggle.type = 'button';
-                        captionToggle.className = `caption-toggle ${toggleToneClasses[captionToggleIndex % toggleToneClasses.length]}`;
-                        captionToggleIndex += 1;
-                        captionToggle.setAttribute('aria-expanded', 'false');
-                        captionToggle.setAttribute('aria-label', 'Show caption');
-                        captionToggle.textContent = '+';
-
-                        const caption = buildPhotoCaptionElement(photo);
-
-                        meta.append(captionToggle, caption);
-                        item.append(thumb, meta);
-                        grid.append(item);
-                    });
-                });
-
-                if (!grid.children.length) {
-                    return;
-                }
-
-                const previewCount = Number(album.preview) > 0 ? Number(album.preview) : 0;
-                const usePreview = previewCount > 0 && grid.children.length > previewCount;
-
-                if (usePreview) {
-                    [...grid.children].forEach((item, index) => {
-                        if (index >= previewCount) {
-                            item.classList.add('is-extra');
-                        }
-                    });
-                    grid.classList.add('is-preview');
-                }
-
-                albumGroups.append(grid);
-
-                if (usePreview) {
-                    const entry = document.createElement('div');
-                    entry.className = 'photo-entry photo-entry--preview';
-
-                    const toggle = document.createElement('button');
-                    toggle.type = 'button';
-                    toggle.className = 'snaps-preview-toggle';
-                    toggle.dataset.albumLabel = album.label;
-                    toggle.setAttribute('aria-expanded', 'false');
-                    toggle.setAttribute('aria-label', `Show more ${album.label} photos`);
-
-                    const label = document.createElement('span');
-                    label.textContent = album.label;
-
-                    const mark = document.createElement('span');
-                    mark.className = 'snaps-preview-mark';
-                    mark.setAttribute('aria-hidden', 'true');
-                    mark.textContent = '+';
-
-                    toggle.append(label, mark);
-                    entry.append(toggle, albumGroups);
-                    root.append(entry);
-                    return;
-                }
-
-                if (album.defaultOpen) {
-                    details.open = true;
-                }
-
-                details.append(albumGroups);
-                root.append(details);
+                meta.append(captionToggle, caption);
+                item.append(thumb, meta);
+                grid.append(item);
             });
 
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'snaps-preview-toggle';
+            toggle.id = 'snaps-more-toggle';
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-controls', 'snaps-albums');
+            toggle.setAttribute('aria-label', 'Show more photos');
+
+            const mark = document.createElement('span');
+            mark.className = 'snaps-preview-mark toggle-mark--tone-d';
+            mark.setAttribute('aria-hidden', 'true');
+            mark.textContent = '+';
+            toggle.append(mark);
+
+            albumGroups.append(grid);
+            entry.append(albumGroups, toggle);
+            root.append(entry);
+
+            photoVisibleCount = PHOTO_PAGE_SIZE;
+            updatePhotoVisibility();
             bindSnapsInteractions(root);
         }
 
