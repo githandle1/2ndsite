@@ -458,7 +458,10 @@ function persistSettings() {
 }
 
 function readEffects() {
-  const next = { color: parseColor(pigmentColorEl?.value) || effects.color || DEFAULT_COLOR };
+  const next = {
+    ...effects,
+    color: parseColor(pigmentColorEl?.value) || effects.color || DEFAULT_COLOR,
+  };
   const typeEl = document.querySelector("#brushType");
   if (typeEl) next.brushType = typeEl.value;
   const ranges = [
@@ -834,13 +837,66 @@ function clearRegion(id = selectedId) {
   updateRegionUI(rec);
 }
 
+function syncDirectEditor(rec) {
+  const editor = rec?.sheet.querySelector(".direct-editor");
+  if (!editor) return;
+  const current = readEffects();
+  editor.querySelector('[data-direct="color"]').value = oklchToHex(current.color);
+  editor.querySelector('[data-direct="saturation"]').value = String(
+    Math.round(current.psychologicalSpecificity * 100)
+  );
+  editor.querySelector('[data-direct="brush"]').value = current.brushType;
+  editor.querySelector('[data-direct="texture"]').value = String(
+    Math.round(current.granulation * 100)
+  );
+}
+
+function bindDirectEditor(rec) {
+  const editor = rec.sheet.querySelector(".direct-editor");
+  const brush = editor.querySelector('[data-direct="brush"]');
+  for (const name of BRUSH_TYPES) {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name.toLowerCase();
+    brush.append(option);
+  }
+
+  const apply = (event) => {
+    const control = event.target.closest("[data-direct]");
+    if (!control) return;
+    const kind = control.dataset.direct;
+    if (kind === "color") {
+      colorDial?.setValue(control.value);
+    } else if (kind === "brush") {
+      const sidebar = document.querySelector("#brushType");
+      if (sidebar) sidebar.value = control.value;
+    } else {
+      const effect = kind === "saturation" ? "psychologicalSpecificity" : "granulation";
+      effects[effect] = Number(control.value) / 100;
+      const sidebar = document.querySelector(`input[data-effect="${effect}"]`);
+      if (sidebar) sidebar.value = control.value;
+    }
+    onEffectInput();
+  };
+
+  editor.addEventListener("input", apply);
+  editor.addEventListener("change", apply);
+  editor.addEventListener("pointerdown", (event) => event.stopPropagation());
+  editor.addEventListener("click", (event) => event.stopPropagation());
+  syncDirectEditor(rec);
+}
+
 function bindRegionSelection(rec) {
   const frame = rec.sheet.querySelector(".frame");
   let drag = null;
 
   frame.addEventListener("pointerdown", (event) => {
     if (event.button != null && event.button !== 0) return;
-    if (event.target.closest("button") || selectedId !== rec.item.id || !rec.dataUrl) return;
+    if (
+      event.target.closest("button, .direct-editor") ||
+      selectedId !== rec.item.id ||
+      !rec.dataUrl
+    ) return;
     const start = framePoint(frame, event);
     drag = { pointerId: event.pointerId, start, end: start, moved: false };
     frame.classList.add("is-selecting");
@@ -901,6 +957,12 @@ function renderGrid(items) {
     sheet.innerHTML = `
       <div class="frame">
         <button type="button" class="pick" data-id="${item.id}" aria-label="export training json" title="export for tinker" aria-pressed="false"${item.code ? "" : " disabled"}></button>
+        <div class="direct-editor" aria-label="image editor">
+          <label><span>color</span><input type="color" data-direct="color" aria-label="color" /></label>
+          <label><span>saturation</span><input type="range" min="0" max="100" data-direct="saturation" aria-label="saturation" /></label>
+          <label><span>brush</span><select data-direct="brush" aria-label="brush"></select></label>
+          <label><span>texture</span><input type="range" min="0" max="100" data-direct="texture" aria-label="texture" /></label>
+        </div>
         <div class="region-box" hidden aria-hidden="true">
           <i></i><i></i><i></i><i></i>
         </div>
@@ -922,11 +984,11 @@ function renderGrid(items) {
       </div>
     `;
     sheet.addEventListener("click", (event) => {
-      if (event.target.closest(".save, .pick, .scope, .undo")) return;
+      if (event.target.closest(".save, .pick, .scope, .undo, .direct-editor")) return;
       selectPainting(item.id);
     });
     sheet.addEventListener("keydown", (event) => {
-      if (event.target.closest(".save, .pick, .scope, .undo")) return;
+      if (event.target.closest(".save, .pick, .scope, .undo, .direct-editor")) return;
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         selectPainting(item.id);
@@ -952,6 +1014,7 @@ function renderGrid(items) {
     grid.append(sheet);
     const rec = { item, sheet, dataUrl: null, region: null, undoDataUrl: null, pendingPaint: null };
     cards.set(item.id, rec);
+    bindDirectEditor(rec);
     bindRegionSelection(rec);
 
     if (item.error || (!item.code && !item.photo)) {
@@ -1129,6 +1192,7 @@ function selectPainting(id) {
     sheet.classList.toggle("active", active);
     sheet.setAttribute("aria-current", active ? "true" : "false");
   }
+  syncDirectEditor(cards.get(id));
 }
 
 function undoRestyle(id) {

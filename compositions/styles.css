@@ -1264,6 +1264,83 @@ select#count.choice-native {
   cursor: default;
 }
 
+.direct-editor {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  width: max-content;
+  max-width: calc(100% - 20px);
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--paper) 90%, transparent);
+  box-shadow: 0 8px 24px rgba(36, 33, 31, 0.11);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 5px);
+  transition: opacity 140ms ease, transform 140ms ease;
+  backdrop-filter: blur(7px);
+}
+
+.sheet.active .frame:has(> img) .direct-editor {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.direct-editor label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.direct-editor input[type="color"] {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  border-radius: 50%;
+  background: transparent;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.direct-editor input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.direct-editor input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.direct-editor input[type="range"] {
+  width: 44px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--hover);
+  cursor: pointer;
+}
+
+.direct-editor select {
+  width: 62px;
+  height: 24px;
+  padding: 0 18px 0 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  background-position: right 7px center;
+}
+
 .frame img {
   display: block;
   width: 100%;
