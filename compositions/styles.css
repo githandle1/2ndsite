@@ -109,7 +109,7 @@ h1 {
 }
 
 .about-label {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
   font-size: 12px;
   color: var(--muted);
 }
@@ -226,7 +226,7 @@ h1 {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: var(--space);
+  gap: 12px;
 }
 
 .field {
@@ -482,7 +482,7 @@ select.choice-native {
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 8px;
+  gap: 10px 8px;
   margin: 0;
 }
 
@@ -494,7 +494,7 @@ select.choice-native {
 .chip {
   border: 0;
   background: color-mix(in srgb, var(--hover) 14%, var(--paper));
-  padding: 2px 8px;
+  padding: 5px 11px;
   border-radius: 999px;
   font-size: 13px;
   line-height: 1.35;
@@ -1233,14 +1233,14 @@ select.choice-native {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
     height: 100dvh;
     min-height: 100dvh;
     max-height: 100dvh;
     overflow: hidden;
-    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
-      max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   }
 
   .desk-shell {
@@ -1250,7 +1250,7 @@ select.choice-native {
     width: 100%;
     min-width: 0;
     min-height: 0;
-    max-height: 56dvh;
+    max-height: 48dvh;
   }
 
   .desk {
@@ -1259,87 +1259,87 @@ select.choice-native {
     width: 100%;
     min-width: 0;
     min-height: 0;
-    max-height: 56dvh;
+    max-height: 48dvh;
     margin: 0;
-    padding: 12px 12px 10px;
-    gap: 10px;
-    border-radius: 18px;
+    padding: 14px 14px 12px;
+    gap: 14px;
+    border-radius: 16px;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   h1 {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
+  }
+
+  .about-label {
+    margin: 14px 0 0;
+    font-size: 12px;
   }
 
   .about-menu {
     max-width: 100%;
   }
 
+  .stack {
+    gap: 12px;
+  }
+
+  .field {
+    gap: 8px;
+  }
+
   #scene {
-    min-height: 2.6em;
-    max-height: 6.4em;
+    min-height: 2.2em;
+    max-height: 4.8em;
     padding: 8px 12px;
   }
 
-  .sample-kit > summary {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: var(--label-gap);
+  .scene-caption {
     min-height: 36px;
-    cursor: pointer;
-    list-style: none;
-    font-size: 13px;
-    color: var(--muted);
+    padding: 4px 10px 4px 4px;
   }
 
-  .sample-kit > summary::-webkit-details-marker {
+  .sample-kit > summary {
     display: none;
   }
 
-  .sample-kit > summary::after {
-    content: "";
-    display: block;
-    flex: 0 0 auto;
-    width: 6px;
-    height: 6px;
-    margin-top: 1px;
-    border-right: 1.15px solid currentColor;
-    border-bottom: 1.15px solid currentColor;
-    transform: rotate(45deg);
-    transform-origin: center;
-    opacity: 0.45;
-  }
-
-  .sample-kit[open] > summary::after {
-    margin-top: 3px;
-    transform: rotate(-135deg);
-  }
-
   .chips {
-    gap: 2px 8px;
-    padding-bottom: 4px;
+    gap: 12px 8px;
+    padding-bottom: 0;
   }
 
   .chip {
-    font-size: 12px;
+    font-size: 13px;
+    padding: 5px 11px;
+  }
+
+  .tools {
+    gap: 8px;
+  }
+
+  .paint-kit {
+    padding-top: 12px;
+  }
+
+  .paint-kit-body {
+    margin-top: 4px;
   }
 
   .paint,
   .upload,
   .reset,
   .save {
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
   }
 
   .paint svg,
   .upload svg,
   .reset svg,
   .save svg {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
   }
 
   .paint-kit[open] {
@@ -1350,17 +1350,17 @@ select.choice-native {
   .paint-kit > summary,
   .pane > summary,
   .keys > summary {
-    min-height: 44px;
+    min-height: 36px;
   }
 
   .slide {
-    min-height: 44px;
+    min-height: 32px;
   }
 
   .slide input[type="range"] {
     flex-basis: min(10.5rem, 58vw);
     width: min(10.5rem, 58vw);
-    height: 44px;
+    height: 32px;
   }
 
   select,
@@ -1368,12 +1368,12 @@ select.choice-native {
   .choice-trigger,
   .slide select,
   .slide .choice {
-    min-height: 44px;
-    height: 44px;
+    min-height: 32px;
+    height: 32px;
   }
 
   .choice-trigger {
-    line-height: 42px;
+    line-height: 30px;
   }
 
   .choice-menu {
@@ -1383,9 +1383,9 @@ select.choice-native {
   .choice-menu [role="option"] {
     display: flex;
     align-items: center;
-    min-height: 44px;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    min-height: 36px;
+    padding-top: 6px;
+    padding-bottom: 6px;
   }
 
   .wall {
@@ -1393,13 +1393,13 @@ select.choice-native {
     width: 100%;
     min-height: 0;
     max-height: none;
-    padding: 8px 4px 4px;
+    padding: 4px 4px 2px;
     -webkit-overflow-scrolling: touch;
   }
 
   .grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 12px;
   }
 }
 

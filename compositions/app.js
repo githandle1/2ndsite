@@ -121,29 +121,16 @@ function mountChoice(select) {
   function placeMenu() {
     const rect = trigger.getBoundingClientRect();
     const gap = 6;
-    const edge = 8;
-    const maxMenuHeight = 240;
-    const availableBelow = Math.max(0, window.innerHeight - rect.bottom - gap - edge);
-    const availableAbove = Math.max(0, rect.top - gap - edge);
-    const openBelow =
-      availableBelow >= Math.min(menu.scrollHeight, maxMenuHeight) ||
-      availableBelow >= availableAbove;
-    const availableHeight = openBelow ? availableBelow : availableAbove;
-
-    menu.style.minWidth = `${Math.min(Math.max(rect.width, 72), window.innerWidth - edge * 2)}px`;
-    menu.style.maxHeight = `${Math.max(44, Math.min(maxMenuHeight, availableHeight))}px`;
-
+    menu.style.minWidth = `${Math.max(rect.width, 72)}px`;
+    menu.style.left = `${rect.left}px`;
+    menu.style.top = `${rect.bottom + gap}px`;
     const box = menu.getBoundingClientRect();
-    const left = Math.min(
-      Math.max(edge, rect.left),
-      Math.max(edge, window.innerWidth - edge - box.width)
-    );
-    const top = openBelow
-      ? rect.bottom + gap
-      : Math.max(edge, rect.top - gap - box.height);
-
-    menu.style.left = `${left}px`;
-    menu.style.top = `${top}px`;
+    if (box.bottom > window.innerHeight - 8 && rect.top > box.height + gap + 8) {
+      menu.style.top = `${rect.top - box.height - gap}px`;
+    }
+    if (box.right > window.innerWidth - 8) {
+      menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
+    }
   }
 
   function close() {
@@ -429,11 +416,10 @@ function openPaintSections() {
 
 function fitPaintKit() {
   if (!paintKit || fitPaintKit.done) return;
-  const mobile = window.matchMedia("(max-width: 720px)").matches;
   paintKit.open = false;
   openPaintSections();
   const samples = document.querySelector("#sampleKit");
-  if (samples) samples.open = !mobile;
+  if (samples) samples.open = true;
   paintKit.addEventListener("toggle", () => {
     if (paintKit.open) openPaintSections();
   });
