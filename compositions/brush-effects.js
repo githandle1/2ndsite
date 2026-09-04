@@ -177,8 +177,9 @@ function endMass(used) {
 
 function styleColor(color, e) {
   let ok = parseColor(color) || parseColor("#8b2f32");
+  if (e.preservePaint) return oklchToHex(ok);
   const pigment = parseColor(e.color);
-  if (pigment) ok = mixOklch(ok, pigment, amp(e.pigment, 0.22, 0.88));
+  if (pigment) ok = mixOklch(ok, pigment, mixAmt(e.pigment, 0, 0.88));
 
   ok = mixOklch(ok, PAPER, mixAmt(e.luminosity, 0, 0.32));
   ok = mixOklch(ok, SHADE, mixAmt(e.luminosity, 0.22, 0));
@@ -200,6 +201,7 @@ function styleColor(color, e) {
 function styleOpacity(opacity, e) {
   let next = Number(opacity);
   if (!Number.isFinite(next)) next = 80;
+  if (e.preservePaint) return clamp(next, 36, 230);
   next *= amp(e.transparency, 1.45, 0.52);
   next *= amp(e.density, 0.62, 1.38);
   next *= amp(e.pigment, 0.7, 1.32);

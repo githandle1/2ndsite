@@ -660,6 +660,8 @@ function drainQueue() {
   }, 20000);
   const frame = renderer.contentWindow;
   if (frame) frame.__pendingPhoto = rec.item.photo || null;
+  const effects = readEffects();
+  if (rec.item.source === "sample") effects.preservePaint = true;
   frame?.postMessage(
     {
       type: "paint",
@@ -668,7 +670,7 @@ function drainQueue() {
       seed: rec.item.seed,
       size: 800,
       density: 1,
-      effects: readEffects(),
+      effects,
     },
     "*"
   );
