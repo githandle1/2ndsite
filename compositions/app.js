@@ -14,8 +14,6 @@ const samplesEl = document.querySelector("#samples");
 const photoEl = document.querySelector("#photo");
 const photoChip = document.querySelector("#photoChip");
 const paintKit = document.querySelector("#paintKit");
-const rerenderEl = document.querySelector("#rerender");
-const downloadEl = document.querySelector("#download");
 const providerEl = document.querySelector("#provider");
 const apiKeyEl = document.querySelector("#apiKey");
 const renderer = document.querySelector("#renderer");
@@ -408,7 +406,7 @@ function bindReset(id, fn) {
 }
 
 function openPaintSections() {
-  for (const id of ["brush", "placement", "effects", "sketch"]) {
+  for (const id of ["brush", "placement", "effects"]) {
     const pane = document.querySelector(`#${id}`);
     if (pane) pane.open = true;
   }
@@ -960,13 +958,6 @@ paintEl.addEventListener("click", () => {
   generate();
 });
 
-rerenderEl?.addEventListener("click", (event) => {
-  event.preventDefault();
-  event.stopPropagation();
-  if (!selectedId) return;
-  queuePaint(selectedId, { replace: true });
-});
-
 function trainingExample(item) {
   return {
     messages: [
@@ -1026,12 +1017,6 @@ async function downloadPainting(id) {
   downloadBlob(await (await fetch(dataUrl)).blob(), `wash-${rec.item.seed}.png`);
   setStatus("saved png.");
 }
-
-downloadEl?.addEventListener("click", (event) => {
-  event.preventDefault();
-  event.stopPropagation();
-  downloadPainting(selectedId);
-});
 
 renderer.addEventListener("load", () => {
   rendererReady = true;

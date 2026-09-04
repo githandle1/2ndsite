@@ -482,7 +482,7 @@ select.choice-native {
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 8px;
+  gap: 7.5px 8px;
   margin: 0;
 }
 
@@ -573,8 +573,7 @@ select.choice-native {
 
 .paint,
 .reset,
-.save,
-.code-actions button {
+.save {
   display: grid;
   place-items: center;
   border: 0;
@@ -623,16 +622,13 @@ select.choice-native {
 .reset:hover,
 .reset:focus-visible,
 .save:hover,
-.save:focus-visible,
-.code-actions button:hover,
-.code-actions button:focus-visible {
+.save:focus-visible {
   color: var(--hover);
 }
 
 .paint:focus-visible,
 .reset:focus-visible,
-.save:focus-visible,
-.code-actions button:focus-visible {
+.save:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--hover) 45%, transparent);
   outline-offset: 1px;
 }
@@ -737,22 +733,8 @@ select.choice-native {
   flex: 0 0 auto;
 }
 
-.pane > summary .reset,
-.pane > summary .code-actions,
-.sketch-bar-row .code-actions {
+.pane > summary .reset {
   margin-left: 0;
-}
-
-.sketch-bar-row {
-  display: flex;
-  align-items: center;
-  gap: var(--label-gap);
-  min-height: 36px;
-  color: var(--muted);
-}
-
-.sketch-bar-row span {
-  flex: 0 0 auto;
 }
 
 .pane > summary:hover,
@@ -1083,20 +1065,6 @@ select.choice-native {
   line-height: 1.45;
 }
 
-.code-actions {
-  display: flex;
-  gap: 4px;
-}
-
-.code-actions button {
-  height: 28px;
-  padding: 0 10px;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--muted);
-  font-size: 13px;
-}
-
 .wall {
   padding: 14px 12px 12px 10px;
   overflow: auto;
@@ -1305,7 +1273,7 @@ select.choice-native {
   }
 
   .chips {
-    gap: 12px 8px;
+    gap: 9px 8px;
     padding-bottom: 0;
   }
 
