@@ -1134,8 +1134,34 @@ function mountDeskScroll() {
   sync();
 }
 
+function mountMobileDeskOffset() {
+  const shell = document.querySelector(".desk-shell");
+  if (!shell) return;
+
+  const mobile = window.matchMedia("(max-width: 720px)");
+  let frame = 0;
+
+  const sync = () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      if (!mobile.matches) {
+        document.documentElement.style.removeProperty("--mobile-desk-height");
+        return;
+      }
+      const height = Math.ceil(shell.getBoundingClientRect().height);
+      document.documentElement.style.setProperty("--mobile-desk-height", `${height}px`);
+    });
+  };
+
+  new ResizeObserver(sync).observe(shell);
+  mobile.addEventListener("change", sync);
+  window.visualViewport?.addEventListener("resize", sync);
+  sync();
+}
+
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
 fitPaintKit();
 sizeScene();
 mountDeskScroll();
+mountMobileDeskOffset();
