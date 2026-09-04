@@ -121,16 +121,29 @@ function mountChoice(select) {
   function placeMenu() {
     const rect = trigger.getBoundingClientRect();
     const gap = 6;
-    menu.style.minWidth = `${Math.max(rect.width, 72)}px`;
-    menu.style.left = `${rect.left}px`;
-    menu.style.top = `${rect.bottom + gap}px`;
+    const edge = 8;
+    const maxMenuHeight = 240;
+    const availableBelow = Math.max(0, window.innerHeight - rect.bottom - gap - edge);
+    const availableAbove = Math.max(0, rect.top - gap - edge);
+    const openBelow =
+      availableBelow >= Math.min(menu.scrollHeight, maxMenuHeight) ||
+      availableBelow >= availableAbove;
+    const availableHeight = openBelow ? availableBelow : availableAbove;
+
+    menu.style.minWidth = `${Math.min(Math.max(rect.width, 72), window.innerWidth - edge * 2)}px`;
+    menu.style.maxHeight = `${Math.max(44, Math.min(maxMenuHeight, availableHeight))}px`;
+
     const box = menu.getBoundingClientRect();
-    if (box.bottom > window.innerHeight - 8 && rect.top > box.height + gap + 8) {
-      menu.style.top = `${rect.top - box.height - gap}px`;
-    }
-    if (box.right > window.innerWidth - 8) {
-      menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
-    }
+    const left = Math.min(
+      Math.max(edge, rect.left),
+      Math.max(edge, window.innerWidth - edge - box.width)
+    );
+    const top = openBelow
+      ? rect.bottom + gap
+      : Math.max(edge, rect.top - gap - box.height);
+
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
   }
 
   function close() {
