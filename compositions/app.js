@@ -811,26 +811,9 @@ function framePoint(frame, event) {
   };
 }
 
-function logRegionDebug(hypothesisId, location, message, data) {
-  fetch("/__region-debug", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ hypothesisId, location, message, data, timestamp: Date.now() }),
-    keepalive: true,
-  }).catch(() => {});
-}
-
 function updateRegionUI(rec, region = rec.region) {
   const box = rec.sheet.querySelector(".region-box");
   const scope = rec.sheet.querySelector(".scope");
-  // #region agent log
-  logRegionDebug("D", "compositions/app.js:updateRegionUI", "region UI state", {
-    hasBox: Boolean(box),
-    hasScope: Boolean(scope),
-    transientRegion: Boolean(region),
-    savedRegion: Boolean(rec.region),
-  });
-  // #endregion
   if (!box || !scope) return;
   const visible = Boolean(region);
   box.hidden = !visible;
@@ -856,38 +839,15 @@ function bindRegionSelection(rec) {
   let drag = null;
 
   frame.addEventListener("pointerdown", (event) => {
-    // #region agent log
-    logRegionDebug("B", "compositions/app.js:pointerdown", "pointer down guard state", {
-      button: event.button,
-      target: event.target.tagName,
-      targetDraggable: event.target.draggable,
-      selectedMatches: selectedId === rec.item.id,
-      hasDataUrl: Boolean(rec.dataUrl),
-    });
-    // #endregion
     if (event.button != null && event.button !== 0) return;
     if (event.target.closest("button") || selectedId !== rec.item.id || !rec.dataUrl) return;
     const start = framePoint(frame, event);
     drag = { pointerId: event.pointerId, start, end: start, moved: false };
     frame.classList.add("is-selecting");
     frame.setPointerCapture?.(event.pointerId);
-    // #region agent log
-    logRegionDebug("A,C", "compositions/app.js:pointerdown:accepted", "drag initialized", {
-      pointerId: event.pointerId,
-      hasCapture: frame.hasPointerCapture?.(event.pointerId) ?? null,
-      start,
-    });
-    // #endregion
   });
 
   frame.addEventListener("pointermove", (event) => {
-    // #region agent log
-    logRegionDebug("C", "compositions/app.js:pointermove", "pointer move received", {
-      pointerId: event.pointerId,
-      dragPointerId: drag?.pointerId ?? null,
-      buttons: event.buttons,
-    });
-    // #endregion
     if (!drag || drag.pointerId !== event.pointerId) return;
     event.preventDefault();
     drag.end = framePoint(frame, event);
@@ -902,14 +862,6 @@ function bindRegionSelection(rec) {
   });
 
   const finish = (event) => {
-    // #region agent log
-    logRegionDebug("A,C", "compositions/app.js:finish", "pointer finish received", {
-      type: event.type,
-      pointerId: event.pointerId,
-      dragPointerId: drag?.pointerId ?? null,
-      moved: drag?.moved ?? null,
-    });
-    // #endregion
     if (!drag || drag.pointerId !== event.pointerId) return;
     const finished = drag;
     drag = null;
@@ -925,13 +877,10 @@ function bindRegionSelection(rec) {
 
   frame.addEventListener("pointerup", finish);
   frame.addEventListener("pointercancel", (event) => {
-    // #region agent log
-    logRegionDebug("A", "compositions/app.js:pointercancel", "pointer cancelled", {
-      pointerId: event.pointerId,
-      dragPointerId: drag?.pointerId ?? null,
-      target: event.target.tagName,
-    });
-    // #endregion
+    if (drag?.pointerId === event.pointerId && drag.moved) {
+      finish(event);
+      return;
+    }
     drag = null;
     frame.classList.remove("is-selecting");
     updateRegionUI(rec);
