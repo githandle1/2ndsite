@@ -252,7 +252,7 @@ function wetWash(src, size, e, pigment, type, seed) {
   return out;
 }
 
-export async function renderPhotoWash({ photo, seed = 1, size = 720, effects = null }) {
+export async function renderPhotoWash({ photo, seed = 1, size = 800, effects = null }) {
   const e = clampEffects(effects || {});
   const type = profile(e.brushType);
   const img = await loadImage(photo);

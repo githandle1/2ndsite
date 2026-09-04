@@ -82,8 +82,8 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 720px;
-  height: 720px;
+  width: 800px;
+  height: 800px;
   border: 0;
   z-index: 0;
   pointer-events: none;
@@ -887,7 +887,7 @@ select:focus-visible {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr));
   gap: var(--space-3);
 }
 

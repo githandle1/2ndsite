@@ -108,7 +108,7 @@ window.renderPainting = function renderPainting({
   code,
   photo,
   seed = 1,
-  size = 720,
+  size = 800,
   density = 1,
   effects = null,
 }) {
