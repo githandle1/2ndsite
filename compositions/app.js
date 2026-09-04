@@ -552,21 +552,6 @@ async function loadSamples() {
   });
 }
 
-const VIBES = [
-  ["Close", "held close"],
-  ["Loose", "loose"],
-  ["Wide", "airy"],
-  ["Tight", "gathered"],
-  ["Cropped", "spilling over"],
-  ["Quiet", "quiet"],
-];
-
-function vibeCaption(item, index) {
-  const match = VIBES.find(([prefix]) => String(item.variant || "").startsWith(prefix));
-  if (match) return match[1];
-  return VIBES[index % VIBES.length][1];
-}
-
 function clearWall() {
   paintQueue.length = 0;
   paintingNow = false;
@@ -592,9 +577,8 @@ function renderGrid(items) {
         <div class="veil">pigment settling…</div>
       </div>
       <div class="caption">
-        <span>${item.source === "sample" ? "sample" : item.source === "photo" ? "wash" : "sketch"} ${index + 1}</span>
+        <span>sample ${index + 1}</span>
         <span class="caption-meta">
-          <span>${vibeCaption(item, index)}</span>
           <button type="button" class="save" data-id="${item.id}" aria-label="save png" title="save" disabled>
             <svg viewBox="0 0 16 16" aria-hidden="true">
               <path d="M8 2.4v8.2" fill="none" stroke="currentColor" stroke-width="1.5" />

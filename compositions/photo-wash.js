@@ -38,6 +38,56 @@ function rgba(c, a) {
   return `rgba(${c.r | 0}, ${c.g | 0}, ${c.b | 0}, ${clamp(a, 0, 1)})`;
 }
 
+function rgbToHsl(c) {
+  const r = c.r / 255;
+  const g = c.g / 255;
+  const b = c.b / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (d < 1e-6) return { h: 0, s: 0, l };
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  else if (max === g) h = ((b - r) / d + 2) / 6;
+  else h = ((r - g) / d + 4) / 6;
+  return { h, s, l };
+}
+
+function hslToRgb(h, s, l) {
+  if (s < 1e-6) {
+    const v = l * 255;
+    return { r: v, g: v, b: v };
+  }
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const hue = (t) => {
+    let x = t < 0 ? t + 1 : t > 1 ? t - 1 : t;
+    if (x < 1 / 6) return p + (q - p) * 6 * x;
+    if (x < 1 / 2) return q;
+    if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
+    return p;
+  };
+  return {
+    r: hue(h + 1 / 3) * 255,
+    g: hue(h) * 255,
+    b: hue(h - 1 / 3) * 255,
+  };
+}
+
+// Watercolor is paper showing through, not pigment turned gray.
+// Lift value toward paper, keep the photo's hue and chroma.
+function stainOntoPaper(pigment, paperAmt) {
+  const t = clamp(paperAmt, 0, 1);
+  if (t < 1e-4) return pigment;
+  const lifted = mix(pigment, PAPER, t);
+  const src = rgbToHsl(pigment);
+  if (src.s < 0.025) return lifted;
+  const dst = rgbToHsl(lifted);
+  return hslToRgb(src.h, src.s * (1 - t * 0.12), dst.l);
+}
+
 let cachedSrc = "";
 let cachedImg = null;
 
@@ -158,14 +208,14 @@ function dryMark(ctx, x, y, r, color, alpha, kind, weight, seed, i) {
 function wetWash(src, size, e, pigment, type, seed) {
   const out = new Uint8ClampedArray(src.length);
   const bands = Math.round(amp(e.brushSharpness, 3, 7));
-  const paperAmt = amp(e.density, 0.38, 0.14) * type.paper;
+  const paperAmt = amp(e.density, 0.26, 0.07) * type.paper;
   const weight = amp(e.brushWeight, 0.78, 1.22);
   const grain = amp(e.granulation, 0.018, 0.1) * amp(e.brushGrain, 0.4, 1.35);
   const scatter = amp(e.brushScatter, 0.4, 5);
   const still = amp(e.stillness, 1.25, 0.35);
   const edgeAmt = amp(e.edgeSoftness, 0.18, 0.03);
   const depth = e.spatialDepth;
-  const open = amp(e.brushSpacing, 0.08, 0.28);
+  const open = amp(e.brushSpacing, 0.04, 0.16);
 
   for (let y = 0, i = 0; y < size; y++) {
     for (let x = 0; x < size; x++, i += 4) {
@@ -175,10 +225,13 @@ function wetWash(src, size, e, pigment, type, seed) {
       const light = lumaOf(c);
       const pooled = Math.round(light * bands) / bands;
       const stain = clamp((1 - pooled) * weight, 0, 1);
-      c = mix(PAPER, c, 0.18 + stain * 0.55);
       c = grade(c, e, pigment, type);
-      const paper = clamp(0.22 + paperAmt + pooled * 0.42 + open, 0, 0.9);
-      c = mix(c, PAPER, paper);
+      const paperShow = clamp(
+        (0.05 + paperAmt + pooled * 0.32 + open * 0.55) * (1 - stain * 0.42),
+        0,
+        0.52
+      );
+      c = stainOntoPaper(c, paperShow);
 
       const edge = edgeMag(src, size, x, y);
       if (edge > 0.028) {
@@ -186,8 +239,8 @@ function wetWash(src, size, e, pigment, type, seed) {
         c = mix(c, { r: c.r * 0.7, g: c.g * 0.73, b: c.b * 0.76 }, ring);
       }
 
-      const fade = lerp(1, 1 - clamp((y / size) * 0.28, 0, 0.28), depth);
-      c = mix(PAPER, c, fade);
+      const fade = lerp(0, clamp((y / size) * 0.22, 0, 0.22), depth);
+      if (fade > 0.002) c = stainOntoPaper(c, fade);
 
       const tooth = (hash(x, y, seed + 17) - 0.48) * 70 * grain;
       out[i] = clamp(c.r + tooth, 0, 255);
@@ -220,7 +273,7 @@ export async function renderPhotoWash({ photo, seed = 1, size = 720, effects = n
       ? amp(e.edgeSoftness, 0.8, 2.8)
       : amp(e.edgeSoftness, 0.15, 1.2);
   ctx.save();
-  ctx.filter = `blur(${wetBlur.toFixed(1)}px) saturate(${amp(e.valence, 88, 128)}%)`;
+  ctx.filter = `blur(${wetBlur.toFixed(1)}px) saturate(${amp(e.valence, 104, 136)}%)`;
   ctx.globalAlpha = type.kind === "wash" || type.kind === "marker" ? 1 : 0.72;
   ctx.drawImage(placed, 0, 0);
   ctx.restore();
