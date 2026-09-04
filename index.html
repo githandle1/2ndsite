@@ -412,15 +412,21 @@
             display: none;
         }
 
-        .snaps-more-row {
+        .snaps-more {
             display: flex;
-            align-items: center;
-            gap: 0.9rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.28rem;
             padding: 0 0 8px;
         }
 
-        .snaps-more-row .snaps-preview-toggle {
+        .snaps-more .snaps-preview-toggle {
             padding: 0;
+        }
+
+        .snaps-more .snaps-footsteps-toggle {
+            margin-left: 0.85em;
+            font-size: 0.83rem;
         }
 
         .photo-grid.is-preview .photo-item.is-extra {
@@ -555,12 +561,6 @@
 
         .snaps-footer {
             padding: 10px 0 2px;
-        }
-
-        .snaps-footsteps-row {
-            display: flex;
-            align-items: center;
-            gap: 0.9rem;
         }
 
         .snaps-footsteps-toggle {
@@ -2116,8 +2116,8 @@
             mark.textContent = '+';
             toggle.append(label, mark);
 
-            const moreRow = document.createElement('div');
-            moreRow.className = 'snaps-more-row';
+            const more = document.createElement('div');
+            more.className = 'snaps-more';
 
             const footsteps = document.createElement('button');
             footsteps.type = 'button';
@@ -2137,9 +2137,9 @@
             footstepsMark.textContent = '+';
             footsteps.append(footstepsLabel, footstepsMark);
 
-            moreRow.append(toggle, footsteps);
+            more.append(toggle, footsteps);
             albumGroups.append(grid);
-            entry.append(albumGroups, moreRow);
+            entry.append(albumGroups, more);
             root.append(entry);
 
             photoVisibleCount = PHOTO_PAGE_SIZE;
