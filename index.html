@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Maya's filing cabinet: photos and personal notes.">
-    <script src="paper-time.js?v=4"></script>
+    <script src="paper-time.js?v=6"></script>
     <title>maya bakir</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,6 +34,7 @@
             --stain-opacity: 0.47;
             --stain-right-opacity: 0.40;
             --stain-filter: none;
+            --day-dot: #d8c46a;
             --photo-reveal-duration: 780ms;
             --photo-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
             --photo-frame-margin: 36px;
@@ -66,6 +67,8 @@
         .places-map,
         .snaps-footer,
         .local-date,
+        .daylight-dot,
+        .daylight-picker,
         .bookmark-list,
         .bookmark-more-toggle,
         .bookmark-blurb {
@@ -359,24 +362,23 @@
         }
 
         .snaps-preview-toggle {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 9px 0;
+            gap: 0.35rem;
+            padding: 0 0 8px;
             border: none;
             background: none;
             font-family: inherit;
-            font-size: var(--list-size);
-            line-height: var(--list-line-height);
+            font-size: 0.83rem;
             font-weight: 400;
-            color: inherit;
+            line-height: 1;
+            color: var(--muted);
             cursor: pointer;
             transition: color 180ms ease;
         }
 
         .snaps-preview-mark {
-            font-size: var(--toggle-mark-size);
+            font-size: calc(var(--toggle-mark-size) * 1.15);
             font-weight: 400;
             line-height: 1;
         }
@@ -405,6 +407,10 @@
         .snaps-preview-toggle:hover .snaps-preview-mark,
         .snaps-preview-toggle:focus-visible .snaps-preview-mark {
             color: var(--hover);
+        }
+
+        .snaps-preview-toggle[hidden] {
+            display: none;
         }
 
         .photo-grid.is-preview .photo-item.is-extra {
@@ -658,7 +664,7 @@
         }
 
         .snaps-album-groups {
-            padding-top: 12px;
+            padding-top: 0;
         }
 
         .photo-grid {
@@ -1013,23 +1019,29 @@
         }
 
         .cabinet-footer {
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas:
+                "files ."
+                "sketchbook stamp";
             align-items: baseline;
-            justify-content: space-between;
-            gap: 12px 24px;
+            column-gap: 24px;
+            row-gap: 8px;
             margin-top: var(--block-gap);
         }
 
-        .cabinet-files {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
+        .cabinet-footer-files {
+            grid-area: files;
+            justify-self: start;
+        }
+
+        .cabinet-footer-sketchbook {
+            grid-area: sketchbook;
+            justify-self: start;
         }
 
         .sketchbook-link {
             display: inline-block;
-            flex: 0 1 auto;
             font-size: 0.8rem;
         }
 
@@ -1046,7 +1058,12 @@
         .local-date {
             position: relative;
             z-index: 1;
-            flex: 1 1 auto;
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: flex-end;
+            gap: 0.45em;
+            grid-area: stamp;
+            justify-self: end;
             margin: 0;
             color: color-mix(in srgb, var(--hover) 58%, var(--paper));
             font-size: 0.72rem;
@@ -1056,6 +1073,65 @@
             text-shadow:
                 0 -1px 0 color-mix(in srgb, var(--hover) 10%, transparent),
                 0 1px 0 color-mix(in srgb, var(--paper) 82%, var(--paper-highlight));
+        }
+
+        .daylight-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.28em;
+            flex: 0 0 auto;
+            color: var(--ink);
+            text-shadow: none;
+        }
+
+        .daylight-dot {
+            width: 0.52rem;
+            height: 0.52rem;
+            flex: 0 0 auto;
+            border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+            border-radius: 50%;
+            background: var(--day-dot);
+            box-shadow:
+                0 0 0 1px color-mix(in srgb, var(--paper) 72%, transparent),
+                0 0 0.35rem color-mix(in srgb, var(--day-dot) 42%, transparent);
+            transform: translateY(0.08em);
+            transition: background-color 700ms ease, box-shadow 700ms ease;
+        }
+
+        .daylight-picker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.12em;
+        }
+
+        .daylight-scheme {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.45rem;
+            height: 1.45rem;
+            padding: 0;
+            border: none;
+            background: none;
+            color: inherit;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Libre Baskerville", serif;
+            font-size: 1.05rem;
+            font-style: normal;
+            font-variant-emoji: emoji;
+            line-height: 1;
+            opacity: 0.55;
+            cursor: pointer;
+            transition: opacity 180ms ease, transform 160ms ease;
+        }
+
+        .daylight-scheme:hover,
+        .daylight-scheme:focus-visible {
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+
+        .daylight-scheme[aria-pressed="true"] {
+            opacity: 1;
         }
 
         @media (max-width: 600px) {
@@ -1135,11 +1211,11 @@
             }
 
             .cabinet-footer {
-                flex-wrap: wrap;
+                column-gap: 16px;
             }
 
             .local-date {
-                min-width: min(100%, 16rem);
+                min-width: 0;
             }
         }
     </style>
@@ -1231,11 +1307,16 @@
         </section>
 
         <footer class="cabinet-footer">
-            <div class="cabinet-files">
-                <a class="sketchbook-link phrase" href="/compositions/">compositions <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
-                <a class="sketchbook-link phrase" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
-            </div>
+            <a class="sketchbook-link phrase cabinet-footer-files" href="/compositions/">compositions <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
+            <a class="sketchbook-link phrase cabinet-footer-sketchbook" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
             <p class="local-date" aria-label="Your local date and time">
+                <span class="daylight-control" id="daylight-control">
+                    <span class="daylight-dot" id="daylight-dot" aria-hidden="true"></span>
+                    <span class="daylight-picker" id="daylight-picker" role="group" aria-label="Site lighting">
+                        <button type="button" class="daylight-scheme" data-scheme="light" aria-pressed="false" aria-label="Light mode">&#x2600;&#xFE0F;</button>
+                        <button type="button" class="daylight-scheme" data-scheme="dark" aria-pressed="false" aria-label="Dark mode">&#x1F319;</button>
+                    </span>
+                </span>
                 <time id="local-date-stamp"></time>
             </p>
         </footer>
@@ -1402,12 +1483,15 @@
                         return;
                     }
 
-                    const nextState = previewToggle.getAttribute('aria-expanded') !== 'true';
-                    setToggleState(previewToggle, nextState, {
-                        openLabel: `Show more ${previewToggle.dataset.albumLabel || ''} photos`.trim(),
-                        closeLabel: `Show fewer ${previewToggle.dataset.albumLabel || ''} photos`.trim()
-                    });
-                    grid.classList.toggle('is-preview', !nextState);
+                    const photoCount = grid.querySelectorAll('.photo-item').length;
+
+                    if (photoVisibleCount >= photoCount) {
+                        photoVisibleCount = PHOTO_PAGE_SIZE;
+                    } else {
+                        photoVisibleCount += PHOTO_PAGE_SIZE;
+                    }
+
+                    updatePhotoVisibility();
                     return;
                 }
 
@@ -1933,6 +2017,68 @@
             });
         }
 
+        const PHOTO_PAGE_SIZE = 4;
+        let photoVisibleCount = PHOTO_PAGE_SIZE;
+
+        function flattenAlbumPhotos(albums) {
+            const photos = [];
+
+            [...albums]
+                .sort((a, b) => albumSortKey(b) - albumSortKey(a))
+                .forEach((album) => {
+                    if (!Array.isArray(album?.groups)) {
+                        return;
+                    }
+
+                    album.groups.forEach((group) => {
+                        if (!Array.isArray(group?.photos)) {
+                            return;
+                        }
+
+                        group.photos.forEach((photo) => {
+                            if (photo?.src) {
+                                photos.push(photo);
+                            }
+                        });
+                    });
+                });
+
+            return photos;
+        }
+
+        function updatePhotoVisibility() {
+            const grid = document.querySelector('#snaps-albums .photo-grid');
+            const toggle = document.getElementById('snaps-more-toggle');
+
+            if (!grid) {
+                return;
+            }
+
+            const items = [...grid.children];
+            const showingAll = photoVisibleCount >= items.length;
+
+            items.forEach((item, index) => {
+                item.classList.toggle('is-extra', index >= photoVisibleCount);
+            });
+            grid.classList.toggle('is-preview', !showingAll);
+
+            if (!toggle) {
+                return;
+            }
+
+            if (items.length <= PHOTO_PAGE_SIZE) {
+                toggle.hidden = true;
+                return;
+            }
+
+            toggle.hidden = false;
+            setToggleState(toggle, showingAll, {
+                openLabel: 'Show more photos',
+                closeLabel: 'Show fewer photos',
+                mark: toggle.querySelector('.snaps-preview-mark')
+            });
+        }
+
         function renderSnaps(albums) {
             const root = document.getElementById('snaps-albums');
             if (!root || !Array.isArray(albums)) {
@@ -1941,130 +2087,84 @@
 
             root.replaceChildren();
 
-            [...albums]
-                .sort((a, b) => albumSortKey(b) - albumSortKey(a))
-                .forEach((album) => {
-                if (!album?.label || !Array.isArray(album.groups) || album.groups.length === 0) {
-                    return;
+            const photos = flattenAlbumPhotos(albums);
+            if (photos.length === 0) {
+                return;
+            }
+
+            const entry = document.createElement('div');
+            entry.className = 'photo-entry photo-entry--preview';
+
+            const albumGroups = document.createElement('div');
+            albumGroups.className = 'snaps-album-groups';
+            albumGroups.dataset.snapsAlbum = '';
+
+            const grid = document.createElement('div');
+            grid.className = 'photo-grid';
+            grid.setAttribute('aria-label', 'Photos');
+
+            photos.forEach((photo, captionToggleIndex) => {
+                const item = document.createElement('div');
+                item.className = 'photo-item';
+
+                const thumb = document.createElement('button');
+                thumb.type = 'button';
+                thumb.className = 'photo-slot photo-thumb';
+                thumb.dataset.src = photo.src;
+                thumb.setAttribute(
+                    'aria-label',
+                    photo.ariaLabel || `Open ${photo.alt || 'photo'}`
+                );
+
+                const image = document.createElement('img');
+                image.src = photo.src;
+                image.alt = photo.alt || '';
+                if (photo.objectPosition) {
+                    image.style.objectPosition = photo.objectPosition;
                 }
+                thumb.append(image);
 
-                const details = document.createElement('details');
-                details.className = 'photo-entry';
+                const meta = document.createElement('div');
+                meta.className = 'photo-meta';
 
-                const summary = document.createElement('summary');
-                summary.textContent = album.label;
-                details.append(summary);
+                const captionToggle = document.createElement('button');
+                captionToggle.type = 'button';
+                captionToggle.className = `caption-toggle ${toggleToneClasses[captionToggleIndex % toggleToneClasses.length]}`;
+                captionToggle.setAttribute('aria-expanded', 'false');
+                captionToggle.setAttribute('aria-label', 'Show caption');
+                captionToggle.textContent = '+';
 
-                const albumGroups = document.createElement('div');
-                albumGroups.className = 'snaps-album-groups';
-                albumGroups.dataset.snapsAlbum = '';
+                const caption = buildPhotoCaptionElement(photo);
 
-                const grid = document.createElement('div');
-                grid.className = 'photo-grid';
-                grid.setAttribute('aria-label', `${album.label} photos`);
-
-                let captionToggleIndex = 0;
-
-                album.groups.forEach((group) => {
-                    if (!group?.city || !Array.isArray(group.photos) || group.photos.length === 0) {
-                        return;
-                    }
-
-                    group.photos.forEach((photo) => {
-                        if (!photo?.src) {
-                            return;
-                        }
-
-                        const item = document.createElement('div');
-                        item.className = 'photo-item';
-
-                        const thumb = document.createElement('button');
-                        thumb.type = 'button';
-                        thumb.className = 'photo-slot photo-thumb';
-                        thumb.dataset.src = photo.src;
-                        thumb.setAttribute(
-                            'aria-label',
-                            photo.ariaLabel || `Open ${photo.alt || 'photo'}`
-                        );
-
-                        const image = document.createElement('img');
-                        image.src = photo.src;
-                        image.alt = photo.alt || '';
-                        if (photo.objectPosition) {
-                            image.style.objectPosition = photo.objectPosition;
-                        }
-                        thumb.append(image);
-
-                        const meta = document.createElement('div');
-                        meta.className = 'photo-meta';
-
-                        const captionToggle = document.createElement('button');
-                        captionToggle.type = 'button';
-                        captionToggle.className = `caption-toggle ${toggleToneClasses[captionToggleIndex % toggleToneClasses.length]}`;
-                        captionToggleIndex += 1;
-                        captionToggle.setAttribute('aria-expanded', 'false');
-                        captionToggle.setAttribute('aria-label', 'Show caption');
-                        captionToggle.textContent = '+';
-
-                        const caption = buildPhotoCaptionElement(photo);
-
-                        meta.append(captionToggle, caption);
-                        item.append(thumb, meta);
-                        grid.append(item);
-                    });
-                });
-
-                if (!grid.children.length) {
-                    return;
-                }
-
-                const previewCount = Number(album.preview) > 0 ? Number(album.preview) : 0;
-                const usePreview = previewCount > 0 && grid.children.length > previewCount;
-
-                if (usePreview) {
-                    [...grid.children].forEach((item, index) => {
-                        if (index >= previewCount) {
-                            item.classList.add('is-extra');
-                        }
-                    });
-                    grid.classList.add('is-preview');
-                }
-
-                albumGroups.append(grid);
-
-                if (usePreview) {
-                    const entry = document.createElement('div');
-                    entry.className = 'photo-entry photo-entry--preview';
-
-                    const toggle = document.createElement('button');
-                    toggle.type = 'button';
-                    toggle.className = 'snaps-preview-toggle';
-                    toggle.dataset.albumLabel = album.label;
-                    toggle.setAttribute('aria-expanded', 'false');
-                    toggle.setAttribute('aria-label', `Show more ${album.label} photos`);
-
-                    const label = document.createElement('span');
-                    label.textContent = album.label;
-
-                    const mark = document.createElement('span');
-                    mark.className = 'snaps-preview-mark';
-                    mark.setAttribute('aria-hidden', 'true');
-                    mark.textContent = '+';
-
-                    toggle.append(label, mark);
-                    entry.append(toggle, albumGroups);
-                    root.append(entry);
-                    return;
-                }
-
-                if (album.defaultOpen) {
-                    details.open = true;
-                }
-
-                details.append(albumGroups);
-                root.append(details);
+                meta.append(captionToggle, caption);
+                item.append(thumb, meta);
+                grid.append(item);
             });
 
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'snaps-preview-toggle';
+            toggle.id = 'snaps-more-toggle';
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-controls', 'snaps-albums');
+            toggle.setAttribute('aria-label', 'Show more photos');
+
+            const label = document.createElement('span');
+            label.className = 'snaps-more-label';
+            label.textContent = 'more';
+
+            const mark = document.createElement('span');
+            mark.className = 'snaps-preview-mark toggle-mark--tone-d';
+            mark.setAttribute('aria-hidden', 'true');
+            mark.textContent = '+';
+            toggle.append(label, mark);
+
+            albumGroups.append(grid);
+            entry.append(albumGroups, toggle);
+            root.append(entry);
+
+            photoVisibleCount = PHOTO_PAGE_SIZE;
+            updatePhotoVisibility();
             bindSnapsInteractions(root);
         }
 
