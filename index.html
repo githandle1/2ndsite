@@ -3160,7 +3160,7 @@
         function updateLocalDate() {
             const now = new Date();
             localDateStamp.dateTime = now.toISOString();
-            localDateStamp.textContent = `${localDateFormatter.format(now)} · ${localTimeFormatter.format(now)}`.toLowerCase();
+            localDateStamp.textContent = `${localDateFormatter.format(now)} ${localTimeFormatter.format(now)}`.toLowerCase();
         }
 
         updateLocalDate();
