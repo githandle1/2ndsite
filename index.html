@@ -1108,30 +1108,30 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 1.35rem;
-            height: 1.35rem;
+            width: 1.45rem;
+            height: 1.45rem;
             padding: 0;
             border: none;
             background: none;
-            color: color-mix(in srgb, var(--ink) 82%, transparent);
+            color: inherit;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Libre Baskerville", serif;
+            font-size: 1.05rem;
+            font-style: normal;
+            font-variant-emoji: emoji;
+            line-height: 1;
+            opacity: 0.55;
             cursor: pointer;
-            transition: color 180ms ease, transform 160ms ease;
+            transition: opacity 180ms ease, transform 160ms ease;
         }
 
         .daylight-scheme:hover,
         .daylight-scheme:focus-visible {
-            color: var(--hover);
+            opacity: 1;
             transform: translateY(-1px);
         }
 
         .daylight-scheme[aria-pressed="true"] {
-            color: var(--hover);
-        }
-
-        .daylight-scheme svg {
-            display: block;
-            width: 1rem;
-            height: 1rem;
+            opacity: 1;
         }
 
         @media (max-width: 600px) {
@@ -1313,17 +1313,8 @@
                 <span class="daylight-control" id="daylight-control">
                     <span class="daylight-dot" id="daylight-dot" aria-hidden="true"></span>
                     <span class="daylight-picker" id="daylight-picker" role="group" aria-label="Site lighting">
-                        <button type="button" class="daylight-scheme" data-scheme="light" aria-pressed="false" aria-label="Light mode">
-                            <svg viewBox="0 0 16 16" aria-hidden="true">
-                                <circle cx="8" cy="8" r="2.35" fill="none" stroke="currentColor" stroke-width="1.25"></circle>
-                                <path d="M8 2.15v1.35M8 12.5v1.35M2.15 8h1.35M12.5 8h1.35M3.85 3.85l.95.95M11.2 11.2l.95.95M3.85 12.15l.95-.95M11.2 4.8l.95-.95" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"></path>
-                            </svg>
-                        </button>
-                        <button type="button" class="daylight-scheme" data-scheme="dark" aria-pressed="false" aria-label="Dark mode">
-                            <svg viewBox="0 0 16 16" aria-hidden="true">
-                                <path d="M9.15 3.05a5.05 5.05 0 1 0 3.85 8.7 4.2 4.2 0 1 1-3.85-8.7z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"></path>
-                            </svg>
-                        </button>
+                        <button type="button" class="daylight-scheme" data-scheme="light" aria-pressed="false" aria-label="Light mode">&#x2600;&#xFE0F;</button>
+                        <button type="button" class="daylight-scheme" data-scheme="dark" aria-pressed="false" aria-label="Dark mode">&#x1F319;</button>
                     </span>
                 </span>
                 <time id="local-date-stamp"></time>
