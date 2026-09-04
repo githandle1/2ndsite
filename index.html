@@ -365,11 +365,11 @@
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
-            padding: 2px 0 8px;
+            padding: 0 0 8px;
             border: none;
             background: none;
             font-family: inherit;
-            font-size: var(--toggle-mark-size);
+            font-size: 0.72rem;
             font-weight: 400;
             line-height: 1;
             color: var(--muted);
@@ -2175,11 +2175,15 @@
             toggle.setAttribute('aria-controls', 'snaps-albums');
             toggle.setAttribute('aria-label', 'Show more photos');
 
+            const label = document.createElement('span');
+            label.className = 'snaps-more-label';
+            label.textContent = 'more';
+
             const mark = document.createElement('span');
             mark.className = 'snaps-preview-mark toggle-mark--tone-d';
             mark.setAttribute('aria-hidden', 'true');
             mark.textContent = '+';
-            toggle.append(mark);
+            toggle.append(label, mark);
 
             albumGroups.append(grid);
             entry.append(albumGroups, toggle);
