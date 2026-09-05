@@ -2495,8 +2495,41 @@ body.is-sheet-open {
 }
 
 @media (max-width: 720px) {
+  .studio {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .desk-shell,
+  .desk-frame,
+  .desk {
+    display: contents;
+  }
+
+  .masthead {
+    grid-row: 1;
+    padding: 2px 12px 0;
+  }
+
+  .desk > .stack {
+    grid-row: 3;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--paper) 88%, #fff);
+    box-shadow:
+      0 0 0 1px rgba(36, 33, 31, 0.045),
+      0 10px 32px rgba(36, 33, 31, 0.06);
+  }
+
   .paint-kit {
     display: none;
+  }
+
+  .wall {
+    grid-row: 2;
   }
 }
 
@@ -2508,9 +2541,19 @@ body.is-sheet-open {
 
 @media (max-width: 960px) and (max-height: 540px) {
   .studio {
+    display: flex;
     flex-direction: row;
     align-items: stretch;
     gap: 10px;
+  }
+
+  .desk-shell,
+  .desk-frame {
+    display: block;
+  }
+
+  .desk {
+    display: flex;
   }
 
   .desk-shell,
