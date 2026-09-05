@@ -1099,6 +1099,7 @@ function mountSubjectDrag(sheet, item) {
   });
 
   async function startPick(event) {
+    if (isPhone()) return;
     if (carrying) return;
     if (event.button != null && event.button !== 0) return;
     if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .veil")) return;

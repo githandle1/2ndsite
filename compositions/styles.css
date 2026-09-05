@@ -2650,6 +2650,12 @@ body.is-sheet-open {
   .wall {
     grid-row: 2;
   }
+
+  .sheet.active .frame:has(img),
+  .sheet.is-expanded .frame:has(img) {
+    cursor: pointer;
+    touch-action: pan-y;
+  }
 }
 
 @media (max-width: 720px) and (min-width: 560px) {
