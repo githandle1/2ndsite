@@ -2694,12 +2694,38 @@ body.is-sheet-open {
     touch-action: none;
   }
 
-  .mobile-sheet-handle > span {
+  .mobile-sheet-grip {
     display: block;
     width: 36px;
     height: 3px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--ink) 22%, transparent);
+  }
+
+  .mobile-sheet-label {
+    display: none;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .mobile-sheet.has-paintings:not(.is-expanded) {
+    height: 44px;
+    max-height: 44px;
+    padding: 4px 14px 6px;
+  }
+
+  .mobile-sheet.has-paintings:not(.is-expanded) > .stack {
+    display: none;
+  }
+
+  .mobile-sheet.has-paintings:not(.is-expanded) .mobile-sheet-handle {
+    flex: 1 1 auto;
+    gap: 4px;
+  }
+
+  .mobile-sheet.has-paintings:not(.is-expanded) .mobile-sheet-label {
+    display: block;
   }
 
   .mobile-sheet .paint-kit {

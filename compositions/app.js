@@ -1550,6 +1550,9 @@ function clearWall() {
 
 function renderGrid(items) {
   clearWall();
+  const hasPaintings = items.length > 0;
+  mobileSheet?.classList.toggle("has-paintings", hasPaintings);
+  if (hasPaintings && isPhone()) setMobileSheet(false);
   const grid = document.createElement("div");
   grid.className = "grid";
   wallEl.append(grid);
