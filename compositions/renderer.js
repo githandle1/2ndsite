@@ -1,6 +1,8 @@
 const PAPER = "#f3eee4";
 
 let instance = null;
+let instanceSize = 0;
+let instanceDensity = 0;
 let paintFn = () => {};
 let currentSeed = 1;
 
@@ -62,8 +64,26 @@ function finish(error, canvas, dataUrl = null) {
   );
 }
 
+function resetInstance() {
+  if (!instance) return;
+  try {
+    instance.remove();
+  } catch {
+    /* ignore */
+  }
+  instance = null;
+  instanceSize = 0;
+  instanceDensity = 0;
+}
+
 function ensureInstance(size, density) {
+  if (instance && (instanceSize !== size || instanceDensity !== density)) {
+    resetInstance();
+  }
   if (instance) return instance;
+
+  instanceSize = size;
+  instanceDensity = density;
 
   const sketch = (p) => {
     if (window.brush?.instance) {
@@ -142,9 +162,9 @@ window.renderPainting = function renderPainting({
       build({ photo: photoSrc, seed, size, effects })
         .then((fn) => {
           paintFn = fn;
-          const existed = Boolean(instance);
+          const same = Boolean(instance) && instanceSize === size && instanceDensity === density;
           const p = ensureInstance(size, density);
-          if (existed && typeof p.redraw === "function") p.redraw();
+          if (same && typeof p.redraw === "function") p.redraw();
         })
         .catch((err) => finish(String(err.message || err)));
     };
@@ -159,9 +179,9 @@ window.renderPainting = function renderPainting({
     return;
   }
 
-  const existed = Boolean(instance);
+  const same = Boolean(instance) && instanceSize === size && instanceDensity === density;
   const p = ensureInstance(size, density);
-  if (existed && typeof p.redraw === "function") {
+  if (same && typeof p.redraw === "function") {
     p.redraw();
   }
 };

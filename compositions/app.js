@@ -1,6 +1,6 @@
 import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=15";
 import { parseColor, oklchToHex } from "./color.js";
-import { mountColorDial } from "./color-dial.js?v=8";
+import { mountColorSquare } from "./color-dial.js?v=12";
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
 const sceneCaption = document.querySelector("#sceneCaption");
@@ -38,9 +38,15 @@ let rendererReady = false;
 let waitingId = null;
 let effects = clampEffects(stored.effects || {});
 let effectTimer = null;
-let effectsDirty = false;
+let dirtyIds = new Set();
+let stagedSheet = null;
+const sheetStageEl = document.querySelector("#sheetStage");
+let hydrating = false;
+const SAT_MAX = 0.22;
+const PAINT_SIZE = 720;
 let currentPhoto = null;
 let paintWatch = 0;
+let waitingDensity = 1;
 
 window.addEventListener("message", onFrameMessage);
 
@@ -50,6 +56,17 @@ providerEl.addEventListener("change", () => {
 });
 apiKeyEl.addEventListener("change", persistSettings);
 apiKeyEl.placeholder = providerEl.value === "grok" ? "xai-…" : "sk-…";
+
+function closeSheetColorMenus() {
+  for (const menu of document.querySelectorAll(".sheet-color-menu")) {
+    menu.hidden = true;
+    const host = menu._host;
+    if (host && menu.parentElement !== host) host.append(menu);
+  }
+  for (const btn of document.querySelectorAll(".sheet-edit-color[aria-expanded='true']")) {
+    btn.setAttribute("aria-expanded", "false");
+  }
+}
 
 function closeChoiceMenus(except) {
   for (const wrap of document.querySelectorAll(".choice.is-open")) {
@@ -151,6 +168,7 @@ function mountChoice(select, options = {}) {
 
   function open() {
     closeChoiceMenus(wrap);
+    closeSheetColorMenus();
     renderMenu();
     wrap.classList.add("is-open");
     trigger.setAttribute("aria-expanded", "true");
@@ -241,13 +259,29 @@ function mountChoice(select, options = {}) {
   return select;
 }
 
+function closePopovers() {
+  closeChoiceMenus();
+  closeSheetColorMenus();
+}
+
 document.addEventListener("pointerdown", (event) => {
   if (event.target.closest(".choice") || event.target.closest(".choice-menu")) return;
-  closeChoiceMenus();
+  if (event.target.closest(".sheet-edit-color") || event.target.closest(".sheet-color-menu")) return;
+  closePopovers();
 });
 
-window.addEventListener("resize", () => closeChoiceMenus());
-document.addEventListener("scroll", () => closeChoiceMenus(), true);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  const popoverOpen = document.querySelector(".choice.is-open, .sheet-color-menu:not([hidden])");
+  if (popoverOpen) {
+    closePopovers();
+    return;
+  }
+  if (stagedSheet) closeSheetStage();
+});
+
+window.addEventListener("resize", () => closePopovers());
+document.addEventListener("scroll", () => closePopovers(), true);
 
 mountChoice(countEl, {
   renderTrigger(trigger, _value, label) {
@@ -388,7 +422,7 @@ async function onPhotoChosen() {
     const photo = await readPhotoFile(file);
     currentPhoto = photo.dataUrl;
     setPhotoLabel(photo.name);
-    if (photo.hex) colorDial?.setValue(photo.hex);
+    if (photo.hex) colorPicker?.setValue(photo.hex);
     persistSettings();
     showSceneCaption(photo.dataUrl, photo.name);
     paintPhoto();
@@ -458,6 +492,261 @@ function persistSettings() {
   );
 }
 
+function sheetEffects(rec) {
+  return clampEffects(rec?.item.effects || effects);
+}
+
+function applyEffectsToControls(fx) {
+  hydrating = true;
+  const next = clampEffects(fx);
+  const typeEl = document.querySelector("#brushType");
+  if (typeEl) typeEl.value = next.brushType || "HB";
+  const setRange = (root, id, value) => {
+    const input = root?.querySelector(`[data-effect="${id}"]`);
+    if (input) input.value = String(Math.round((value ?? 0.5) * 100));
+  };
+  for (const key of BRUSH_SLIDERS) setRange(brushControlsEl, key.id, next[key.id]);
+  for (const key of PLACEMENT_SLIDERS) setRange(placementControlsEl, key.id, next[key.id]);
+  for (const group of EFFECT_GROUPS) {
+    for (const key of group.keys) setRange(effectGroupsEl, key.id, next[key.id]);
+  }
+  document.querySelector("#placeStick")?.syncThumb?.();
+  if (next.color) {
+    pigmentColorEl.value = oklchToHex(next.color);
+    colorPicker?.setValue(next.color);
+  }
+  hydrating = false;
+}
+
+function syncSheetEditor(rec) {
+  const edit = rec?.sheet.querySelector(".sheet-edit");
+  if (!edit) return;
+  const fx = sheetEffects(rec);
+  const swatch = edit.querySelector(".sheet-edit-swatch");
+  const sat = edit.querySelector(".sheet-edit-sat input");
+  const brush = edit.querySelector(".sheet-edit-brush");
+  const hex = oklchToHex(fx.color || DEFAULT_COLOR);
+  if (swatch) swatch.style.background = hex;
+  if (sat) {
+    const pct = Math.round(Math.min(1, (fx.color?.c ?? 0) / SAT_MAX) * 100);
+    sat.value = String(pct);
+    const rail = sat.closest(".sheet-edit-sat-rail");
+    rail?.style.setProperty("--sat", String(pct / 100));
+    rail?.style.setProperty("--pigment", hex);
+  }
+  if (brush) brush.value = fx.brushType || "HB";
+  edit._colorPicker?.setValue(fx.color || DEFAULT_COLOR);
+}
+
+function afterDeskChange() {
+  if (hydrating) return;
+  persistSettings();
+  const rec = selectedId ? cards.get(selectedId) : null;
+  if (!rec?.item) return;
+  rec.item.effects = readEffects();
+  syncSheetEditor(rec);
+  scheduleSheetRender(selectedId);
+}
+
+function mountSheetEditor(sheet, item) {
+  const edit = sheet.querySelector(".sheet-edit");
+  if (!edit) return;
+  const frame = sheet.querySelector(".frame");
+  const caption = sheet.querySelector(".caption");
+  const meta = sheet.querySelector(".caption-meta");
+  const grip = edit.querySelector(".sheet-edit-grip");
+  const colorBtn = edit.querySelector(".sheet-edit-color");
+  const sat = edit.querySelector(".sheet-edit-sat input");
+  const brush = edit.querySelector(".sheet-edit-brush");
+  brush.id = `sheet-brush-${item.id}`;
+  for (const name of BRUSH_TYPES) {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name.toLowerCase();
+    brush.append(option);
+  }
+  mountChoice(brush, {
+    renderTrigger(trigger, _value, label) {
+      const icon = document.querySelector("#paint svg")?.cloneNode(true) || document.createElement("span");
+      icon.setAttribute("aria-hidden", "true");
+      const word = document.createElement("span");
+      word.textContent = label;
+      trigger.replaceChildren(icon, word);
+    },
+  });
+  brush.closest(".choice")?.classList.add("is-sheet");
+
+  const colorMenu = document.createElement("div");
+  colorMenu.className = "choice-menu sheet-color-menu";
+  colorMenu.setAttribute("role", "dialog");
+  colorMenu.setAttribute("aria-label", "color");
+  colorMenu.id = `sheet-color-${item.id}`;
+  colorMenu.dataset.sheet = item.id;
+  colorMenu.hidden = true;
+  colorMenu._host = edit;
+  edit._colorMenu = colorMenu;
+  colorBtn.setAttribute("aria-controls", colorMenu.id);
+  edit.append(colorMenu);
+  edit._colorPicker = mountColorSquare({
+    host: colorMenu,
+    value: sheetEffects({ item }).color || DEFAULT_COLOR,
+    onChange: (color) => apply({ color }),
+  });
+
+  const setSide = (side) => {
+    if (side !== "free") item.dockSide = side;
+    item.editSide = side;
+    edit.classList.remove("is-left", "is-right", "is-bottom", "is-row", "is-free", "is-dragging");
+    edit.classList.add(`is-${side}`);
+    edit.style.left = "";
+    edit.style.top = "";
+    edit.style.right = "";
+    edit.style.bottom = "";
+    edit.style.transform = "";
+    if (side === "row") caption?.insertBefore(edit, meta);
+    else frame.append(edit);
+  };
+
+  const applyFreePos = () => {
+    const pos = item.stagePos;
+    if (!pos) return;
+    item.editSide = "free";
+    edit.classList.remove("is-left", "is-right", "is-bottom", "is-row", "is-dragging");
+    edit.classList.add("is-free");
+    if (!frame.contains(edit)) frame.append(edit);
+    edit.style.left = `${pos.x * 100}%`;
+    edit.style.top = `${pos.y * 100}%`;
+    edit.style.right = "auto";
+    edit.style.bottom = "auto";
+    edit.style.transform = "translate(-50%, -50%)";
+  };
+
+  const setFree = (event) => {
+    const box = frame.getBoundingClientRect();
+    const size = edit.getBoundingClientRect();
+    const padX = size.width / 2 + 8;
+    const padY = size.height / 2 + 8;
+    const left = Math.max(padX, Math.min(event.clientX - box.left, box.width - padX));
+    const top = Math.max(padY, Math.min(event.clientY - box.top, box.height - padY));
+    item.stagePos = { x: left / box.width, y: top / box.height };
+    applyFreePos();
+  };
+
+  setSide(item.editSide === "left" || item.editSide === "right" || item.editSide === "bottom" ? item.editSide : "row");
+  syncSheetEditor({ item, sheet });
+  edit._onStage = () => {
+    if (item.stagePos) applyFreePos();
+  };
+  edit._offStage = () => {
+    if (item.editSide === "free") setSide(item.dockSide || "row");
+  };
+
+  const apply = (patch) => {
+    const rec = cards.get(item.id);
+    if (!rec) return;
+    rec.item.effects = clampEffects({ ...sheetEffects(rec), ...patch });
+    selectPainting(item.id);
+    persistSettings();
+    scheduleSheetRender(item.id);
+  };
+
+  const placeColorMenu = () => {
+    const rect = colorBtn.getBoundingClientRect();
+    const gap = 8;
+    const box = colorMenu.getBoundingClientRect();
+    let left = rect.left + rect.width / 2 - box.width / 2;
+    let top = rect.top - box.height - gap;
+    if (top < 8) top = rect.bottom + gap;
+    left = Math.max(8, Math.min(left, window.innerWidth - box.width - 8));
+    top = Math.max(8, Math.min(top, window.innerHeight - box.height - 8));
+    colorMenu.style.left = `${left}px`;
+    colorMenu.style.top = `${top}px`;
+  };
+
+  const openColorMenu = () => {
+    closeChoiceMenus();
+    closeSheetColorMenus();
+    colorBtn.setAttribute("aria-expanded", "true");
+    document.body.append(colorMenu);
+    colorMenu.hidden = false;
+    placeColorMenu();
+    colorMenu.querySelector(".color-square-map")?.focus();
+  };
+
+  edit.addEventListener("click", (event) => event.stopPropagation());
+  edit.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+    if (!event.target.closest(".choice, .choice-menu")) closeChoiceMenus();
+    if (!event.target.closest(".sheet-edit-color, .sheet-color-menu")) closeSheetColorMenus();
+  });
+
+  colorBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (colorBtn.getAttribute("aria-expanded") === "true") closeSheetColorMenus();
+    else openColorMenu();
+  });
+  colorMenu.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeSheetColorMenus();
+      colorBtn.focus();
+    }
+  });
+  sat.addEventListener("input", () => {
+    const rec = cards.get(item.id);
+    const current = sheetEffects(rec).color || DEFAULT_COLOR;
+    const rail = sat.closest(".sheet-edit-sat-rail");
+    rail?.style.setProperty("--sat", String(Number(sat.value) / 100));
+    apply({ color: { ...current, c: (Number(sat.value) / 100) * SAT_MAX } });
+  });
+  brush.addEventListener("change", () => apply({ brushType: brush.value }));
+
+  let dragging = false;
+  const follow = (event) => {
+    const box = frame.getBoundingClientRect();
+    edit.style.left = `${event.clientX - box.left}px`;
+    edit.style.top = `${event.clientY - box.top}px`;
+    edit.style.right = "auto";
+    edit.style.bottom = "auto";
+    edit.style.transform = "translate(-50%, -50%)";
+  };
+  const snapFrom = (event) => {
+    const box = frame.getBoundingClientRect();
+    const x = (event.clientX - box.left) / box.width;
+    const y = (event.clientY - box.top) / box.height;
+    if (y > 1 || (y > 0.86 && x > 0.22 && x < 0.78)) setSide("row");
+    else if (y > 0.7 && x > 0.28 && x < 0.72) setSide("bottom");
+    else setSide(x < 0.5 ? "left" : "right");
+  };
+
+  grip.addEventListener("pointerdown", (event) => {
+    if (event.button != null && event.button !== 0) return;
+    event.preventDefault();
+    closePopovers();
+    dragging = true;
+    if (!frame.contains(edit)) frame.append(edit);
+    edit.classList.add("is-dragging");
+    try {
+      grip.setPointerCapture(event.pointerId);
+    } catch {
+      /* ignore */
+    }
+    follow(event);
+  });
+  grip.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+    follow(event);
+  });
+  const endDrag = (event) => {
+    if (!dragging) return;
+    dragging = false;
+    if (sheet.classList.contains("is-expanded")) setFree(event);
+    else snapFrom(event);
+  };
+  grip.addEventListener("pointerup", endDrag);
+  grip.addEventListener("pointercancel", endDrag);
+}
+
 function readEffects() {
   const next = { color: parseColor(pigmentColorEl?.value) || effects.color || DEFAULT_COLOR };
   const typeEl = document.querySelector("#brushType");
@@ -473,7 +762,7 @@ function readEffects() {
   return clampEffects(next);
 }
 
-let colorDial = null;
+let colorPicker = null;
 
 function makeSlider(id, label, value) {
   const row = document.createElement("label");
@@ -496,9 +785,9 @@ function mountBrushPanel() {
   brushControlsEl.innerHTML = "";
 
   const typeRow = document.createElement("div");
-  typeRow.className = "slide";
+  typeRow.className = "slide is-brush-type";
   const typeName = document.createElement("span");
-  typeName.textContent = "type";
+  typeName.textContent = "brush type";
   const typeSelect = document.createElement("select");
   typeSelect.id = "brushType";
   typeSelect.setAttribute("aria-label", "brush type");
@@ -628,14 +917,11 @@ function mountEffects() {
   }
 
   pigmentColorEl.value = oklchToHex(effects.color || DEFAULT_COLOR);
-  colorDial = mountColorDial({
-    canvas: document.querySelector("#colorDial"),
+  colorPicker = mountColorSquare({
+    host: document.querySelector("#pigments"),
     input: pigmentColorEl,
     value: effects.color || DEFAULT_COLOR,
     onChange: onEffectInput,
-  });
-  colorGroup?.addEventListener("toggle", () => {
-    if (colorGroup.open) colorDial?.setValue(pigmentColorEl.value);
   });
 
   bindReset("#resetEffects", resetEffects);
@@ -677,52 +963,79 @@ function resetEffects() {
   for (const input of effectGroupsEl.querySelectorAll("input[type=range]")) {
     input.value = "50";
   }
-  colorDial?.setValue(baseline.color);
+  colorPicker?.setValue(baseline.color);
   persistSettings();
   scheduleEffectRender();
 }
 
 function onEffectInput() {
-  persistSettings();
-  scheduleEffectRender();
+  afterDeskChange();
 }
 
 function scheduleEffectRender() {
-  if (![...cards.values()].some((rec) => rec.item.code || rec.item.photo)) return;
-  effectsDirty = true;
+  afterDeskChange();
+}
+
+function scheduleSheetRender(id) {
+  if (!id) return;
+  dirtyIds.add(id);
   clearTimeout(effectTimer);
   effectTimer = setTimeout(flushEffects, 280);
 }
 
 function flushEffects() {
-  if (!effectsDirty) return;
+  if (!dirtyIds.size) return;
   if (paintingNow) return;
-  const ids = [];
-  for (const [id, rec] of cards) {
-    if (rec?.item.code || rec?.item.photo) ids.push(id);
+  const ids = [...dirtyIds];
+  dirtyIds.clear();
+  for (const id of ids) {
+    const rec = cards.get(id);
+    if (rec?.item.code || rec?.item.photo) queuePaint(id, { replace: true });
   }
-  if (!ids.length) {
-    effectsDirty = false;
-    return;
-  }
-  effectsDirty = false;
-  for (const id of ids) queuePaint(id, { replace: true });
+}
+
+function stageDensity() {
+  const css = Math.min(window.innerWidth, window.innerHeight);
+  const need = css * (window.devicePixelRatio || 1);
+  return Math.min(2, Math.max(1, Math.round(need / PAINT_SIZE) || 2));
+}
+
+function paintDensityFor(id) {
+  const rec = cards.get(id);
+  const expanded = rec?.sheet.classList.contains("is-expanded");
+  const next = expanded ? Math.max(2, stageDensity()) : 2;
+  return Math.max(next, rec?.paintDensity || 1, rec?.wantDensity || 1);
+}
+
+function requestHighRes(id) {
+  const rec = cards.get(id);
+  if (!rec?.item || (!rec.item.code && !rec.item.photo)) return;
+  const density = paintDensityFor(id);
+  if ((rec.paintDensity || 1) >= density) return;
+  rec.wantDensity = density;
+  if (waitingId === id) return;
+  if (!paintQueue.includes(id)) paintQueue.push(id);
+  drainQueue();
 }
 
 function queuePaint(id, { replace = false } = {}) {
   const rec = cards.get(id);
   if (!rec) return;
-  rec.sheet.querySelector("img")?.remove();
-  rec.sheet.querySelector(".save")?.setAttribute("disabled", "");
-  rec.dataUrl = null;
-  rec.item.dataUrl = null;
-  let veil = rec.sheet.querySelector(".veil");
-  if (!veil) {
-    veil = document.createElement("div");
-    veil.className = "veil";
-    rec.sheet.querySelector(".frame").append(veil);
+  if (replace) {
+    rec.sheet.classList.add("is-adjusting");
+  } else {
+    rec.sheet.querySelector("img")?.remove();
+    rec.sheet.querySelector(".save")?.setAttribute("disabled", "");
+    rec.dataUrl = null;
+    rec.item.dataUrl = null;
+    let veil = rec.sheet.querySelector(".veil");
+    if (!veil) {
+      veil = document.createElement("div");
+      veil.className = "veil";
+      rec.sheet.querySelector(".frame").append(veil);
+    }
+    veil.textContent = "pigment settling…";
   }
-  veil.textContent = replace ? "adjusting…" : "pigment settling…";
   if (!paintQueue.includes(id)) paintQueue.push(id);
   drainQueue();
 }
@@ -759,7 +1072,7 @@ async function loadSamples() {
       sceneEl.value = sample.prompt;
       sizeScene();
       if (sample.color) {
-        colorDial?.setValue(sample.color);
+        colorPicker?.setValue(sample.color);
       }
       if (sample.brushType) {
         const typeEl = document.querySelector("#brushType");
@@ -773,7 +1086,43 @@ async function loadSamples() {
   });
 }
 
+function openSheetStage(id) {
+  const rec = cards.get(id);
+  if (!rec?.sheet || stagedSheet) return;
+  closePopovers();
+  selectPainting(id);
+  stagedSheet = {
+    sheet: rec.sheet,
+    home: rec.sheet.parentElement,
+    next: rec.sheet.nextSibling,
+  };
+  rec.sheet.classList.add("is-expanded");
+  sheetStageEl.append(rec.sheet);
+  rec.sheet.querySelector(".sheet-edit")?._onStage?.();
+  sheetStageEl.hidden = false;
+  document.body.classList.add("is-sheet-open");
+  requestHighRes(id);
+}
+
+function closeSheetStage() {
+  if (!stagedSheet) return;
+  closePopovers();
+  const { sheet, home, next } = stagedSheet;
+  sheet.querySelector(".sheet-edit")?._offStage?.();
+  sheet.classList.remove("is-expanded");
+  if (home) {
+    if (next && next.parentElement === home) home.insertBefore(sheet, next);
+    else home.append(sheet);
+  }
+  stagedSheet = null;
+  sheetStageEl.hidden = true;
+  document.body.classList.remove("is-sheet-open");
+}
+
 function clearWall() {
+  closeSheetStage();
+  closePopovers();
+  document.querySelectorAll(".sheet-color-menu").forEach((menu) => menu.remove());
   paintQueue.length = 0;
   paintingNow = false;
   waitingId = null;
@@ -792,13 +1141,37 @@ function renderGrid(items) {
     sheet.className = "sheet";
     sheet.dataset.id = item.id;
     sheet.tabIndex = 0;
+    item.effects = clampEffects(item.effects || readEffects());
     sheet.innerHTML = `
       <div class="frame">
-        <button type="button" class="pick" data-id="${item.id}" aria-label="export training json" title="export for tinker" aria-pressed="false"${item.code ? "" : " disabled"}></button>
+        <div class="frame-tools">
+          <button type="button" class="expand" data-id="${item.id}" aria-label="expand" title="expand">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3 6.2V3h3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
+              <path d="M9.8 3H13v3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
+              <path d="M13 9.8V13H9.8" fill="none" stroke="currentColor" stroke-width="1.5" />
+              <path d="M6.2 13H3V9.8" fill="none" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+          </button>
+          <button type="button" class="pick" data-id="${item.id}" aria-label="export training json" title="export for tinker" aria-pressed="false"${item.code ? "" : " disabled"}></button>
+        </div>
         <div class="veil">pigment settling…</div>
       </div>
       <div class="caption">
-        <span>sample ${index + 1}</span>
+        <span class="caption-name">sample ${index + 1}</span>
+        <div class="sheet-edit is-row" role="toolbar" aria-label="edit wash">
+          <button type="button" class="sheet-edit-grip" aria-label="move editor" title="drag to the side"></button>
+          <button type="button" class="sheet-edit-color" title="color" aria-label="color" aria-haspopup="listbox" aria-expanded="false">
+            <span class="sheet-edit-swatch" aria-hidden="true"></span>
+          </button>
+          <label class="sheet-edit-sat" title="saturation">
+            <span class="sheet-edit-sat-name">saturation</span>
+            <span class="sheet-edit-sat-rail">
+              <input type="range" min="0" max="100" step="1" aria-label="saturation" />
+            </span>
+          </label>
+          <select class="sheet-edit-brush" aria-label="brush"></select>
+        </div>
         <span class="caption-meta">
           <button type="button" class="save" data-id="${item.id}" aria-label="save png" title="save" disabled>
             <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -811,15 +1184,19 @@ function renderGrid(items) {
       </div>
     `;
     sheet.addEventListener("click", (event) => {
-      if (event.target.closest(".save, .pick")) return;
+      if (event.target.closest(".save, .expand, .pick, .sheet-edit")) return;
       selectPainting(item.id);
     });
     sheet.addEventListener("keydown", (event) => {
-      if (event.target.closest(".save, .pick")) return;
+      if (event.target.closest(".save, .expand, .pick, .sheet-edit")) return;
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         selectPainting(item.id);
       }
+    });
+    sheet.querySelector(".expand").addEventListener("click", (event) => {
+      event.stopPropagation();
+      openSheetStage(item.id);
     });
     sheet.querySelector(".save").addEventListener("click", (event) => {
       event.stopPropagation();
@@ -831,6 +1208,7 @@ function renderGrid(items) {
     });
     grid.append(sheet);
     cards.set(item.id, { item, sheet, dataUrl: null });
+    mountSheetEditor(sheet, item);
 
     if (item.error || (!item.code && !item.photo)) {
       const veil = sheet.querySelector(".veil");
@@ -881,15 +1259,17 @@ function drainQueue() {
   }, 35000);
   const frame = renderer.contentWindow;
   if (frame) frame.__pendingPhoto = rec.item.photo || null;
+  waitingDensity = rec.wantDensity || paintDensityFor(id);
+  rec.wantDensity = waitingDensity;
   frame?.postMessage(
     {
       type: "paint",
       code: rec.item.code,
       photo: Boolean(rec.item.photo),
       seed: rec.item.seed,
-      size: 720,
-      density: 1,
-      effects: readEffects(),
+      size: PAINT_SIZE,
+      density: waitingDensity,
+      effects: sheetEffects(rec),
     },
     "*"
   );
@@ -912,15 +1292,25 @@ function onFrameMessage(event) {
   if (rec) {
     const veil = rec.sheet.querySelector(".veil");
     if (event.data.error) {
+      rec.sheet.classList.remove("is-adjusting");
       veil?.classList.add("error");
       if (veil) veil.textContent = event.data.error;
     } else if (event.data.dataUrl) {
       rec.dataUrl = event.data.dataUrl;
       rec.item.dataUrl = event.data.dataUrl;
-      const img = document.createElement("img");
-      img.alt = rec.item.prompt || "watercolor";
-      img.src = event.data.dataUrl;
-      rec.sheet.querySelector(".frame").prepend(img);
+      rec.paintDensity = waitingDensity;
+      rec.wantDensity = null;
+      const frame = rec.sheet.querySelector(".frame");
+      let img = frame.querySelector("img");
+      if (img) {
+        img.src = event.data.dataUrl;
+      } else {
+        img = document.createElement("img");
+        img.alt = rec.item.prompt || "watercolor";
+        img.src = event.data.dataUrl;
+        frame.prepend(img);
+      }
+      rec.sheet.classList.remove("is-adjusting");
       veil?.remove();
       rec.sheet.querySelector(".save")?.removeAttribute("disabled");
     } else if (veil) {
@@ -937,6 +1327,11 @@ function selectPainting(id) {
   for (const sheet of wallEl.querySelectorAll(".sheet")) {
     sheet.classList.toggle("active", sheet.dataset.id === id);
   }
+  const rec = cards.get(id);
+  if (!rec?.item) return;
+  rec.item.effects = sheetEffects(rec);
+  applyEffectsToControls(rec.item.effects);
+  syncSheetEditor(rec);
 }
 
 async function generate({ scene, sampleId } = {}) {
@@ -1071,52 +1466,37 @@ function mountDeskScroll() {
   const thumb = document.querySelector(".desk-scroll");
   if (!desk || !rail || !thumb) return;
 
-  const minThumbH = 32;
+  const thumbH = 64;
   let dragging = false;
-  let syncFrame = 0;
 
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
-  const metrics = (max = Math.max(0, desk.scrollHeight - desk.clientHeight)) => {
-    const thumbH = clamp(
-      rail.clientHeight * (desk.clientHeight / desk.scrollHeight),
-      minThumbH,
-      rail.clientHeight,
-    );
+  const metrics = () => {
+    const max = Math.max(0, desk.scrollHeight - desk.clientHeight);
     const travel = Math.max(1, rail.clientHeight - thumbH);
-    return { max, thumbH, travel };
+    return { max, travel };
   };
 
-  const render = () => {
-    const max = Math.max(0, desk.scrollHeight - desk.clientHeight);
+  const sync = () => {
+    const { max, travel } = metrics();
     if (max <= 4) {
       rail.hidden = true;
       return;
     }
     rail.hidden = false;
-    const { thumbH, travel } = metrics(max);
     const ratio = clamp(desk.scrollTop / max, 0, 1);
-    thumb.style.height = `${thumbH}px`;
-    thumb.style.transform = `translate3d(0, ${ratio * travel}px, 0)`;
+    thumb.style.top = `${ratio * travel}px`;
     rail.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
     rail.setAttribute("aria-valuemin", "0");
     rail.setAttribute("aria-valuemax", "100");
   };
 
-  const sync = () => {
-    if (syncFrame) return;
-    syncFrame = requestAnimationFrame(() => {
-      syncFrame = 0;
-      render();
-    });
-  };
-
   const scrollToClientY = (clientY) => {
-    const { max, thumbH, travel } = metrics();
+    const { max, travel } = metrics();
     if (max <= 4) return;
     const y = clamp(clientY - rail.getBoundingClientRect().top - thumbH / 2, 0, travel);
     desk.scrollTop = (y / travel) * max;
-    thumb.style.transform = `translate3d(0, ${y}px, 0)`;
+    thumb.style.top = `${y}px`;
   };
 
   rail.addEventListener("pointerdown", (event) => {
@@ -1148,9 +1528,17 @@ function mountDeskScroll() {
   desk.addEventListener("scroll", sync, { passive: true });
   new ResizeObserver(sync).observe(desk);
   new ResizeObserver(sync).observe(rail);
-  desk.addEventListener("toggle", sync, true);
+  desk.addEventListener("toggle", () => requestAnimationFrame(sync), true);
   sync();
 }
+
+sheetStageEl?.addEventListener("click", (event) => {
+  if (event.target === sheetStageEl) closeSheetStage();
+});
+sheetStageEl?.querySelector(".sheet-stage-close")?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  closeSheetStage();
+});
 
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();

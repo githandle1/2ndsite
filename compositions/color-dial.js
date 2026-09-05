@@ -1,8 +1,6 @@
-import { parseColor, oklchToHex, oklchToSrgb } from "./color.js";
+import { parseColor, oklchToHex, hexToRgb, rgbToHex } from "./color.js";
 
-const TAU = Math.PI * 2;
-const MAX_C = 0.4;
-const PIGMENTS = [
+export const PIGMENTS = [
   { hex: "#8b2f32", name: "alizarin" },
   { hex: "#c45a2a", name: "sienna" },
   { hex: "#d4a24a", name: "ochre" },
@@ -19,237 +17,199 @@ function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
 }
 
-function geometry(size) {
-  const cx = size / 2;
-  const cy = size / 2;
-  const outer = size / 2 - 1;
-  const hole = outer * 0.34;
-  const thumb = Math.max(5, size * 0.055);
-  return { cx, cy, outer, hole, thumb };
-}
-
-function cssRgb(ok) {
-  const { r, g, b } = oklchToSrgb(ok);
-  return `rgb(${r | 0}, ${g | 0}, ${b | 0})`;
-}
-
 function assign(target, next) {
   target.l = next.l;
   target.c = next.c;
   target.h = next.h;
 }
 
-function hexClose(a, b) {
-  return String(a || "").toLowerCase() === String(b || "").toLowerCase();
+function hsvToRgb(h, s, v) {
+  const hue = ((h % 360) + 360) % 360;
+  const c = v * s;
+  const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+  const m = v - c;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (hue < 60) [r, g, b] = [c, x, 0];
+  else if (hue < 120) [r, g, b] = [x, c, 0];
+  else if (hue < 180) [r, g, b] = [0, c, x];
+  else if (hue < 240) [r, g, b] = [0, x, c];
+  else if (hue < 300) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+  return { r: (r + m) * 255, g: (g + m) * 255, b: (b + m) * 255 };
 }
 
-export function mountColorDial({ canvas, input, value, onChange }) {
-  const oklch = { ...(parseColor(value) || parseColor("#8b2f32")) };
-  const css = getComputedStyle(document.documentElement);
-  const paper = css.getPropertyValue("--paper").trim() || "#faf9f6";
-  const hover = css.getPropertyValue("--hover").trim() || "#8b2f32";
-  const lightEl = document.querySelector("#colorLight");
-  const pigmentsEl = document.querySelector("#pigments");
+function rgbToHsv(r, g, b) {
+  const rr = r / 255;
+  const gg = g / 255;
+  const bb = b / 255;
+  const max = Math.max(rr, gg, bb);
+  const min = Math.min(rr, gg, bb);
+  const d = max - min;
+  let h = 0;
+  if (d) {
+    if (max === rr) h = ((gg - bb) / d) % 6;
+    else if (max === gg) h = (bb - rr) / d + 2;
+    else h = (rr - gg) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s: max ? d / max : 0, v: max };
+}
 
-  let dragging = false;
+function hsvToHex(hsv) {
+  return rgbToHex(hsvToRgb(hsv.h, hsv.s, hsv.v));
+}
+
+function hueHex(h) {
+  return rgbToHex(hsvToRgb(h, 1, 1));
+}
+
+export function mountColorSquare({ host, input, value, onChange }) {
+  if (!host) return null;
+
+  const oklch = { ...(parseColor(value) || parseColor("#8b2f32")) };
+  const startRgb = hexToRgb(oklchToHex(oklch)) || { r: 139, g: 47, b: 50 };
+  const hsv = rgbToHsv(startRgb.r, startRgb.g, startRgb.b);
+
+  host.classList.add("color-square");
+  host.replaceChildren();
+
+  const map = document.createElement("div");
+  map.className = "color-square-map";
+  map.tabIndex = 0;
+  map.setAttribute("role", "slider");
+  map.setAttribute("aria-label", "color");
+
+  const thumb = document.createElement("span");
+  thumb.className = "color-square-thumb";
+  thumb.setAttribute("aria-hidden", "true");
+  map.append(thumb);
+
+  const hue = document.createElement("input");
+  hue.type = "range";
+  hue.className = "color-square-hue";
+  hue.min = "0";
+  hue.max = "360";
+  hue.step = "1";
+  hue.setAttribute("aria-label", "hue");
+
+  const hexField = input || document.createElement("input");
+  if (!input) {
+    hexField.type = "text";
+    hexField.className = "color-square-hex";
+    hexField.maxLength = 7;
+    hexField.autocomplete = "off";
+    hexField.spellcheck = false;
+    hexField.setAttribute("aria-label", "hex");
+  } else {
+    hexField.classList.add("color-square-hex");
+  }
+  host.append(map, hue);
+  if (!input) host.append(hexField);
 
   function currentHex() {
     return oklchToHex(oklch);
   }
 
-  function syncLight() {
-    if (!lightEl) return;
-    const next = String(Math.round(oklch.l * 100));
-    if (lightEl.value !== next) lightEl.value = next;
+  function applyHsvFromColor(next) {
+    assign(oklch, next);
+    const rgb = hexToRgb(oklchToHex(oklch));
+    if (!rgb) return;
+    const nextHsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+    if (nextHsv.s > 0.01 && nextHsv.v > 0.01) hsv.h = nextHsv.h;
+    hsv.s = nextHsv.s;
+    hsv.v = nextHsv.v;
   }
 
-  function syncPigments() {
-    if (!pigmentsEl) return;
-    const hex = currentHex();
-    for (const btn of pigmentsEl.querySelectorAll("button")) {
-      btn.setAttribute("aria-selected", hexClose(btn.dataset.hex, hex) ? "true" : "false");
+  function commit(emit) {
+    const hex = hsvToHex(hsv);
+    const next = parseColor(hex);
+    if (next) assign(oklch, next);
+    const shown = currentHex();
+    if (hexField && document.activeElement !== hexField && hexField.value.toLowerCase() !== shown) {
+      hexField.value = shown;
     }
+    if (input && input !== hexField && input.value.toLowerCase() !== shown) input.value = shown;
+    map.style.setProperty("--hue", hueHex(hsv.h));
+    map.style.setProperty("--pick", shown);
+    thumb.style.left = `${hsv.s * 100}%`;
+    thumb.style.top = `${(1 - hsv.v) * 100}%`;
+    hue.value = String(Math.round(hsv.h));
+    if (emit) onChange?.({ ...oklch });
   }
 
-  function syncInput(emit) {
-    const hex = currentHex();
-    if (input.value.toLowerCase() !== hex) input.value = hex;
-    syncLight();
-    syncPigments();
-    if (emit) onChange?.(oklch);
+  function applyFromPoint(event) {
+    const rect = map.getBoundingClientRect();
+    hsv.s = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+    hsv.v = clamp(1 - (event.clientY - rect.top) / rect.height, 0, 1);
+    commit(true);
   }
 
-  function layout() {
-    const dpr = window.devicePixelRatio || 1;
-    const cssSize = canvas.clientWidth || 96;
-    canvas.width = Math.round(cssSize * dpr);
-    canvas.height = Math.round(cssSize * dpr);
-    const ctx = canvas.getContext("2d");
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { ctx, size: cssSize };
-  }
-
-  function draw() {
-    const { ctx, size } = layout();
-    const { cx, cy, outer, hole, thumb } = geometry(size);
-
-    ctx.clearRect(0, 0, size, size);
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, outer, 0, TAU);
-    ctx.arc(cx, cy, hole, 0, TAU, true);
-    ctx.clip();
-
-    const wheel = ctx.createConicGradient(-Math.PI / 2, cx, cy);
-    for (let i = 0; i <= 24; i++) {
-      wheel.addColorStop(i / 24, cssRgb({ l: oklch.l, c: 0.28, h: (i * 15) % 360 }));
-    }
-    ctx.fillStyle = wheel;
-    ctx.fillRect(0, 0, size, size);
-
-    const fade = ctx.createRadialGradient(cx, cy, hole, cx, cy, outer);
-    fade.addColorStop(0, "rgba(250,249,246,0.55)");
-    fade.addColorStop(0.42, "rgba(250,249,246,0)");
-    fade.addColorStop(1, "rgba(0,0,0,0.12)");
-    ctx.fillStyle = fade;
-    ctx.fillRect(0, 0, size, size);
-    ctx.restore();
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, hole - 1, 0, TAU);
-    ctx.fillStyle = cssRgb(oklch);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(36, 33, 31, 0.16)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, outer, 0, TAU);
-    ctx.strokeStyle = "rgba(36, 33, 31, 0.16)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    const angle = ((oklch.h - 90) * Math.PI) / 180;
-    const radius = clamp(oklch.c / MAX_C, 0.18, 0.92) * (outer - hole) + hole;
-    const mx = cx + Math.cos(angle) * radius;
-    const my = cy + Math.sin(angle) * radius;
-    ctx.beginPath();
-    ctx.arc(mx, my, thumb, 0, TAU);
-    ctx.fillStyle = paper;
-    ctx.fill();
-    ctx.strokeStyle = hover;
-    ctx.lineWidth = 1.25;
-    ctx.stroke();
-  }
-
-  function posFromEvent(event) {
-    const rect = canvas.getBoundingClientRect();
-    const { cx, cy, outer, hole } = geometry(rect.width);
-    const x = (event.clientX ?? event.touches?.[0]?.clientX) - rect.left;
-    const y = (event.clientY ?? event.touches?.[0]?.clientY) - rect.top;
-    const dx = x - cx;
-    const dy = y - cy;
-    const dist = Math.hypot(dx, dy);
-    let hue = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
-    if (hue < 0) hue += 360;
-    return { dist, hue, outer, hole };
-  }
-
-  function applyAt(event) {
-    const hit = posFromEvent(event);
-    if (hit.dist < hit.hole * 0.72) return;
-    oklch.h = hit.hue;
-    const ring = Math.max(hit.outer - hit.hole, 1);
-    oklch.c = clamp((hit.dist - hit.hole) / ring, 0.06, 1) * MAX_C;
-    draw();
-    syncInput(true);
-  }
-
-  function pointerDown(event) {
+  let dragging = false;
+  map.addEventListener("pointerdown", (event) => {
     event.preventDefault();
     dragging = true;
     try {
-      canvas.setPointerCapture(event.pointerId);
+      map.setPointerCapture(event.pointerId);
     } catch {
       /* ignore */
     }
-    applyAt(event);
-  }
-
-  function pointerMove(event) {
+    applyFromPoint(event);
+  });
+  map.addEventListener("pointermove", (event) => {
     if (!dragging) return;
-    applyAt(event);
-  }
-
-  function pointerUp() {
+    applyFromPoint(event);
+  });
+  const endDrag = () => {
     dragging = false;
-  }
+  };
+  map.addEventListener("pointerup", endDrag);
+  map.addEventListener("pointercancel", endDrag);
 
-  function mountPigments() {
-    if (!pigmentsEl || pigmentsEl.childElementCount) return;
-    for (const pigment of PIGMENTS) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.dataset.hex = pigment.hex;
-      btn.style.setProperty("--swatch", pigment.hex);
-      btn.setAttribute("aria-label", pigment.name);
-      btn.setAttribute("role", "option");
-      btn.addEventListener("click", () => {
-        const next = parseColor(pigment.hex);
-        if (!next) return;
-        assign(oklch, next);
-        draw();
-        syncInput(true);
-      });
-      pigmentsEl.append(btn);
-    }
-  }
-
-  canvas.addEventListener("pointerdown", pointerDown);
-  canvas.addEventListener("pointermove", pointerMove);
-  canvas.addEventListener("pointerup", pointerUp);
-  canvas.addEventListener("pointercancel", pointerUp);
-
-  lightEl?.addEventListener("input", () => {
-    oklch.l = clamp(Number(lightEl.value) / 100, 0.08, 0.94);
-    draw();
-    syncInput(true);
+  map.addEventListener("keydown", (event) => {
+    const step = event.shiftKey ? 0.08 : 0.02;
+    if (event.key === "ArrowLeft") hsv.s = clamp(hsv.s - step, 0, 1);
+    else if (event.key === "ArrowRight") hsv.s = clamp(hsv.s + step, 0, 1);
+    else if (event.key === "ArrowDown") hsv.v = clamp(hsv.v - step, 0, 1);
+    else if (event.key === "ArrowUp") hsv.v = clamp(hsv.v + step, 0, 1);
+    else return;
+    event.preventDefault();
+    commit(true);
   });
 
-  input.addEventListener("change", () => {
-    const next = parseColor(input.value);
+  hue.addEventListener("input", () => {
+    hsv.h = Number(hue.value);
+    commit(true);
+  });
+
+  hexField.addEventListener("change", () => {
+    const next = parseColor(hexField.value);
     if (!next) {
-      input.value = currentHex();
+      hexField.value = currentHex();
       return;
     }
-    assign(oklch, next);
-    input.value = currentHex();
-    draw();
-    syncLight();
-    syncPigments();
-    onChange?.(oklch);
+    applyHsvFromColor(next);
+    hexField.value = currentHex();
+    commit(true);
   });
-
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") input.blur();
+  hexField.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") hexField.blur();
   });
+  hexField.addEventListener("pointerdown", (event) => event.stopPropagation());
 
-  mountPigments();
-  input.value = currentHex();
-  syncLight();
-  syncPigments();
-  draw();
-  window.addEventListener("resize", draw);
+  commit(false);
 
   return {
-    setValue(value) {
-      const next = parseColor(value);
+    setValue(nextValue) {
+      const next = parseColor(nextValue);
       if (!next) return;
-      assign(oklch, next);
-      input.value = currentHex();
-      syncLight();
-      syncPigments();
-      draw();
+      if (oklchToHex(next) === currentHex()) return;
+      applyHsvFromColor(next);
+      commit(false);
     },
   };
 }
+
+export const mountPigmentPicker = mountColorSquare;

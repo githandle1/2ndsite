@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=118" />
+    <link rel="stylesheet" href="styles.css?v=138" />
   </head>
   <body>
     <main class="studio">
@@ -157,23 +157,17 @@
                 <details class="color-group">
                   <summary>color</summary>
                   <div class="color-field">
-                    <div class="dial">
-                      <canvas id="colorDial" width="96" height="96" aria-label="color dial"></canvas>
-                      <label class="slide dial-light">
-                        <span>light</span>
-                        <input id="colorLight" type="range" min="8" max="94" value="48" aria-label="lightness" />
-                      </label>
-                      <input
-                        id="pigmentColor"
-                        type="text"
-                        value="#8b2f32"
-                        maxlength="7"
-                        autocomplete="off"
-                        spellcheck="false"
-                        aria-label="hex"
-                      />
-                    </div>
-                    <div class="pigments" id="pigments" role="listbox" aria-label="pigments"></div>
+                    <div id="pigments" aria-label="color"></div>
+                    <input
+                      id="pigmentColor"
+                      class="color-square-hex"
+                      type="text"
+                      value="#8b2f32"
+                      maxlength="7"
+                      autocomplete="off"
+                      spellcheck="false"
+                      aria-label="hex"
+                    />
                   </div>
                 </details>
               </div>
@@ -212,8 +206,16 @@
 
       <section class="wall" id="wall" aria-live="polite"></section>
     </main>
+    <div id="sheetStage" class="sheet-stage" hidden>
+      <button type="button" class="sheet-stage-close" aria-label="close" title="close">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M4 4l8 8" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <path d="M12 4 4 12" fill="none" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </button>
+    </div>
 
-    <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=52"></iframe>
-    <script type="module" src="app.js?v=87"></script>
+    <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=53"></iframe>
+    <script type="module" src="app.js?v=102"></script>
   </body>
 </html>
