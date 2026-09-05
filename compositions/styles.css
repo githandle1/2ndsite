@@ -2537,12 +2537,57 @@ body.is-sheet-open {
   }
 
   .sheet-stage .sheet-edit {
-    padding: 6px 8px;
+    gap: 4px;
+    padding: 3px 5px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--paper) 72%, transparent);
-    box-shadow: 0 0 0 1px rgba(36, 33, 31, 0.06);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: color-mix(in srgb, var(--paper) 42%, transparent);
+    box-shadow: 0 0 0 1px rgba(36, 33, 31, 0.04);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .sheet-stage .sheet-edit-color {
+    width: 12px;
+    height: 12px;
+  }
+
+  .sheet-stage .sheet-edit-swatch {
+    width: 10px;
+    height: 10px;
+  }
+
+  .sheet-stage .sheet-edit-sat {
+    gap: 6px;
+    margin-inline-end: 8px;
+  }
+
+  .sheet-stage .sheet-edit-sat-rail {
+    width: 38px;
+    height: 6px;
+  }
+
+  .sheet-stage .sheet-edit-sat-rail::before {
+    height: 1.5px;
+  }
+
+  .sheet-stage .sheet-edit-sat-rail::after,
+  .sheet-stage .sheet-edit-sat-rail input::-webkit-slider-thumb,
+  .sheet-stage .sheet-edit-sat-rail input::-moz-range-thumb {
+    width: 5px;
+    height: 5px;
+  }
+
+  .sheet-stage .sheet-edit .choice-trigger {
+    height: 18px;
+    min-height: 18px;
+    padding: 0 12px 0 4px;
+    font-size: 10px;
+    line-height: 18px;
+  }
+
+  .sheet-stage .sheet-edit .choice-trigger svg {
+    width: 9px;
+    height: 9px;
   }
 
   .wall {
