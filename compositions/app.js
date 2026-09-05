@@ -1,6 +1,7 @@
 import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=15";
 import { parseColor, oklchToHex } from "./color.js";
 import { mountColorSquare } from "./color-dial.js?v=12";
+import { imageWork } from "./image-work.js?v=1";
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
 const sceneCaption = document.querySelector("#sceneCaption");
@@ -344,10 +345,12 @@ mountChoice(countEl, {
 mountChoice(providerEl);
 
 function sizeScene() {
-  sceneEl.style.height = "0px";
   const compact = isCompact();
-  const next = Math.min(sceneEl.scrollHeight, compact ? 148 : 280);
-  sceneEl.style.height = `${Math.max(next, compact ? 68 : 96)}px`;
+  const max = compact ? 128 : 220;
+  sceneEl.style.height = "auto";
+  const next = Math.min(sceneEl.scrollHeight, max);
+  sceneEl.style.height = `${next}px`;
+  sceneEl.style.overflowY = sceneEl.scrollHeight > max ? "auto" : "hidden";
 }
 
 sceneEl.addEventListener("input", sizeScene);
@@ -446,6 +449,12 @@ function loadImageUrl(url) {
 
 async function readPhotoFile(file) {
   const name = file.name.replace(/\.[^.]+$/, "").toLowerCase() || "photograph";
+  try {
+    const next = await imageWork("rasterize", { file });
+    if (next?.dataUrl) return { ...next, name };
+  } catch {
+    /* fall through */
+  }
   if (typeof createImageBitmap === "function") {
     try {
       const bitmap = await createImageBitmap(file);
@@ -503,7 +512,10 @@ function paintPhoto() {
 photoEl.addEventListener("change", onPhotoChosen);
 
 function bindReset(id, fn) {
-  document.querySelector(id)?.addEventListener("click", (event) => {
+  const button = document.querySelector(id);
+  if (!button) return;
+  button.addEventListener("pointerdown", (event) => event.stopPropagation());
+  button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     fn();
@@ -812,6 +824,98 @@ function mountSheetEditor(sheet, item) {
   grip.addEventListener("pointercancel", endDrag);
 }
 
+const PLACE_RANGE = 336;
+
+function mountSubjectDrag(sheet, item) {
+  const frame = sheet.querySelector(".frame");
+  if (!frame) return;
+  let dragging = false;
+  let moved = false;
+  let startX = 0;
+  let startY = 0;
+  let startPlaceX = 0.5;
+  let startPlaceY = 0.5;
+
+  const img = () => frame.querySelector("img");
+
+  const preview = (placeX, placeY) => {
+    const picture = img();
+    if (!picture) return;
+    const box = frame.getBoundingClientRect();
+    const unit = (PLACE_RANGE / PAINT_SIZE) * box.width;
+    picture.style.transform = `translate(${(placeX - startPlaceX) * unit}px, ${(startPlaceY - placeY) * unit}px)`;
+  };
+
+  const placementFrom = (event) => {
+    const box = frame.getBoundingClientRect();
+    const paintX = ((event.clientX - startX) / box.width) * PAINT_SIZE;
+    const paintY = ((event.clientY - startY) / box.height) * PAINT_SIZE;
+    return {
+      placeX: Math.min(1, Math.max(0, startPlaceX + paintX / PLACE_RANGE)),
+      placeY: Math.min(1, Math.max(0, startPlaceY - paintY / PLACE_RANGE)),
+    };
+  };
+
+  const write = (placeX, placeY) => {
+    const rec = cards.get(item.id);
+    if (!rec) return;
+    rec.item.effects = clampEffects({ ...sheetEffects(rec), placeX, placeY });
+    if (selectedId === item.id) applyEffectsToControls(rec.item.effects);
+  };
+
+  frame.addEventListener("pointerdown", (event) => {
+    if (event.button != null && event.button !== 0) return;
+    if (event.target.closest(".expand, .pick, .sheet-edit, .veil")) return;
+    if (!img()) return;
+    if (isCompact() && !sheet.classList.contains("active") && !sheet.classList.contains("is-expanded")) return;
+    const rec = cards.get(item.id);
+    const fx = sheetEffects(rec);
+    dragging = true;
+    moved = false;
+    startX = event.clientX;
+    startY = event.clientY;
+    startPlaceX = fx.placeX ?? 0.5;
+    startPlaceY = fx.placeY ?? 0.5;
+    event.preventDefault();
+    selectPainting(item.id);
+    frame.classList.add("is-nudging");
+    try {
+      frame.setPointerCapture(event.pointerId);
+    } catch {
+      /* ignore */
+    }
+  });
+  frame.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+    if (Math.hypot(event.clientX - startX, event.clientY - startY) > 6) moved = true;
+    if (!moved) return;
+    event.preventDefault();
+    const next = placementFrom(event);
+    write(next.placeX, next.placeY);
+    preview(next.placeX, next.placeY);
+  });
+  const endDrag = (event) => {
+    if (!dragging) return;
+    dragging = false;
+    frame.classList.remove("is-nudging");
+    const picture = img();
+    if (picture) picture.style.transform = "";
+    if (!moved) return;
+    const next = event?.clientX != null ? placementFrom(event) : { placeX: startPlaceX, placeY: startPlaceY };
+    write(next.placeX, next.placeY);
+    persistSettings();
+    scheduleSheetRender(item.id);
+  };
+  frame.addEventListener("pointerup", endDrag);
+  frame.addEventListener("pointercancel", endDrag);
+  sheet.addEventListener("click", (event) => {
+    if (!moved) return;
+    event.preventDefault();
+    event.stopPropagation();
+    moved = false;
+  }, true);
+}
+
 function readEffects() {
   const next = { color: parseColor(pigmentColorEl?.value) || effects.color || DEFAULT_COLOR };
   const typeEl = document.querySelector("#brushType");
@@ -992,9 +1096,7 @@ function mountEffects() {
     onChange: onEffectInput,
   });
 
-  bindReset("#resetEffects", resetEffects);
-  bindReset("#resetBrush", resetBrush);
-  bindReset("#resetPlacement", resetPlacement);
+  bindReset("#resetAll", resetAll);
 
   const root = document.querySelector("#effects");
   root.addEventListener("input", onEffectInput);
@@ -1006,31 +1108,18 @@ function mountEffects() {
   persistSettings();
 }
 
-function resetBrush() {
+function resetAll() {
   const baseline = defaultEffects();
   const typeEl = document.querySelector("#brushType");
   if (typeEl) typeEl.value = baseline.brushType;
-  for (const input of brushControlsEl.querySelectorAll("input[type=range]")) {
-    input.value = "50";
-  }
-  persistSettings();
-  scheduleEffectRender();
-}
-
-function resetPlacement() {
-  for (const input of placementControlsEl.querySelectorAll("input[type=range]")) {
+  for (const input of [
+    ...brushControlsEl.querySelectorAll("input[type=range]"),
+    ...placementControlsEl.querySelectorAll("input[type=range]"),
+    ...effectGroupsEl.querySelectorAll("input[type=range]"),
+  ]) {
     input.value = "50";
   }
   document.querySelector("#placeStick")?.syncThumb?.();
-  persistSettings();
-  scheduleEffectRender();
-}
-
-function resetEffects() {
-  const baseline = defaultEffects();
-  for (const input of effectGroupsEl.querySelectorAll("input[type=range]")) {
-    input.value = "50";
-  }
   colorPicker?.setValue(baseline.color);
   persistSettings();
   scheduleEffectRender();
@@ -1277,6 +1366,7 @@ function renderGrid(items) {
     grid.append(sheet);
     cards.set(item.id, { item, sheet, dataUrl: null });
     mountSheetEditor(sheet, item);
+    mountSubjectDrag(sheet, item);
 
     if (item.error || (!item.code && !item.photo)) {
       const veil = sheet.querySelector(".veil");
@@ -1376,8 +1466,10 @@ function onFrameMessage(event) {
         img = document.createElement("img");
         img.alt = rec.item.prompt || "watercolor";
         img.src = event.data.dataUrl;
+        img.draggable = false;
         frame.prepend(img);
       }
+      img.draggable = false;
       rec.sheet.classList.remove("is-adjusting");
       veil?.remove();
       rec.sheet.querySelector(".save")?.removeAttribute("disabled");
@@ -1620,7 +1712,7 @@ sheetStageEl?.querySelector(".sheet-stage-close")?.addEventListener("click", (ev
   let startY = 0;
   let tracking = false;
   sheetStageEl?.addEventListener("pointerdown", (event) => {
-    if (!isCompact() || event.target.closest("button, input, select, .sheet-edit, a, .choice-menu")) return;
+    if (!isCompact() || event.target.closest("button, input, select, .sheet-edit, a, .choice-menu, .frame")) return;
     startY = event.clientY;
     tracking = true;
   });

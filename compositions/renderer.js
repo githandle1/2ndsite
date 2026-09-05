@@ -1,3 +1,5 @@
+import { imageWork } from "./image-work.js?v=1";
+
 const PAPER = "#f3eee4";
 
 let instance = null;
@@ -41,8 +43,12 @@ function compilePaint(code) {
   return paint;
 }
 
-function snapshotCanvas(canvas) {
-  const target = canvas || instance?.canvas;
+function canvasEl(canvas) {
+  return canvas?.elt || canvas || instance?.canvas?.elt || instance?.canvas || null;
+}
+
+function snapshotSync(canvas) {
+  const target = canvasEl(canvas);
   if (!target) return null;
   try {
     return target.toDataURL("image/png");
@@ -51,17 +57,43 @@ function snapshotCanvas(canvas) {
   }
 }
 
+async function snapshotCanvas(canvas) {
+  const target = canvasEl(canvas);
+  if (!target) return null;
+  try {
+    const bitmap = await createImageBitmap(target);
+    const { dataUrl } = await imageWork("encodePng", { bitmap }, [bitmap]);
+    if (dataUrl) return dataUrl;
+  } catch {
+    /* fall through */
+  }
+  return snapshotSync(target);
+}
+
 function finish(error, canvas, dataUrl = null) {
-  window.__PAINTING_ERROR = error;
-  window.__PAINTING_DONE = true;
-  parent.postMessage(
-    {
-      type: "painted",
-      error,
-      dataUrl: error ? null : dataUrl || snapshotCanvas(canvas),
-    },
-    "*"
-  );
+  const send = (url, fail) => {
+    window.__PAINTING_ERROR = fail || null;
+    window.__PAINTING_DONE = true;
+    parent.postMessage(
+      {
+        type: "painted",
+        error: fail || null,
+        dataUrl: fail ? null : url,
+      },
+      "*"
+    );
+  };
+  if (error) {
+    send(null, error);
+    return;
+  }
+  if (dataUrl) {
+    send(dataUrl);
+    return;
+  }
+  snapshotCanvas(canvas).then((url) => {
+    send(url, url ? null : "the wash dried invisibly. try re-rendering.");
+  });
 }
 
 function resetInstance() {

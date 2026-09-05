@@ -285,7 +285,7 @@ h1 {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .field {
@@ -294,6 +294,10 @@ h1 {
   gap: var(--space);
   margin: 0;
   min-width: 0;
+}
+
+.stack > .field {
+  gap: 16px;
 }
 
 .field > span {
@@ -366,7 +370,7 @@ h1 {
 
 .scene-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--label-gap);
 }
 
@@ -454,11 +458,12 @@ select {
 #scene {
   resize: none;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   field-sizing: content;
-  min-height: 5.6em;
+  min-height: 38px;
   max-height: 16em;
-  line-height: 1.5;
+  line-height: 1.45;
+  padding: 9px 16px;
   border-radius: 12px;
 }
 
@@ -865,11 +870,7 @@ select.choice-native {
   color: var(--muted);
 }
 
-.pane > summary span {
-  flex: 0 0 auto;
-}
-
-.pane > summary .reset {
+.paint-kit > summary .reset {
   margin-left: 0;
 }
 
@@ -994,7 +995,7 @@ select.choice-native {
 }
 
 .effects-head .reset,
-.pane > summary .reset {
+.paint-kit > summary .reset {
   margin-left: 0;
 }
 
@@ -1454,9 +1455,10 @@ select.choice-native {
 .sheet-edit-sat {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 10px;
   min-width: 0;
   flex: 0 1 auto;
+  margin-inline-end: 8px;
   color: var(--muted);
   font-size: 10px;
   letter-spacing: 0.01em;
@@ -1623,6 +1625,21 @@ select.choice-native {
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
+.sheet.active .frame:has(img),
+.sheet.is-expanded .frame:has(img) {
+  cursor: grab;
+  touch-action: none;
+}
+
+.frame.is-nudging,
+.frame.is-nudging img {
+  cursor: grabbing;
+}
+
+.frame.is-nudging img {
+  will-change: transform;
+}
+
 .frame-tools {
   position: absolute;
   top: 8px;
@@ -1702,6 +1719,8 @@ select.choice-native {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .caption {
@@ -1933,11 +1952,15 @@ body.is-sheet-open {
   }
 
   .stack {
-    gap: 12px;
+    gap: 16px;
   }
 
   .field {
     gap: 8px;
+  }
+
+  .stack > .field {
+    gap: 16px;
   }
 
   #scene,
@@ -1947,13 +1970,13 @@ body.is-sheet-open {
   }
 
   #scene {
-    min-height: 3.2em;
+    min-height: 42px;
     max-height: 8em;
-    padding: 12px 14px;
+    padding: 10px 14px;
   }
 
   .scene-row {
-    align-items: stretch;
+    align-items: flex-start;
     gap: 8px;
   }
 

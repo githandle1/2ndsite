@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=140" />
+    <link rel="stylesheet" href="styles.css?v=146" />
   </head>
   <body>
     <main class="studio">
@@ -44,7 +44,7 @@
               </select>
             </div>
             <div class="scene-row">
-              <textarea id="scene" rows="2" placeholder="fingerprints" aria-label="create"></textarea>
+              <textarea id="scene" rows="1" placeholder="fingerprints" aria-label="create"></textarea>
               <div class="scene-caption" id="sceneCaption" hidden>
                 <img id="sceneCaptionImg" alt="" />
                 <span id="sceneCaptionText"></span>
@@ -103,59 +103,33 @@
         </div>
 
         <details class="paint-kit" id="paintKit">
-          <summary>customize</summary>
+          <summary>
+            customize
+            <button id="resetAll" class="reset" type="button" aria-label="reset" title="reset">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </summary>
           <div class="paint-kit-body">
             <details class="pane" id="brush">
-              <summary>
-                <span>brush</span>
-                <button id="resetBrush" class="reset" type="button" aria-label="reset brush" title="reset">
-                  <svg viewBox="0 0 16 16" aria-hidden="true">
-                    <path
-                      d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    />
-                    <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-                  </svg>
-                </button>
-              </summary>
+              <summary>brush</summary>
               <div id="brushControls"></div>
             </details>
 
             <details class="pane" id="placement">
-              <summary>
-                <span>placement</span>
-                <button id="resetPlacement" class="reset" type="button" aria-label="reset placement" title="reset">
-                  <svg viewBox="0 0 16 16" aria-hidden="true">
-                    <path
-                      d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    />
-                    <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-                  </svg>
-                </button>
-              </summary>
+              <summary>placement</summary>
               <div id="placementControls"></div>
             </details>
 
             <details class="pane" id="effects">
-              <summary>
-                <span>affect</span>
-                <button id="resetEffects" class="reset" type="button" aria-label="reset affect" title="reset">
-                  <svg viewBox="0 0 16 16" aria-hidden="true">
-                    <path
-                      d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    />
-                    <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-                  </svg>
-                </button>
-              </summary>
+              <summary>affect</summary>
               <div class="effect-groups" id="effectGroups">
                 <details class="color-group">
                   <summary>color</summary>
@@ -218,7 +192,7 @@
       </button>
     </div>
 
-    <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=53"></iframe>
-    <script type="module" src="app.js?v=104"></script>
+    <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=55"></iframe>
+    <script type="module" src="app.js?v=108"></script>
   </body>
 </html>

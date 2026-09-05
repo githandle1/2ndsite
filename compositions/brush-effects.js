@@ -259,7 +259,6 @@ function styleTexture(texture, border, e) {
 }
 
 function point(x, y, e) {
-  if (window.__photoPaint) return { x, y };
   const cx = typeof window.width === "number" ? window.width / 2 : 400;
   const cy = typeof window.height === "number" ? window.height / 2 : 400;
   let scale = 1;
