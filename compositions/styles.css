@@ -2376,8 +2376,8 @@ body.is-sheet-open {
     padding: 8px;
   }
 
-  .sheet-color-menu .color-square {
-    width: min(144px, calc(100vw - 32px));
+  .sheet-color-menu.color-square {
+    width: min(156px, calc(100vw - 32px));
     gap: 5px;
   }
 
