@@ -740,10 +740,6 @@ select.choice-native {
   height: 14px;
 }
 
-.paint-label {
-  display: none;
-}
-
 .reset,
 .save,
 .expand {
@@ -2093,18 +2089,11 @@ body.is-sheet-open {
   }
 
   .scene-actions .paint {
-    display: flex;
-    width: auto;
+    width: 36px;
     height: 36px;
-    gap: 7px;
-    padding: 0 12px;
+    padding: 0;
     border: 1px solid color-mix(in srgb, var(--hover) 14%, transparent);
     background: var(--wash);
-  }
-
-  .paint-label {
-    display: inline;
-    font-size: 12px;
     color: var(--hover);
   }
 
