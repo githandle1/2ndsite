@@ -1325,11 +1325,13 @@ select#count.choice-native {
 }
 
 .direct-editor input[type="range"] {
-  width: 52px;
-  height: 10px;
+  width: 46px;
+  height: 8px;
   margin: 0;
   padding: 0;
-  background: transparent;
+  background:
+    linear-gradient(color-mix(in srgb, var(--ink) 12%, transparent), color-mix(in srgb, var(--ink) 12%, transparent))
+    center / 100% 1px no-repeat;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
@@ -1337,13 +1339,13 @@ select#count.choice-native {
 
 .direct-editor input[type="range"]::-webkit-slider-runnable-track {
   height: 1px;
-  background: color-mix(in srgb, var(--ink) 16%, transparent);
+  background: transparent;
 }
 
 .direct-editor input[type="range"]::-webkit-slider-thumb {
-  width: 8px;
-  height: 8px;
-  margin-top: -3.5px;
+  width: 7px;
+  height: 7px;
+  margin-top: -3px;
   border: 1px solid var(--hover);
   border-radius: 50%;
   background: var(--paper);
@@ -1354,12 +1356,12 @@ select#count.choice-native {
 .direct-editor input[type="range"]::-moz-range-track {
   height: 1px;
   border: 0;
-  background: color-mix(in srgb, var(--ink) 16%, transparent);
+  background: transparent;
 }
 
 .direct-editor input[type="range"]::-moz-range-thumb {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border: 1px solid var(--hover);
   border-radius: 50%;
   background: var(--paper);
