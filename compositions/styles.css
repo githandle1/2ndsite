@@ -1632,11 +1632,15 @@ select.choice-native {
 }
 
 .frame.is-nudging,
-.frame.is-nudging img {
+.frame.is-nudging img,
+.frame.is-carrying,
+.frame.is-carrying img,
+body:has(.frame.is-carrying) {
   cursor: grabbing;
 }
 
-.frame.is-nudging img {
+.frame.is-nudging img,
+.frame.is-carrying img {
   will-change: transform;
 }
 

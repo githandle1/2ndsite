@@ -824,12 +824,11 @@ function mountSheetEditor(sheet, item) {
   grip.addEventListener("pointercancel", endDrag);
 }
 
-const PLACE_RANGE = 336;
-
 function mountSubjectDrag(sheet, item) {
   const frame = sheet.querySelector(".frame");
   if (!frame) return;
-  let dragging = false;
+  let holding = false;
+  let carrying = false;
   let moved = false;
   let startX = 0;
   let startY = 0;
@@ -838,22 +837,19 @@ function mountSubjectDrag(sheet, item) {
 
   const img = () => frame.querySelector("img");
 
+  const placementFrom = (clientX, clientY) => {
+    const box = frame.getBoundingClientRect();
+    return {
+      placeX: Math.min(1, Math.max(0, startPlaceX + (clientX - startX) / box.width)),
+      placeY: Math.min(1, Math.max(0, startPlaceY - (clientY - startY) / box.height)),
+    };
+  };
+
   const preview = (placeX, placeY) => {
     const picture = img();
     if (!picture) return;
     const box = frame.getBoundingClientRect();
-    const unit = (PLACE_RANGE / PAINT_SIZE) * box.width;
-    picture.style.transform = `translate(${(placeX - startPlaceX) * unit}px, ${(startPlaceY - placeY) * unit}px)`;
-  };
-
-  const placementFrom = (event) => {
-    const box = frame.getBoundingClientRect();
-    const paintX = ((event.clientX - startX) / box.width) * PAINT_SIZE;
-    const paintY = ((event.clientY - startY) / box.height) * PAINT_SIZE;
-    return {
-      placeX: Math.min(1, Math.max(0, startPlaceX + paintX / PLACE_RANGE)),
-      placeY: Math.min(1, Math.max(0, startPlaceY - paintY / PLACE_RANGE)),
-    };
+    picture.style.transform = `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
   };
 
   const write = (placeX, placeY) => {
@@ -863,14 +859,84 @@ function mountSubjectDrag(sheet, item) {
     if (selectedId === item.id) applyEffectsToControls(rec.item.effects);
   };
 
+  const follow = (clientX, clientY) => {
+    const next = placementFrom(clientX, clientY);
+    write(next.placeX, next.placeY);
+    preview(next.placeX, next.placeY);
+    return next;
+  };
+
+  const clearPreview = () => {
+    const picture = img();
+    if (picture) picture.style.transform = "";
+    frame.classList.remove("is-nudging", "is-carrying");
+  };
+
+  const drop = (clientX, clientY) => {
+    const next = follow(clientX, clientY);
+    holding = false;
+    carrying = false;
+    moved = true;
+    unbindCarry();
+    clearPreview();
+    write(next.placeX, next.placeY);
+    persistSettings();
+    scheduleSheetRender(item.id);
+  };
+
+  const cancel = () => {
+    holding = false;
+    carrying = false;
+    unbindCarry();
+    write(startPlaceX, startPlaceY);
+    clearPreview();
+  };
+
+  const onDocMove = (event) => {
+    if (!carrying) return;
+    follow(event.clientX, event.clientY);
+  };
+
+  const onDocDown = (event) => {
+    if (!carrying) return;
+    if (event.target.closest(".expand, .pick, .sheet-edit, .save")) {
+      cancel();
+      return;
+    }
+    if (frame.contains(event.target)) {
+      event.preventDefault();
+      event.stopPropagation();
+      drop(event.clientX, event.clientY);
+      return;
+    }
+    cancel();
+  };
+
+  const onKey = (event) => {
+    if (event.key === "Escape") cancel();
+  };
+
+  function bindCarry() {
+    document.addEventListener("pointermove", onDocMove);
+    document.addEventListener("pointerdown", onDocDown, true);
+    document.addEventListener("keydown", onKey);
+  }
+
+  function unbindCarry() {
+    document.removeEventListener("pointermove", onDocMove);
+    document.removeEventListener("pointerdown", onDocDown, true);
+    document.removeEventListener("keydown", onKey);
+  }
+
   frame.addEventListener("pointerdown", (event) => {
+    if (carrying) return;
     if (event.button != null && event.button !== 0) return;
     if (event.target.closest(".expand, .pick, .sheet-edit, .veil")) return;
     if (!img()) return;
     if (isCompact() && !sheet.classList.contains("active") && !sheet.classList.contains("is-expanded")) return;
     const rec = cards.get(item.id);
     const fx = sheetEffects(rec);
-    dragging = true;
+    holding = true;
     moved = false;
     startX = event.clientX;
     startY = event.clientY;
@@ -886,30 +952,31 @@ function mountSubjectDrag(sheet, item) {
     }
   });
   frame.addEventListener("pointermove", (event) => {
-    if (!dragging) return;
-    if (Math.hypot(event.clientX - startX, event.clientY - startY) > 6) moved = true;
-    if (!moved) return;
-    event.preventDefault();
-    const next = placementFrom(event);
-    write(next.placeX, next.placeY);
-    preview(next.placeX, next.placeY);
+    if (!holding || carrying) return;
+    follow(event.clientX, event.clientY);
+    if (Math.hypot(event.clientX - startX, event.clientY - startY) > 4) moved = true;
   });
-  const endDrag = (event) => {
-    if (!dragging) return;
-    dragging = false;
-    frame.classList.remove("is-nudging");
-    const picture = img();
-    if (picture) picture.style.transform = "";
-    if (!moved) return;
-    const next = event?.clientX != null ? placementFrom(event) : { placeX: startPlaceX, placeY: startPlaceY };
-    write(next.placeX, next.placeY);
-    persistSettings();
-    scheduleSheetRender(item.id);
-  };
-  frame.addEventListener("pointerup", endDrag);
-  frame.addEventListener("pointercancel", endDrag);
+  frame.addEventListener("pointerup", (event) => {
+    if (!holding || carrying) return;
+    holding = false;
+    try {
+      frame.releasePointerCapture(event.pointerId);
+    } catch {
+      /* ignore */
+    }
+    if (moved) {
+      drop(event.clientX, event.clientY);
+      return;
+    }
+    carrying = true;
+    frame.classList.add("is-carrying");
+    bindCarry();
+  });
+  frame.addEventListener("pointercancel", () => {
+    if (holding && !carrying) cancel();
+  });
   sheet.addEventListener("click", (event) => {
-    if (!moved) return;
+    if (!moved && !carrying) return;
     event.preventDefault();
     event.stopPropagation();
     moved = false;
