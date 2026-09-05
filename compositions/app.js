@@ -953,7 +953,6 @@ async function ensureSplit(rec) {
 }
 
 function prefetchSplit(rec) {
-  if (isPhone()) return;
   const src = rec?.dataUrl;
   if (!src || rec.split?.src === src) return;
   ensureSplit(rec).catch(() => {});
@@ -1424,7 +1423,7 @@ function stageDensity() {
 function paintDensityFor(id) {
   const rec = cards.get(id);
   const expanded = rec?.sheet.classList.contains("is-expanded");
-  const next = expanded ? Math.max(2, stageDensity()) : (isPhone() ? 1 : 2);
+  const next = expanded ? Math.max(2, stageDensity()) : 2;
   return Math.max(next, rec?.paintDensity || 1, rec?.wantDensity || 1);
 }
 
@@ -1490,10 +1489,11 @@ async function drainPhotoPreviews() {
     });
     if (dataUrl && cards.get(id) === rec) applyPaintedData(rec, dataUrl, 1);
   } catch (err) {
-    const veil = rec.sheet.querySelector(".veil");
-    rec.sheet.classList.remove("is-adjusting");
-    veil?.classList.add("error");
-    if (veil) veil.textContent = err.message || "the wash dried invisibly. try again.";
+    rec.fastPreviewFailed = true;
+    if (cards.get(id) === rec && !paintQueue.includes(id)) {
+      paintQueue.push(id);
+      drainQueue();
+    }
   } finally {
     photoPreviewNow = false;
     drainPhotoPreviews();
@@ -1518,7 +1518,7 @@ function queuePaint(id, { replace = false } = {}) {
     }
     veil.textContent = "pigment settling…";
   }
-  if (isPhone() && rec.item.photo) {
+  if (isPhone() && rec.item.photo && !rec.fastPreviewFailed) {
     queuePhotoPreview(id);
     return;
   }
@@ -1770,7 +1770,7 @@ function drainQueue() {
       code: rec.item.code,
       photo: Boolean(rec.item.photo),
       seed: rec.item.seed,
-      size: isPhone() ? 480 : PAINT_SIZE,
+      size: PAINT_SIZE,
       density: waitingDensity,
       effects: sheetEffects(rec),
     },
@@ -1806,7 +1806,7 @@ function onFrameMessage(event) {
     }
   }
 
-  requestAnimationFrame(() => requestAnimationFrame(drainQueue));
+  drainQueue();
 }
 
 function selectPainting(id) {
