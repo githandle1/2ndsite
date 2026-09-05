@@ -1,5 +1,5 @@
-import { CELLS, planFromPixels, rasterContain } from "./photo-wash-plan.js?v=1";
-import { imageWork } from "./image-work.js?v=1";
+import { CELLS, planFromPixels, rasterContain } from "./photo-wash-plan.js?v=3";
+import { imageWork } from "./image-work.js?v=3";
 
 let cachedSrc = "";
 let cachedImg = null;

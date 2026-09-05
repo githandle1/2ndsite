@@ -2,7 +2,7 @@ import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_C
 import { parseColor, oklchToHex } from "./color.js";
 import { mountColorSquare } from "./color-dial.js?v=12";
 import { imageWork } from "./image-work.js?v=3";
-import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=2";
+import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=3";
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
 const sceneCaption = document.querySelector("#sceneCaption");
@@ -555,7 +555,12 @@ function fitPaintKit() {
       }
     }
     const desk = document.querySelector(".desk");
-    if (!paintKit.open && desk) desk.scrollTop = 0;
+    if (!paintKit.open && desk) {
+      desk.scrollTop = 0;
+      requestAnimationFrame(() => {
+        desk.scrollTop = 0;
+      });
+    }
     if (isPhone()) syncMobileSheet(paintKit.open);
   });
   fitPaintKit.done = true;
@@ -1543,13 +1548,9 @@ async function loadSamples() {
   const data = await res.json();
   samples = data.samples || [];
   samplesEl.innerHTML = "";
+  const lead = document.createElement("div");
+  lead.className = "chips-row";
   samples.forEach((sample, index) => {
-    if (index === 2) {
-      const br = document.createElement("span");
-      br.className = "chips-break";
-      br.setAttribute("aria-hidden", "true");
-      samplesEl.append(br);
-    }
     const button = document.createElement("button");
     button.type = "button";
     button.className = "chip";
@@ -1568,8 +1569,13 @@ async function loadSamples() {
       clearPhoto();
       generate({ sampleId: sample.id, scene: sample.prompt });
     });
-    samplesEl.append(button);
+    if (index < 2) lead.append(button);
+    else {
+      if (index === 2) samplesEl.append(lead);
+      samplesEl.append(button);
+    }
   });
+  if (lead.childNodes.length && !lead.parentNode) samplesEl.append(lead);
 }
 
 function openSheetStage(id) {

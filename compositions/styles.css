@@ -629,9 +629,11 @@ select.choice-native {
   margin: 0;
 }
 
-.chips-break {
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7.5px 8px;
   flex: 1 0 100%;
-  height: 0;
 }
 
 .chip {
@@ -858,9 +860,13 @@ select.choice-native {
 }
 
 .paint-kit-body {
-  display: flex;
+  display: none;
   flex-direction: column;
   margin-top: 8px;
+}
+
+.paint-kit[open] > .paint-kit-body {
+  display: flex;
 }
 
 .pane,
@@ -1013,7 +1019,7 @@ select.choice-native {
   align-items: stretch;
   gap: 8px;
   width: 132px;
-  margin: 8px 0 0;
+  margin: 0;
 }
 
 .color-square {
@@ -1143,7 +1149,7 @@ select.choice-native {
 
 .effect-groups details {
   border-top: 1px solid var(--line);
-  padding: 12px 0;
+  padding: 4px 0;
 }
 
 .effect-groups details:last-child {
@@ -1151,8 +1157,11 @@ select.choice-native {
 }
 
 .effect-groups summary {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0;
   color: var(--muted);
@@ -1173,7 +1182,7 @@ select.choice-native {
 }
 
 .effect-groups details .slide + .slide {
-  margin-top: var(--space);
+  margin-top: 14px;
 }
 
 .slide span,
@@ -2138,8 +2147,8 @@ body.is-sheet-open {
     display: none;
   }
 
-  .chips-break {
-    display: none;
+  .chips-row {
+    display: contents;
   }
 
   .chip {

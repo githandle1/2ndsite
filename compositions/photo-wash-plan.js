@@ -85,7 +85,7 @@ export function rasterContain(source, cells) {
   ctx.clearRect(0, 0, cells, cells);
   const width = source.width || source.naturalWidth;
   const height = source.height || source.naturalHeight;
-  const scale = Math.min(cells / width, cells / height);
+  const scale = Math.max(cells / width, cells / height);
   const w = width * scale;
   const h = height * scale;
   ctx.drawImage(source, (cells - w) / 2, (cells - h) / 2, w, h);
