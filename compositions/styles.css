@@ -2293,13 +2293,13 @@ body.is-sheet-open {
   }
 
   .sheet-edit-color {
-    width: 44px;
-    height: 44px;
+    width: 34px;
+    height: 34px;
   }
 
   .sheet-edit-swatch {
-    width: 22px;
-    height: 22px;
+    width: 16px;
+    height: 16px;
   }
 
   .sheet-edit-sat {
@@ -2373,7 +2373,33 @@ body.is-sheet-open {
   }
 
   .sheet-color-menu {
-    padding: 12px;
+    padding: 8px;
+  }
+
+  .sheet-color-menu .color-square {
+    width: min(144px, calc(100vw - 32px));
+    gap: 5px;
+  }
+
+  .sheet-color-menu .color-square-map {
+    min-height: 0;
+  }
+
+  .sheet-color-menu .color-square-hue,
+  .sheet-color-menu .color-square-hue::-webkit-slider-runnable-track,
+  .sheet-color-menu .color-square-hue::-moz-range-track {
+    height: 12px;
+  }
+
+  .sheet-color-menu .color-square-hue::-webkit-slider-thumb,
+  .sheet-color-menu .color-square-hue::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+  }
+
+  .sheet-color-menu .color-square-hex {
+    height: 32px;
+    font-size: 12px;
   }
 
   .frame-tools {
