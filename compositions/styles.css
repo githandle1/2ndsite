@@ -1105,6 +1105,11 @@ select.choice-native {
   width: 100%;
 }
 
+.field .field-head .choice {
+  flex: 0 0 auto;
+  width: auto;
+}
+
 .slide input[type="range"]::-webkit-slider-runnable-track {
   height: 1px;
   background: var(--line);
@@ -1331,7 +1336,9 @@ select.choice-native {
     padding: 14px 14px 12px;
     gap: 14px;
     border-radius: 16px;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-x: none;
     -webkit-overflow-scrolling: touch;
   }
 
