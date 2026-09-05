@@ -2388,6 +2388,10 @@ body.is-sheet-open {
     height: 44px;
   }
 
+  .frame .pick {
+    display: none;
+  }
+
   .frame .expand svg {
     width: 16px;
     height: 16px;
