@@ -2021,11 +2021,14 @@ body.is-sheet-open {
   }
 
   .chips {
-    flex-wrap: wrap;
-    gap: 5px 6px;
-    padding: 0;
-    overflow: visible;
-    scroll-snap-type: none;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 0 24px 2px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
   }
 
@@ -2043,6 +2046,7 @@ body.is-sheet-open {
     padding: 4px 9px;
     font-size: 12px;
     line-height: 1.25;
+    scroll-snap-align: start;
   }
 
   .chip:active {
