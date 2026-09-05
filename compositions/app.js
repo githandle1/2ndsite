@@ -1,7 +1,8 @@
 import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=15";
 import { parseColor, oklchToHex } from "./color.js";
 import { mountColorSquare } from "./color-dial.js?v=12";
-import { imageWork } from "./image-work.js?v=1";
+import { imageWork } from "./image-work.js?v=2";
+import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=2";
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
 const sceneCaption = document.querySelector("#sceneCaption");
@@ -144,19 +145,22 @@ function mountChoice(select, options = {}) {
     const rect = trigger.getBoundingClientRect();
     const gap = 6;
     const compact = wrap.classList.contains("is-count");
-    menu.style.minWidth = compact ? "2.6rem" : `${Math.max(rect.width, 72)}px`;
-    menu.style.left = compact ? `${rect.right}px` : `${rect.left}px`;
-    menu.style.top = `${rect.bottom + gap}px`;
-    const box = menu.getBoundingClientRect();
     const view = viewSize();
+    menu.style.minWidth = compact ? "2.6rem" : `${Math.max(rect.width, 72)}px`;
     menu.style.maxHeight = `${Math.min(280, view.height - 16)}px`;
+    menu.style.bottom = "auto";
+    const spaceBelow = view.height - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    const openUp = spaceBelow < 160 && spaceAbove > spaceBelow;
+    menu.style.left = compact ? `${rect.right}px` : `${rect.left}px`;
+    menu.style.top = openUp ? `${Math.max(8, rect.top - gap)}px` : `${rect.bottom + gap}px`;
+    const box = menu.getBoundingClientRect();
+    if (openUp || (box.bottom > view.height - 8 && spaceAbove > box.height + gap)) {
+      menu.style.top = `${Math.max(8, rect.top - box.height - gap)}px`;
+    }
     if (compact) {
       menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
-    }
-    if (box.bottom > view.height - 8 && rect.top > box.height + gap + 8) {
-      menu.style.top = `${rect.top - box.height - gap}px`;
-    }
-    if (!compact && box.right > view.width - 8) {
+    } else if (box.right > view.width - 8) {
       menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
     }
   }
@@ -824,6 +828,67 @@ function mountSheetEditor(sheet, item) {
   grip.addEventListener("pointercancel", endDrag);
 }
 
+async function splitWashLocal(dataUrl) {
+  const picture = new Image();
+  picture.src = dataUrl;
+  await picture.decode();
+  const canvas = document.createElement("canvas");
+  canvas.width = picture.naturalWidth;
+  canvas.height = picture.naturalHeight;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(picture, 0, 0);
+  const split = splitSubjectFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
+  const toUrl = (pixels) => {
+    const next = document.createElement("canvas");
+    next.width = split.width;
+    next.height = split.height;
+    next.getContext("2d").putImageData(new ImageData(pixels, split.width, split.height), 0, 0);
+    return next.toDataURL("image/png");
+  };
+  return {
+    baseUrl: toUrl(split.base),
+    liftUrl: toUrl(split.lift),
+    hits: split.hits,
+    hitsSize: split.hitsSize,
+  };
+}
+
+async function splitWash(dataUrl) {
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    const bitmap = await createImageBitmap(blob);
+    return await imageWork("splitSubject", { bitmap }, [bitmap]);
+  } catch {
+    return splitWashLocal(dataUrl);
+  }
+}
+
+async function ensureSplit(rec) {
+  if (rec?.split?.src === rec.dataUrl && rec.split.baseUrl) return rec.split;
+  const src = rec?.dataUrl;
+  if (!src) return null;
+  const split = await splitWash(src);
+  if (!split || rec.dataUrl !== src) return rec.split || null;
+  rec.split = { ...split, src };
+  return rec.split;
+}
+
+function prefetchSplit(rec) {
+  const src = rec?.dataUrl;
+  if (!src || rec.split?.src === src) return;
+  ensureSplit(rec).catch(() => {});
+}
+
+function hitSubject(frame, rec, clientX, clientY) {
+  const hits = rec?.split?.hits;
+  const size = rec?.split?.hitsSize || 0;
+  if (!hits || !size) return true;
+  const box = frame.getBoundingClientRect();
+  const x = Math.min(size - 1, Math.max(0, Math.floor(((clientX - box.left) / box.width) * size)));
+  const y = Math.min(size - 1, Math.max(0, Math.floor(((clientY - box.top) / box.height) * size)));
+  return hits[y * size + x] > 36;
+}
+
 function mountSubjectDrag(sheet, item) {
   const frame = sheet.querySelector(".frame");
   if (!frame) return;
@@ -835,7 +900,9 @@ function mountSubjectDrag(sheet, item) {
   let startPlaceX = 0.5;
   let startPlaceY = 0.5;
 
-  const img = () => frame.querySelector("img");
+  const img = () => frame.querySelector("img:not(.wash-lift)");
+
+  const liftEl = () => frame.querySelector(".wash-lift");
 
   const placementFrom = (clientX, clientY) => {
     const box = frame.getBoundingClientRect();
@@ -846,10 +913,10 @@ function mountSubjectDrag(sheet, item) {
   };
 
   const preview = (placeX, placeY) => {
-    const picture = img();
-    if (!picture) return;
+    const lift = liftEl();
+    if (!lift) return;
     const box = frame.getBoundingClientRect();
-    picture.style.transform = `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
+    lift.style.transform = `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
   };
 
   const write = (placeX, placeY) => {
@@ -866,8 +933,30 @@ function mountSubjectDrag(sheet, item) {
     return next;
   };
 
-  const clearPreview = () => {
+  const showLift = (rec) => {
     const picture = img();
+    const split = rec.split;
+    if (!picture || !split?.baseUrl || !split?.liftUrl) return false;
+    picture.src = split.baseUrl;
+    picture.style.transform = "";
+    let lift = liftEl();
+    if (!lift) {
+      lift = document.createElement("img");
+      lift.className = "wash-lift";
+      lift.alt = "";
+      lift.draggable = false;
+      frame.append(lift);
+    }
+    lift.src = split.liftUrl;
+    lift.style.transform = "";
+    return true;
+  };
+
+  const clearPreview = (restore) => {
+    const rec = cards.get(item.id);
+    const picture = img();
+    if (restore && picture && rec?.dataUrl) picture.src = rec.dataUrl;
+    liftEl()?.remove();
     if (picture) picture.style.transform = "";
     frame.classList.remove("is-nudging", "is-carrying");
   };
@@ -878,7 +967,7 @@ function mountSubjectDrag(sheet, item) {
     carrying = false;
     moved = true;
     unbindCarry();
-    clearPreview();
+    frame.classList.remove("is-nudging", "is-carrying");
     write(next.placeX, next.placeY);
     persistSettings();
     scheduleSheetRender(item.id);
@@ -889,7 +978,7 @@ function mountSubjectDrag(sheet, item) {
     carrying = false;
     unbindCarry();
     write(startPlaceX, startPlaceY);
-    clearPreview();
+    clearPreview(true);
   };
 
   const onDocMove = (event) => {
@@ -899,7 +988,7 @@ function mountSubjectDrag(sheet, item) {
 
   const onDocDown = (event) => {
     if (!carrying) return;
-    if (event.target.closest(".expand, .pick, .sheet-edit, .save")) {
+    if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .save")) {
       cancel();
       return;
     }
@@ -929,28 +1018,55 @@ function mountSubjectDrag(sheet, item) {
   }
 
   frame.addEventListener("pointerdown", (event) => {
+    void startPick(event);
+  });
+
+  async function startPick(event) {
     if (carrying) return;
     if (event.button != null && event.button !== 0) return;
-    if (event.target.closest(".expand, .pick, .sheet-edit, .veil")) return;
+    if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .veil")) return;
     if (!img()) return;
     if (isCompact() && !sheet.classList.contains("active") && !sheet.classList.contains("is-expanded")) return;
     const rec = cards.get(item.id);
+    if (!rec?.dataUrl) return;
+    event.preventDefault();
+    selectPainting(item.id);
+    const waited = !rec.split?.baseUrl;
+    if (waited) frame.classList.add("is-nudging");
+    try {
+      await ensureSplit(rec);
+    } catch {
+      frame.classList.remove("is-nudging");
+      return;
+    }
+    if (!hitSubject(frame, rec, event.clientX, event.clientY)) {
+      frame.classList.remove("is-nudging");
+      return;
+    }
+    if (!showLift(rec)) {
+      frame.classList.remove("is-nudging");
+      return;
+    }
     const fx = sheetEffects(rec);
-    holding = true;
     moved = false;
     startX = event.clientX;
     startY = event.clientY;
     startPlaceX = fx.placeX ?? 0.5;
     startPlaceY = fx.placeY ?? 0.5;
-    event.preventDefault();
-    selectPainting(item.id);
+    if (waited) {
+      carrying = true;
+      frame.classList.add("is-carrying");
+      bindCarry();
+      return;
+    }
+    holding = true;
     frame.classList.add("is-nudging");
     try {
       frame.setPointerCapture(event.pointerId);
     } catch {
       /* ignore */
     }
-  });
+  }
   frame.addEventListener("pointermove", (event) => {
     if (!holding || carrying) return;
     follow(event.clientX, event.clientY);
@@ -1378,6 +1494,12 @@ function renderGrid(items) {
             </svg>
           </button>
           <button type="button" class="pick" data-id="${item.id}" aria-label="export training json" title="export for tinker" aria-pressed="false"${item.code ? "" : " disabled"}></button>
+          <button type="button" class="sheet-close" aria-label="close" title="close">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M2.5 2.5l11 11" fill="none" stroke="currentColor" stroke-width="1.5" />
+              <path d="M13.5 2.5 2.5 13.5" fill="none" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+          </button>
         </div>
         <div class="veil">pigment settling…</div>
       </div>
@@ -1408,11 +1530,11 @@ function renderGrid(items) {
       </div>
     `;
     sheet.addEventListener("click", (event) => {
-      if (event.target.closest(".save, .expand, .pick, .sheet-edit")) return;
+      if (event.target.closest(".save, .expand, .pick, .sheet-close, .sheet-edit")) return;
       selectPainting(item.id);
     });
     sheet.addEventListener("keydown", (event) => {
-      if (event.target.closest(".save, .expand, .pick, .sheet-edit")) return;
+      if (event.target.closest(".save, .expand, .pick, .sheet-close, .sheet-edit")) return;
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         selectPainting(item.id);
@@ -1421,6 +1543,10 @@ function renderGrid(items) {
     sheet.querySelector(".expand").addEventListener("click", (event) => {
       event.stopPropagation();
       openSheetStage(item.id);
+    });
+    sheet.querySelector(".sheet-close").addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeSheetStage();
     });
     sheet.querySelector(".save").addEventListener("click", (event) => {
       event.stopPropagation();
@@ -1526,9 +1652,10 @@ function onFrameMessage(event) {
       rec.paintDensity = waitingDensity;
       rec.wantDensity = null;
       const frame = rec.sheet.querySelector(".frame");
-      let img = frame.querySelector("img");
+      let img = frame.querySelector("img:not(.wash-lift)");
       if (img) {
         img.src = event.data.dataUrl;
+        img.style.transform = "";
       } else {
         img = document.createElement("img");
         img.alt = rec.item.prompt || "watercolor";
@@ -1537,6 +1664,9 @@ function onFrameMessage(event) {
         frame.prepend(img);
       }
       img.draggable = false;
+      frame.querySelector(".wash-lift")?.remove();
+      rec.split = null;
+      prefetchSplit(rec);
       rec.sheet.classList.remove("is-adjusting");
       veil?.remove();
       rec.sheet.querySelector(".save")?.removeAttribute("disabled");
@@ -1769,10 +1899,6 @@ function mountDeskScroll() {
 
 sheetStageEl?.addEventListener("click", (event) => {
   if (event.target === sheetStageEl) closeSheetStage();
-});
-sheetStageEl?.querySelector(".sheet-stage-close")?.addEventListener("click", (event) => {
-  event.stopPropagation();
-  closeSheetStage();
 });
 
 {

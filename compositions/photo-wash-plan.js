@@ -294,6 +294,40 @@ export function averageHex(source) {
   return `#${hex(r)}${hex(g)}${hex(b)}`;
 }
 
+export function splitSubjectFromImageData(image) {
+  const w = image.width;
+  const h = image.height;
+  const src = image.data;
+  const base = new Uint8ClampedArray(src.length);
+  const lift = new Uint8ClampedArray(src.length);
+  const hitsSize = 72;
+  const hits = new Uint8Array(hitsSize * hitsSize);
+  const pr = PAPER.r;
+  const pg = PAPER.g;
+  const pb = PAPER.b;
+  for (let i = 0, p = 0; i < src.length; i += 4, p += 1) {
+    const r = src[i];
+    const g = src[i + 1];
+    const b = src[i + 2];
+    const dist = Math.abs(r - pr) + Math.abs(g - pg) + Math.abs(b - pb);
+    const t = Math.max(0, Math.min(1, (dist - 14) / 32));
+    const a = Math.round(t * 255);
+    lift[i] = r;
+    lift[i + 1] = g;
+    lift[i + 2] = b;
+    lift[i + 3] = a;
+    base[i] = r + (pr - r) * t;
+    base[i + 1] = g + (pg - g) * t;
+    base[i + 2] = b + (pb - b) * t;
+    base[i + 3] = 255;
+    const hx = Math.min(hitsSize - 1, Math.floor(((p % w) / w) * hitsSize));
+    const hy = Math.min(hitsSize - 1, Math.floor((Math.floor(p / w) / h) * hitsSize));
+    const hi = hy * hitsSize + hx;
+    if (a > hits[hi]) hits[hi] = a;
+  }
+  return { width: w, height: h, base, lift, hits: Array.from(hits), hitsSize };
+}
+
 export async function blobToDataUrl(blob) {
   const buffer = await blob.arrayBuffer();
   const bytes = new Uint8Array(buffer);
