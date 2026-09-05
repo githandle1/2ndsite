@@ -1,7 +1,7 @@
 import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=15";
 import { parseColor, oklchToHex } from "./color.js";
 import { mountColorSquare } from "./color-dial.js?v=12";
-import { imageWork } from "./image-work.js?v=2";
+import { imageWork } from "./image-work.js?v=3";
 import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=2";
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
@@ -37,7 +37,9 @@ let paintings = [];
 let selectedId = null;
 const cards = new Map();
 const paintQueue = [];
+const photoPreviewQueue = [];
 let paintingNow = false;
+let photoPreviewNow = false;
 let rendererReady = false;
 let waitingId = null;
 let effects = clampEffects(stored.effects || {});
@@ -951,6 +953,7 @@ async function ensureSplit(rec) {
 }
 
 function prefetchSplit(rec) {
+  if (isPhone()) return;
   const src = rec?.dataUrl;
   if (!src || rec.split?.src === src) return;
   ensureSplit(rec).catch(() => {});
@@ -1421,19 +1424,80 @@ function stageDensity() {
 function paintDensityFor(id) {
   const rec = cards.get(id);
   const expanded = rec?.sheet.classList.contains("is-expanded");
-  const next = expanded ? Math.max(2, stageDensity()) : 2;
+  const next = expanded ? Math.max(2, stageDensity()) : (isPhone() ? 1 : 2);
   return Math.max(next, rec?.paintDensity || 1, rec?.wantDensity || 1);
 }
 
 function requestHighRes(id) {
   const rec = cards.get(id);
   if (!rec?.item || (!rec.item.code && !rec.item.photo)) return;
+  if (isPhone() && rec.item.photo) return;
   const density = paintDensityFor(id);
   if ((rec.paintDensity || 1) >= density) return;
   rec.wantDensity = density;
   if (waitingId === id) return;
   if (!paintQueue.includes(id)) paintQueue.push(id);
   drainQueue();
+}
+
+function applyPaintedData(rec, dataUrl, density = 1) {
+  rec.dataUrl = dataUrl;
+  rec.item.dataUrl = dataUrl;
+  rec.paintDensity = density;
+  rec.wantDensity = null;
+  const frame = rec.sheet.querySelector(".frame");
+  let img = frame.querySelector("img:not(.wash-lift)");
+  if (img) {
+    img.src = dataUrl;
+    img.style.transform = "";
+  } else {
+    img = document.createElement("img");
+    img.alt = rec.item.prompt || "watercolor";
+    img.src = dataUrl;
+    img.draggable = false;
+    frame.prepend(img);
+  }
+  img.draggable = false;
+  frame.querySelector(".wash-lift")?.remove();
+  rec.split = null;
+  if (!isPhone()) prefetchSplit(rec);
+  rec.sheet.classList.remove("is-adjusting");
+  rec.sheet.querySelector(".veil")?.remove();
+  rec.sheet.querySelector(".save")?.removeAttribute("disabled");
+}
+
+function queuePhotoPreview(id) {
+  if (!photoPreviewQueue.includes(id)) photoPreviewQueue.push(id);
+  drainPhotoPreviews();
+}
+
+async function drainPhotoPreviews() {
+  if (photoPreviewNow) return;
+  const id = photoPreviewQueue.shift();
+  if (!id) return;
+  const rec = cards.get(id);
+  if (!rec?.item.photo) {
+    drainPhotoPreviews();
+    return;
+  }
+  photoPreviewNow = true;
+  try {
+    const { dataUrl } = await imageWork("renderWash", {
+      photo: rec.item.photo,
+      seed: rec.item.seed,
+      size: PAINT_SIZE,
+      effects: sheetEffects(rec),
+    });
+    if (dataUrl && cards.get(id) === rec) applyPaintedData(rec, dataUrl, 1);
+  } catch (err) {
+    const veil = rec.sheet.querySelector(".veil");
+    rec.sheet.classList.remove("is-adjusting");
+    veil?.classList.add("error");
+    if (veil) veil.textContent = err.message || "the wash dried invisibly. try again.";
+  } finally {
+    photoPreviewNow = false;
+    drainPhotoPreviews();
+  }
 }
 
 function queuePaint(id, { replace = false } = {}) {
@@ -1453,6 +1517,10 @@ function queuePaint(id, { replace = false } = {}) {
       rec.sheet.querySelector(".frame").append(veil);
     }
     veil.textContent = "pigment settling…";
+  }
+  if (isPhone() && rec.item.photo) {
+    queuePhotoPreview(id);
+    return;
   }
   if (!paintQueue.includes(id)) paintQueue.push(id);
   drainQueue();
@@ -1542,6 +1610,7 @@ function clearWall() {
   closePopovers();
   document.querySelectorAll(".sheet-color-menu").forEach((menu) => menu.remove());
   paintQueue.length = 0;
+  photoPreviewQueue.length = 0;
   paintingNow = false;
   waitingId = null;
   cards.clear();
@@ -1648,11 +1717,13 @@ function renderGrid(items) {
       veil.textContent = item.error || "no sketch returned";
       return;
     }
-    paintQueue.push(item.id);
+    if (isPhone() && item.photo) photoPreviewQueue.push(item.id);
+    else paintQueue.push(item.id);
   });
 
   const first = items.find((item) => item.code || item.photo);
   if (first) selectPainting(first.id);
+  drainPhotoPreviews();
   drainQueue();
 }
 
@@ -1699,7 +1770,7 @@ function drainQueue() {
       code: rec.item.code,
       photo: Boolean(rec.item.photo),
       seed: rec.item.seed,
-      size: PAINT_SIZE,
+      size: isPhone() ? 480 : PAINT_SIZE,
       density: waitingDensity,
       effects: sheetEffects(rec),
     },
@@ -1728,36 +1799,14 @@ function onFrameMessage(event) {
       veil?.classList.add("error");
       if (veil) veil.textContent = event.data.error;
     } else if (event.data.dataUrl) {
-      rec.dataUrl = event.data.dataUrl;
-      rec.item.dataUrl = event.data.dataUrl;
-      rec.paintDensity = waitingDensity;
-      rec.wantDensity = null;
-      const frame = rec.sheet.querySelector(".frame");
-      let img = frame.querySelector("img:not(.wash-lift)");
-      if (img) {
-        img.src = event.data.dataUrl;
-        img.style.transform = "";
-      } else {
-        img = document.createElement("img");
-        img.alt = rec.item.prompt || "watercolor";
-        img.src = event.data.dataUrl;
-        img.draggable = false;
-        frame.prepend(img);
-      }
-      img.draggable = false;
-      frame.querySelector(".wash-lift")?.remove();
-      rec.split = null;
-      prefetchSplit(rec);
-      rec.sheet.classList.remove("is-adjusting");
-      veil?.remove();
-      rec.sheet.querySelector(".save")?.removeAttribute("disabled");
+      applyPaintedData(rec, event.data.dataUrl, waitingDensity);
     } else if (veil) {
       veil.classList.add("error");
       veil.textContent = "the wash dried invisibly. try re-rendering.";
     }
   }
 
-  drainQueue();
+  requestAnimationFrame(() => requestAnimationFrame(drainQueue));
 }
 
 function selectPainting(id) {
