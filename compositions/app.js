@@ -1,8 +1,8 @@
 import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=15";
 import { parseColor, oklchToHex } from "./color.js";
 import { mountColorSquare } from "./color-dial.js?v=12";
-import { imageWork } from "./image-work.js?v=2";
-import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=2";
+import { imageWork } from "./image-work.js?v=3";
+import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=3";
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
 const sceneCaption = document.querySelector("#sceneCaption");
@@ -1493,7 +1493,6 @@ function renderGrid(items) {
               <path d="M3 13l4.8-4.8" fill="none" stroke="currentColor" stroke-width="1.5" />
             </svg>
           </button>
-          <button type="button" class="pick" data-id="${item.id}" aria-label="export training json" title="export for tinker" aria-pressed="false"${item.code ? "" : " disabled"}></button>
           <button type="button" class="sheet-close" aria-label="close" title="close">
             <svg viewBox="0 0 16 16" aria-hidden="true">
               <path d="M2.5 2.5l11 11" fill="none" stroke="currentColor" stroke-width="1.5" />
@@ -1551,10 +1550,6 @@ function renderGrid(items) {
     sheet.querySelector(".save").addEventListener("click", (event) => {
       event.stopPropagation();
       downloadPainting(item.id);
-    });
-    sheet.querySelector(".pick").addEventListener("click", (event) => {
-      event.stopPropagation();
-      exportTraining(item.id);
     });
     grid.append(sheet);
     cards.set(item.id, { item, sheet, dataUrl: null });
