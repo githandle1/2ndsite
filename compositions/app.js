@@ -1099,6 +1099,7 @@ function mountSubjectDrag(sheet, item) {
   });
 
   async function startPick(event) {
+    if (isPhone()) return;
     if (carrying) return;
     if (event.button != null && event.button !== 0) return;
     if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .veil")) return;
@@ -1549,6 +1550,9 @@ function clearWall() {
 
 function renderGrid(items) {
   clearWall();
+  const hasPaintings = items.length > 0;
+  mobileSheet?.classList.toggle("has-paintings", hasPaintings);
+  if (hasPaintings && isPhone()) setMobileSheet(false);
   const grid = document.createElement("div");
   grid.className = "grid";
   wallEl.append(grid);

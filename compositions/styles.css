@@ -2085,6 +2085,7 @@ body.is-sheet-open {
     min-height: 42px;
     max-height: 6em;
     padding: 9px 12px;
+    font-size: 14px;
   }
 
   .scene-row {
@@ -2233,6 +2234,20 @@ body.is-sheet-open {
     gap: 10px;
   }
 
+  #brushControls,
+  #placementControls {
+    gap: 0;
+  }
+
+  #brushControls .slide:has(select),
+  #brushControls .slide:has(.choice) {
+    margin-bottom: 4px;
+  }
+
+  .effect-groups details .slide + .slide {
+    margin-top: 0;
+  }
+
   .slide input[type="range"] {
     flex: 1 1 auto;
     flex-basis: auto;
@@ -2246,9 +2261,9 @@ body.is-sheet-open {
   }
 
   .slide input[type="range"]::-webkit-slider-thumb {
-    width: 22px;
-    height: 22px;
-    margin-top: -10px;
+    width: 11px;
+    height: 11px;
+    margin-top: -4.5px;
   }
 
   .slide input[type="range"]::-moz-range-track {
@@ -2256,8 +2271,8 @@ body.is-sheet-open {
   }
 
   .slide input[type="range"]::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 11px;
+    height: 11px;
   }
 
   select,
@@ -2317,8 +2332,8 @@ body.is-sheet-open {
 
   .color-square-hue::-webkit-slider-thumb,
   .color-square-hue::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 11px;
+    height: 11px;
   }
 
   .color-square-hex {
@@ -2415,8 +2430,8 @@ body.is-sheet-open {
   }
 
   .sheet-edit-sat-rail::after {
-    width: 16px;
-    height: 16px;
+    width: 8px;
+    height: 8px;
   }
 
   .sheet-edit.is-left .sheet-edit-sat-rail,
@@ -2488,8 +2503,8 @@ body.is-sheet-open {
 
   .sheet-color-menu .color-square-hue::-webkit-slider-thumb,
   .sheet-color-menu .color-square-hue::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 8px;
+    height: 8px;
   }
 
   .sheet-color-menu .color-square-hex {
@@ -2537,12 +2552,60 @@ body.is-sheet-open {
   }
 
   .sheet-stage .sheet-edit {
-    padding: 6px 8px;
+    flex: 0 0 auto;
+    width: max-content;
+    max-width: calc(100% - 96px);
+    gap: 4px;
+    padding: 3px 5px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--paper) 72%, transparent);
-    box-shadow: 0 0 0 1px rgba(36, 33, 31, 0.06);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: color-mix(in srgb, var(--paper) 42%, transparent);
+    box-shadow: 0 0 0 1px rgba(36, 33, 31, 0.04);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .sheet-stage .sheet-edit-color {
+    width: 12px;
+    height: 12px;
+  }
+
+  .sheet-stage .sheet-edit-swatch {
+    width: 10px;
+    height: 10px;
+  }
+
+  .sheet-stage .sheet-edit-sat {
+    gap: 6px;
+    margin-inline-end: 8px;
+  }
+
+  .sheet-stage .sheet-edit-sat-rail {
+    width: 38px;
+    height: 6px;
+  }
+
+  .sheet-stage .sheet-edit-sat-rail::before {
+    height: 1.5px;
+  }
+
+  .sheet-stage .sheet-edit-sat-rail::after,
+  .sheet-stage .sheet-edit-sat-rail input::-webkit-slider-thumb,
+  .sheet-stage .sheet-edit-sat-rail input::-moz-range-thumb {
+    width: 5px;
+    height: 5px;
+  }
+
+  .sheet-stage .sheet-edit .choice-trigger {
+    height: 18px;
+    min-height: 18px;
+    padding: 0 12px 0 4px;
+    font-size: 10px;
+    line-height: 18px;
+  }
+
+  .sheet-stage .sheet-edit .choice-trigger svg {
+    width: 9px;
+    height: 9px;
   }
 
   .wall {
@@ -2631,12 +2694,38 @@ body.is-sheet-open {
     touch-action: none;
   }
 
-  .mobile-sheet-handle > span {
+  .mobile-sheet-grip {
     display: block;
     width: 36px;
     height: 3px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--ink) 22%, transparent);
+  }
+
+  .mobile-sheet-label {
+    display: none;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .mobile-sheet.has-paintings:not(.is-expanded) {
+    height: 44px;
+    max-height: 44px;
+    padding: 4px 14px 6px;
+  }
+
+  .mobile-sheet.has-paintings:not(.is-expanded) > .stack {
+    display: none;
+  }
+
+  .mobile-sheet.has-paintings:not(.is-expanded) .mobile-sheet-handle {
+    flex: 1 1 auto;
+    gap: 4px;
+  }
+
+  .mobile-sheet.has-paintings:not(.is-expanded) .mobile-sheet-label {
+    display: block;
   }
 
   .mobile-sheet .paint-kit {
@@ -2649,6 +2738,12 @@ body.is-sheet-open {
 
   .wall {
     grid-row: 2;
+  }
+
+  .sheet.active .frame:has(img),
+  .sheet.is-expanded .frame:has(img) {
+    cursor: pointer;
+    touch-action: pan-y;
   }
 }
 
