@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=155" />
+    <link rel="stylesheet" href="styles.css?v=164" />
   </head>
   <body>
     <main class="studio">
@@ -29,10 +29,24 @@
                 this is a mini generative art experiment, inspired by
                 <a href="https://surya.website/rling-qwen-to-paint-with-code" target="_blank" rel="noopener noreferrer">this project on painting with code</a>.
               </p>
-              <p>to get started upload an image or select a preset scene below. click paint to adjust each image.</p>
+              <p>
+                get started, select a preset scene below or upload an image, then tap the paint icon to generate
+                samples. you can customize each sample’s brushes, color, texture, and more.
+              </p>
             </div>
           </div>
         </div>
+        <div class="mobile-sheet" id="mobileSheet">
+          <button
+            class="mobile-sheet-handle"
+            type="button"
+            aria-label="open customize"
+            aria-expanded="false"
+            aria-controls="paintKit"
+          >
+            <span class="mobile-sheet-grip" aria-hidden="true"></span>
+            <span class="mobile-sheet-label">customize more</span>
+          </button>
         <div class="stack">
           <div class="field">
             <div class="field-head">
@@ -75,7 +89,7 @@
                     />
                   </svg>
                 </label>
-                <button id="paint" class="paint" type="button" aria-label="paint" title="paint">
+                <button id="paint" class="paint" type="button" aria-label="generate images" title="generate images">
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path
                       d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"
@@ -167,6 +181,7 @@
             </details>
           </div>
         </details>
+        </div>
       </aside>
       <div
         class="desk-rail"
@@ -185,7 +200,7 @@
     </main>
     <div id="sheetStage" class="sheet-stage" hidden></div>
 
-    <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=57"></iframe>
-    <script type="module" src="app.js?v=117"></script>
+    <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=56"></iframe>
+    <script type="module" src="app.js?v=120"></script>
   </body>
 </html>

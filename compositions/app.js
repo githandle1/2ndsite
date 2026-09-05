@@ -2,7 +2,7 @@ import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_C
 import { parseColor, oklchToHex } from "./color.js";
 import { mountColorSquare } from "./color-dial.js?v=12";
 import { imageWork } from "./image-work.js?v=3";
-import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=3";
+import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=2";
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
 const sceneCaption = document.querySelector("#sceneCaption");
@@ -16,6 +16,8 @@ const samplesEl = document.querySelector("#samples");
 const photoEl = document.querySelector("#photo");
 const photoChip = document.querySelector("#photoChip");
 const paintKit = document.querySelector("#paintKit");
+const mobileSheet = document.querySelector("#mobileSheet");
+const mobileSheetHandle = document.querySelector(".mobile-sheet-handle");
 const providerEl = document.querySelector("#provider");
 const apiKeyEl = document.querySelector("#apiKey");
 const renderer = document.querySelector("#renderer");
@@ -35,7 +37,9 @@ let paintings = [];
 let selectedId = null;
 const cards = new Map();
 const paintQueue = [];
+const photoPreviewQueue = [];
 let paintingNow = false;
+let photoPreviewNow = false;
 let rendererReady = false;
 let waitingId = null;
 let effects = clampEffects(stored.effects || {});
@@ -269,6 +273,10 @@ function mountChoice(select, options = {}) {
 
 function isCompact() {
   return window.matchMedia("(max-width: 720px), (max-height: 540px) and (max-width: 960px)").matches;
+}
+
+function isPhone() {
+  return window.matchMedia("(max-width: 720px)").matches;
 }
 
 function viewSize() {
@@ -548,8 +556,79 @@ function fitPaintKit() {
     }
     const desk = document.querySelector(".desk");
     if (!paintKit.open && desk) desk.scrollTop = 0;
+    if (isPhone()) syncMobileSheet(paintKit.open);
   });
   fitPaintKit.done = true;
+}
+
+function syncMobileSheet(expanded) {
+  if (!mobileSheet || !mobileSheetHandle) return;
+  mobileSheet.classList.toggle("is-expanded", expanded);
+  mobileSheetHandle.setAttribute("aria-expanded", expanded ? "true" : "false");
+  mobileSheetHandle.setAttribute("aria-label", expanded ? "close customize" : "open customize");
+  if (!expanded) mobileSheet.scrollTop = 0;
+}
+
+function setMobileSheet(expanded) {
+  if (!isPhone() || !paintKit) return;
+  const fromTop = mobileSheet?.getBoundingClientRect().top;
+  syncMobileSheet(expanded);
+  paintKit.open = expanded;
+  if (fromTop == null || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  requestAnimationFrame(() => {
+    const toTop = mobileSheet.getBoundingClientRect().top;
+    const distance = fromTop - toTop;
+    if (Math.abs(distance) < 1) return;
+    mobileSheet.getAnimations().forEach((animation) => animation.cancel());
+    mobileSheet.animate(
+      [{ transform: `translateY(${distance}px)` }, { transform: "translateY(0)" }],
+      { duration: 220, easing: "cubic-bezier(.22,.8,.32,1)" }
+    );
+  });
+}
+
+function mountMobileSheet() {
+  if (!mobileSheet || !mobileSheetHandle || !paintKit) return;
+  let startY = null;
+  let suppressClick = false;
+
+  mobileSheetHandle.addEventListener("pointerdown", (event) => {
+    if (!isPhone()) return;
+    startY = event.clientY;
+    mobileSheetHandle.setPointerCapture(event.pointerId);
+  });
+
+  mobileSheetHandle.addEventListener("pointerup", (event) => {
+    if (startY == null) return;
+    const delta = event.clientY - startY;
+    startY = null;
+    if (Math.abs(delta) < 24) return;
+    suppressClick = true;
+    setMobileSheet(delta < 0);
+    setTimeout(() => {
+      suppressClick = false;
+    }, 0);
+  });
+
+  mobileSheetHandle.addEventListener("pointercancel", () => {
+    startY = null;
+  });
+
+  mobileSheetHandle.addEventListener("click", (event) => {
+    if (!isPhone()) return;
+    if (suppressClick) {
+      suppressClick = false;
+      event.preventDefault();
+      return;
+    }
+    setMobileSheet(!mobileSheet.classList.contains("is-expanded"));
+  });
+
+  window.matchMedia("(max-width: 720px)").addEventListener("change", (event) => {
+    if (event.matches) setMobileSheet(false);
+    else syncMobileSheet(false);
+  });
+  syncMobileSheet(false);
 }
 
 function persistSettings() {
@@ -1022,6 +1101,7 @@ function mountSubjectDrag(sheet, item) {
   });
 
   async function startPick(event) {
+    if (isPhone()) return;
     if (carrying) return;
     if (event.button != null && event.button !== 0) return;
     if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .veil")) return;
@@ -1350,12 +1430,74 @@ function paintDensityFor(id) {
 function requestHighRes(id) {
   const rec = cards.get(id);
   if (!rec?.item || (!rec.item.code && !rec.item.photo)) return;
+  if (isPhone() && rec.item.photo) return;
   const density = paintDensityFor(id);
   if ((rec.paintDensity || 1) >= density) return;
   rec.wantDensity = density;
   if (waitingId === id) return;
   if (!paintQueue.includes(id)) paintQueue.push(id);
   drainQueue();
+}
+
+function applyPaintedData(rec, dataUrl, density = 1) {
+  rec.dataUrl = dataUrl;
+  rec.item.dataUrl = dataUrl;
+  rec.paintDensity = density;
+  rec.wantDensity = null;
+  const frame = rec.sheet.querySelector(".frame");
+  let img = frame.querySelector("img:not(.wash-lift)");
+  if (img) {
+    img.src = dataUrl;
+    img.style.transform = "";
+  } else {
+    img = document.createElement("img");
+    img.alt = rec.item.prompt || "watercolor";
+    img.src = dataUrl;
+    img.draggable = false;
+    frame.prepend(img);
+  }
+  img.draggable = false;
+  frame.querySelector(".wash-lift")?.remove();
+  rec.split = null;
+  if (!isPhone()) prefetchSplit(rec);
+  rec.sheet.classList.remove("is-adjusting");
+  rec.sheet.querySelector(".veil")?.remove();
+  rec.sheet.querySelector(".save")?.removeAttribute("disabled");
+}
+
+function queuePhotoPreview(id) {
+  if (!photoPreviewQueue.includes(id)) photoPreviewQueue.push(id);
+  drainPhotoPreviews();
+}
+
+async function drainPhotoPreviews() {
+  if (photoPreviewNow) return;
+  const id = photoPreviewQueue.shift();
+  if (!id) return;
+  const rec = cards.get(id);
+  if (!rec?.item.photo) {
+    drainPhotoPreviews();
+    return;
+  }
+  photoPreviewNow = true;
+  try {
+    const { dataUrl } = await imageWork("renderWash", {
+      photo: rec.item.photo,
+      seed: rec.item.seed,
+      size: PAINT_SIZE,
+      effects: sheetEffects(rec),
+    });
+    if (dataUrl && cards.get(id) === rec) applyPaintedData(rec, dataUrl, 1);
+  } catch (err) {
+    rec.fastPreviewFailed = true;
+    if (cards.get(id) === rec && !paintQueue.includes(id)) {
+      paintQueue.push(id);
+      drainQueue();
+    }
+  } finally {
+    photoPreviewNow = false;
+    drainPhotoPreviews();
+  }
 }
 
 function queuePaint(id, { replace = false } = {}) {
@@ -1375,6 +1517,10 @@ function queuePaint(id, { replace = false } = {}) {
       rec.sheet.querySelector(".frame").append(veil);
     }
     veil.textContent = "pigment settling…";
+  }
+  if (isPhone() && rec.item.photo && !rec.fastPreviewFailed) {
+    queuePhotoPreview(id);
+    return;
   }
   if (!paintQueue.includes(id)) paintQueue.push(id);
   drainQueue();
@@ -1464,6 +1610,7 @@ function clearWall() {
   closePopovers();
   document.querySelectorAll(".sheet-color-menu").forEach((menu) => menu.remove());
   paintQueue.length = 0;
+  photoPreviewQueue.length = 0;
   paintingNow = false;
   waitingId = null;
   cards.clear();
@@ -1472,6 +1619,9 @@ function clearWall() {
 
 function renderGrid(items) {
   clearWall();
+  const hasPaintings = items.length > 0;
+  mobileSheet?.classList.toggle("has-paintings", hasPaintings);
+  if (hasPaintings && isPhone()) setMobileSheet(false);
   const grid = document.createElement("div");
   grid.className = "grid";
   wallEl.append(grid);
@@ -1562,11 +1712,13 @@ function renderGrid(items) {
       veil.textContent = item.error || "no sketch returned";
       return;
     }
-    paintQueue.push(item.id);
+    if (isPhone() && item.photo) photoPreviewQueue.push(item.id);
+    else paintQueue.push(item.id);
   });
 
   const first = items.find((item) => item.code || item.photo);
   if (first) selectPainting(first.id);
+  drainPhotoPreviews();
   drainQueue();
 }
 
@@ -1642,29 +1794,7 @@ function onFrameMessage(event) {
       veil?.classList.add("error");
       if (veil) veil.textContent = event.data.error;
     } else if (event.data.dataUrl) {
-      rec.dataUrl = event.data.dataUrl;
-      rec.item.dataUrl = event.data.dataUrl;
-      rec.paintDensity = waitingDensity;
-      rec.wantDensity = null;
-      const frame = rec.sheet.querySelector(".frame");
-      let img = frame.querySelector("img:not(.wash-lift)");
-      if (img) {
-        img.src = event.data.dataUrl;
-        img.style.transform = "";
-      } else {
-        img = document.createElement("img");
-        img.alt = rec.item.prompt || "watercolor";
-        img.src = event.data.dataUrl;
-        img.draggable = false;
-        frame.prepend(img);
-      }
-      img.draggable = false;
-      frame.querySelector(".wash-lift")?.remove();
-      rec.split = null;
-      prefetchSplit(rec);
-      rec.sheet.classList.remove("is-adjusting");
-      veil?.remove();
-      rec.sheet.querySelector(".save")?.removeAttribute("disabled");
+      applyPaintedData(rec, event.data.dataUrl, waitingDensity);
     } else if (veil) {
       veil.classList.add("error");
       veil.textContent = "the wash dried invisibly. try re-rendering.";
@@ -1917,5 +2047,6 @@ sheetStageEl?.addEventListener("click", (event) => {
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
 fitPaintKit();
+mountMobileSheet();
 sizeScene();
 mountDeskScroll();
