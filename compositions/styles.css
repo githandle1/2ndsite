@@ -2085,6 +2085,7 @@ body.is-sheet-open {
     min-height: 42px;
     max-height: 6em;
     padding: 9px 12px;
+    font-size: 14px;
   }
 
   .scene-row {
@@ -2231,6 +2232,20 @@ body.is-sheet-open {
   .slide {
     min-height: 44px;
     gap: 10px;
+  }
+
+  #brushControls,
+  #placementControls {
+    gap: 0;
+  }
+
+  #brushControls .slide:has(select),
+  #brushControls .slide:has(.choice) {
+    margin-bottom: 4px;
+  }
+
+  .effect-groups details .slide + .slide {
+    margin-top: 0;
   }
 
   .slide input[type="range"] {
