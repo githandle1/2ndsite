@@ -565,8 +565,20 @@ function syncMobileSheet(expanded) {
 
 function setMobileSheet(expanded) {
   if (!isPhone() || !paintKit) return;
+  const fromTop = mobileSheet?.getBoundingClientRect().top;
   syncMobileSheet(expanded);
   paintKit.open = expanded;
+  if (fromTop == null || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  requestAnimationFrame(() => {
+    const toTop = mobileSheet.getBoundingClientRect().top;
+    const distance = fromTop - toTop;
+    if (Math.abs(distance) < 1) return;
+    mobileSheet.getAnimations().forEach((animation) => animation.cancel());
+    mobileSheet.animate(
+      [{ transform: `translateY(${distance}px)` }, { transform: "translateY(0)" }],
+      { duration: 220, easing: "cubic-bezier(.22,.8,.32,1)" }
+    );
+  });
 }
 
 function mountMobileSheet() {
