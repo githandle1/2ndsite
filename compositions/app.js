@@ -15,6 +15,8 @@ const samplesEl = document.querySelector("#samples");
 const photoEl = document.querySelector("#photo");
 const photoChip = document.querySelector("#photoChip");
 const paintKit = document.querySelector("#paintKit");
+const mobileSheet = document.querySelector("#mobileSheet");
+const mobileSheetHandle = document.querySelector(".mobile-sheet-handle");
 const providerEl = document.querySelector("#provider");
 const apiKeyEl = document.querySelector("#apiKey");
 const renderer = document.querySelector("#renderer");
@@ -265,6 +267,10 @@ function mountChoice(select, options = {}) {
 
 function isCompact() {
   return window.matchMedia("(max-width: 720px), (max-height: 540px) and (max-width: 960px)").matches;
+}
+
+function isPhone() {
+  return window.matchMedia("(max-width: 720px)").matches;
 }
 
 function viewSize() {
@@ -544,8 +550,67 @@ function fitPaintKit() {
     }
     const desk = document.querySelector(".desk");
     if (!paintKit.open && desk) desk.scrollTop = 0;
+    if (isPhone()) syncMobileSheet(paintKit.open);
   });
   fitPaintKit.done = true;
+}
+
+function syncMobileSheet(expanded) {
+  if (!mobileSheet || !mobileSheetHandle) return;
+  mobileSheet.classList.toggle("is-expanded", expanded);
+  mobileSheetHandle.setAttribute("aria-expanded", expanded ? "true" : "false");
+  mobileSheetHandle.setAttribute("aria-label", expanded ? "close customize" : "open customize");
+  if (!expanded) mobileSheet.scrollTop = 0;
+}
+
+function setMobileSheet(expanded) {
+  if (!isPhone() || !paintKit) return;
+  syncMobileSheet(expanded);
+  paintKit.open = expanded;
+}
+
+function mountMobileSheet() {
+  if (!mobileSheet || !mobileSheetHandle || !paintKit) return;
+  let startY = null;
+  let suppressClick = false;
+
+  mobileSheetHandle.addEventListener("pointerdown", (event) => {
+    if (!isPhone()) return;
+    startY = event.clientY;
+    mobileSheetHandle.setPointerCapture(event.pointerId);
+  });
+
+  mobileSheetHandle.addEventListener("pointerup", (event) => {
+    if (startY == null) return;
+    const delta = event.clientY - startY;
+    startY = null;
+    if (Math.abs(delta) < 24) return;
+    suppressClick = true;
+    setMobileSheet(delta < 0);
+    setTimeout(() => {
+      suppressClick = false;
+    }, 0);
+  });
+
+  mobileSheetHandle.addEventListener("pointercancel", () => {
+    startY = null;
+  });
+
+  mobileSheetHandle.addEventListener("click", (event) => {
+    if (!isPhone()) return;
+    if (suppressClick) {
+      suppressClick = false;
+      event.preventDefault();
+      return;
+    }
+    setMobileSheet(!mobileSheet.classList.contains("is-expanded"));
+  });
+
+  window.matchMedia("(max-width: 720px)").addEventListener("change", (event) => {
+    if (event.matches) setMobileSheet(false);
+    else syncMobileSheet(false);
+  });
+  syncMobileSheet(false);
 }
 
 function persistSettings() {
@@ -1729,5 +1794,6 @@ sheetStageEl?.querySelector(".sheet-stage-close")?.addEventListener("click", (ev
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
 fitPaintKit();
+mountMobileSheet();
 sizeScene();
 mountDeskScroll();
