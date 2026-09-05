@@ -36,6 +36,7 @@ const paintQueue = [];
 let paintingNow = false;
 let rendererReady = false;
 let waitingId = null;
+let activePaintJob = null;
 let effects = clampEffects(stored.effects || {});
 let effectTimer = null;
 let effectsDirty = false;
@@ -457,7 +458,10 @@ function persistSettings() {
 }
 
 function readEffects() {
-  const next = { color: parseColor(pigmentColorEl?.value) || effects.color || DEFAULT_COLOR };
+  const next = {
+    ...effects,
+    color: parseColor(pigmentColorEl?.value) || effects.color || DEFAULT_COLOR,
+  };
   const typeEl = document.querySelector("#brushType");
   if (typeEl) next.brushType = typeEl.value;
   const ranges = [
@@ -686,7 +690,8 @@ function onEffectInput() {
 }
 
 function scheduleEffectRender() {
-  if (![...cards.values()].some((rec) => rec.item.code || rec.item.photo)) return;
+  const rec = cards.get(selectedId);
+  if (!rec || (!rec.item.code && !rec.item.photo)) return;
   effectsDirty = true;
   clearTimeout(effectTimer);
   effectTimer = setTimeout(flushEffects, 280);
@@ -695,25 +700,26 @@ function scheduleEffectRender() {
 function flushEffects() {
   if (!effectsDirty) return;
   if (paintingNow) return;
-  const ids = [];
-  for (const [id, rec] of cards) {
-    if (rec?.item.code || rec?.item.photo) ids.push(id);
-  }
-  if (!ids.length) {
+  const rec = cards.get(selectedId);
+  if (!rec || (!rec.item.code && !rec.item.photo)) {
     effectsDirty = false;
     return;
   }
   effectsDirty = false;
-  for (const id of ids) queuePaint(id, { replace: true });
+  queuePaint(selectedId, { replace: true });
 }
 
 function queuePaint(id, { replace = false } = {}) {
   const rec = cards.get(id);
   if (!rec) return;
-  rec.sheet.querySelector("img")?.remove();
   rec.sheet.querySelector(".save")?.setAttribute("disabled", "");
-  rec.dataUrl = null;
-  rec.item.dataUrl = null;
+  rec.sheet.querySelector(".undo")?.setAttribute("disabled", "");
+  rec.pendingPaint = {
+    replace,
+    effects: readEffects(),
+    region: replace && rec.region ? { ...rec.region } : null,
+    baseDataUrl: replace ? rec.dataUrl : null,
+  };
   let veil = rec.sheet.querySelector(".veil");
   if (!veil) {
     veil = document.createElement("div");
@@ -775,8 +781,166 @@ function clearWall() {
   paintQueue.length = 0;
   paintingNow = false;
   waitingId = null;
+  activePaintJob = null;
+  selectedId = null;
   cards.clear();
   wallEl.innerHTML = "";
+}
+
+function regionContains(region, point) {
+  return Boolean(
+    region &&
+      point.x >= region.x &&
+      point.x <= region.x + region.width &&
+      point.y >= region.y &&
+      point.y <= region.y + region.height
+  );
+}
+
+function regionFromPoints(start, end) {
+  return {
+    x: Math.min(start.x, end.x),
+    y: Math.min(start.y, end.y),
+    width: Math.abs(end.x - start.x),
+    height: Math.abs(end.y - start.y),
+  };
+}
+
+function framePoint(frame, event) {
+  const box = frame.getBoundingClientRect();
+  return {
+    x: Math.max(0, Math.min(1, (event.clientX - box.left) / box.width)),
+    y: Math.max(0, Math.min(1, (event.clientY - box.top) / box.height)),
+  };
+}
+
+function updateRegionUI(rec, region = rec.region) {
+  const box = rec.sheet.querySelector(".region-box");
+  const scope = rec.sheet.querySelector(".scope");
+  if (!box || !scope) return;
+  const visible = Boolean(region);
+  box.hidden = !visible;
+  scope.hidden = !rec.region;
+  if (visible) {
+    box.style.left = `${region.x * 100}%`;
+    box.style.top = `${region.y * 100}%`;
+    box.style.width = `${region.width * 100}%`;
+    box.style.height = `${region.height * 100}%`;
+  }
+  rec.sheet.classList.toggle("has-region", Boolean(rec.region));
+}
+
+function clearRegion(id = selectedId) {
+  const rec = cards.get(id);
+  if (!rec?.region) return;
+  rec.region = null;
+  updateRegionUI(rec);
+}
+
+function syncDirectEditor(rec) {
+  const editor = rec?.sheet.querySelector(".direct-editor");
+  if (!editor) return;
+  const current = readEffects();
+  editor.querySelector('[data-direct="color"]').value = oklchToHex(current.color);
+  editor.querySelector('[data-direct="saturation"]').value = String(
+    Math.round(current.psychologicalSpecificity * 100)
+  );
+  editor.querySelector('[data-direct="brush"]').value = current.brushType;
+  editor.querySelector('[data-direct="texture"]').value = String(
+    Math.round(current.granulation * 100)
+  );
+}
+
+function bindDirectEditor(rec) {
+  const editor = rec.sheet.querySelector(".direct-editor");
+  const brush = editor.querySelector('[data-direct="brush"]');
+  for (const name of BRUSH_TYPES) {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name.toLowerCase();
+    brush.append(option);
+  }
+
+  const apply = (event) => {
+    const control = event.target.closest("[data-direct]");
+    if (!control) return;
+    const kind = control.dataset.direct;
+    if (kind === "color") {
+      colorDial?.setValue(control.value);
+    } else if (kind === "brush") {
+      const sidebar = document.querySelector("#brushType");
+      if (sidebar) sidebar.value = control.value;
+    } else {
+      const effect = kind === "saturation" ? "psychologicalSpecificity" : "granulation";
+      effects[effect] = Number(control.value) / 100;
+      const sidebar = document.querySelector(`input[data-effect="${effect}"]`);
+      if (sidebar) sidebar.value = control.value;
+    }
+    onEffectInput();
+  };
+
+  editor.addEventListener("input", apply);
+  editor.addEventListener("change", apply);
+  editor.addEventListener("pointerdown", (event) => event.stopPropagation());
+  editor.addEventListener("click", (event) => event.stopPropagation());
+  syncDirectEditor(rec);
+}
+
+function bindRegionSelection(rec) {
+  const frame = rec.sheet.querySelector(".frame");
+  let drag = null;
+
+  frame.addEventListener("pointerdown", (event) => {
+    if (event.button != null && event.button !== 0) return;
+    if (
+      event.target.closest("button, .direct-editor") ||
+      selectedId !== rec.item.id ||
+      !rec.dataUrl
+    ) return;
+    const start = framePoint(frame, event);
+    drag = { pointerId: event.pointerId, start, end: start, moved: false };
+    frame.classList.add("is-selecting");
+    frame.setPointerCapture?.(event.pointerId);
+  });
+
+  frame.addEventListener("pointermove", (event) => {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    drag.end = framePoint(frame, event);
+    const box = frame.getBoundingClientRect();
+    drag.moved =
+      drag.moved ||
+      Math.hypot(
+        (drag.end.x - drag.start.x) * box.width,
+        (drag.end.y - drag.start.y) * box.height
+      ) >= 6;
+    if (drag.moved) updateRegionUI(rec, regionFromPoints(drag.start, drag.end));
+  });
+
+  const finish = (event) => {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const finished = drag;
+    drag = null;
+    frame.classList.remove("is-selecting");
+    if (finished.moved) {
+      const region = regionFromPoints(finished.start, finished.end);
+      if (region.width >= 0.015 && region.height >= 0.015) rec.region = region;
+    } else if (rec.region && !regionContains(rec.region, finished.start)) {
+      rec.region = null;
+    }
+    updateRegionUI(rec);
+  };
+
+  frame.addEventListener("pointerup", finish);
+  frame.addEventListener("pointercancel", (event) => {
+    if (drag?.pointerId === event.pointerId && drag.moved) {
+      finish(event);
+      return;
+    }
+    drag = null;
+    frame.classList.remove("is-selecting");
+    updateRegionUI(rec);
+  });
 }
 
 function renderGrid(items) {
@@ -793,11 +957,22 @@ function renderGrid(items) {
     sheet.innerHTML = `
       <div class="frame">
         <button type="button" class="pick" data-id="${item.id}" aria-label="export training json" title="export for tinker" aria-pressed="false"${item.code ? "" : " disabled"}></button>
+        <div class="direct-editor" aria-label="image editor">
+          <label><span>color</span><input type="color" data-direct="color" aria-label="color" /></label>
+          <label><span>saturation</span><input type="range" min="0" max="100" data-direct="saturation" aria-label="saturation" /></label>
+          <label><span>brush</span><select data-direct="brush" aria-label="brush"></select></label>
+          <label><span>texture</span><input type="range" min="0" max="100" data-direct="texture" aria-label="texture" /></label>
+        </div>
+        <div class="region-box" hidden aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+        </div>
         <div class="veil">pigment settling…</div>
       </div>
       <div class="caption">
         <span>sample ${index + 1}</span>
         <span class="caption-meta">
+          <button type="button" class="scope" aria-label="edit whole image" title="clear region" hidden>edit whole</button>
+          <button type="button" class="undo" aria-label="undo last restyle" title="undo" disabled>undo</button>
           <button type="button" class="save" data-id="${item.id}" aria-label="save png" title="save" disabled>
             <svg viewBox="0 0 16 16" aria-hidden="true">
               <path d="M8 2.4v8.2" fill="none" stroke="currentColor" stroke-width="1.5" />
@@ -809,11 +984,11 @@ function renderGrid(items) {
       </div>
     `;
     sheet.addEventListener("click", (event) => {
-      if (event.target.closest(".save, .pick")) return;
+      if (event.target.closest(".save, .pick, .scope, .undo, .direct-editor")) return;
       selectPainting(item.id);
     });
     sheet.addEventListener("keydown", (event) => {
-      if (event.target.closest(".save, .pick")) return;
+      if (event.target.closest(".save, .pick, .scope, .undo, .direct-editor")) return;
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         selectPainting(item.id);
@@ -827,8 +1002,20 @@ function renderGrid(items) {
       event.stopPropagation();
       exportTraining(item.id);
     });
+    sheet.querySelector(".scope").addEventListener("click", (event) => {
+      event.stopPropagation();
+      clearRegion(item.id);
+      sheet.focus();
+    });
+    sheet.querySelector(".undo").addEventListener("click", (event) => {
+      event.stopPropagation();
+      undoRestyle(item.id);
+    });
     grid.append(sheet);
-    cards.set(item.id, { item, sheet, dataUrl: null });
+    const rec = { item, sheet, dataUrl: null, region: null, undoDataUrl: null, pendingPaint: null };
+    cards.set(item.id, rec);
+    bindDirectEditor(rec);
+    bindRegionSelection(rec);
 
     if (item.error || (!item.code && !item.photo)) {
       const veil = sheet.querySelector(".veil");
@@ -863,11 +1050,20 @@ function drainQueue() {
   }
   paintingNow = true;
   waitingId = id;
+  const job = rec.pendingPaint || {
+    replace: false,
+    effects: readEffects(),
+    region: null,
+    baseDataUrl: null,
+  };
+  rec.pendingPaint = null;
+  activePaintJob = { id, ...job };
   clearTimeout(paintWatch);
   paintWatch = setTimeout(() => {
     if (!paintingNow || waitingId !== id) return;
     paintingNow = false;
     waitingId = null;
+    activePaintJob = null;
     const stuck = cards.get(id);
     const veil = stuck?.sheet.querySelector(".veil");
     if (veil) {
@@ -887,7 +1083,7 @@ function drainQueue() {
       seed: rec.item.seed,
       size: 720,
       density: 1,
-      effects: readEffects(),
+      effects: job.effects,
     },
     "*"
   );
@@ -901,40 +1097,110 @@ function onFrameMessage(event) {
     return;
   }
   if (event.data.type !== "painted") return;
+  finishPainting(event.data);
+}
 
-  const rec = cards.get(waitingId);
-  paintingNow = false;
+function loadDataImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("the previous wash could not be opened."));
+    image.src = dataUrl;
+  });
+}
+
+async function compositeRegion(baseDataUrl, nextDataUrl, region) {
+  const [base, next] = await Promise.all([loadDataImage(baseDataUrl), loadDataImage(nextDataUrl)]);
+  const canvas = document.createElement("canvas");
+  canvas.width = base.naturalWidth || base.width;
+  canvas.height = base.naturalHeight || base.height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(base, 0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(
+    region.x * canvas.width,
+    region.y * canvas.height,
+    region.width * canvas.width,
+    region.height * canvas.height
+  );
+  ctx.clip();
+  ctx.drawImage(next, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
+  return canvas.toDataURL("image/png");
+}
+
+function setCardImage(rec, dataUrl) {
+  let img = rec.sheet.querySelector(".frame > img");
+  if (!img) {
+    img = document.createElement("img");
+    img.alt = rec.item.prompt || "watercolor";
+    img.draggable = false;
+    rec.sheet.querySelector(".frame").prepend(img);
+  }
+  img.src = dataUrl;
+  rec.dataUrl = dataUrl;
+  rec.item.dataUrl = dataUrl;
+}
+
+async function finishPainting(data) {
+  const job = activePaintJob;
+  const rec = cards.get(job?.id || waitingId);
+  activePaintJob = null;
   waitingId = null;
   clearTimeout(paintWatch);
 
   if (rec) {
     const veil = rec.sheet.querySelector(".veil");
-    if (event.data.error) {
+    if (data.error) {
       veil?.classList.add("error");
-      if (veil) veil.textContent = event.data.error;
-    } else if (event.data.dataUrl) {
-      rec.dataUrl = event.data.dataUrl;
-      rec.item.dataUrl = event.data.dataUrl;
-      const img = document.createElement("img");
-      img.alt = rec.item.prompt || "watercolor";
-      img.src = event.data.dataUrl;
-      rec.sheet.querySelector(".frame").prepend(img);
-      veil?.remove();
-      rec.sheet.querySelector(".save")?.removeAttribute("disabled");
+      if (veil) veil.textContent = data.error;
+      rec.sheet.querySelector(".save")?.toggleAttribute("disabled", !rec.dataUrl);
+      rec.sheet.querySelector(".undo")?.toggleAttribute("disabled", !rec.undoDataUrl);
+    } else if (data.dataUrl) {
+      try {
+        const previous = job?.replace ? job.baseDataUrl : null;
+        const next =
+          job?.region && previous
+            ? await compositeRegion(previous, data.dataUrl, job.region)
+            : data.dataUrl;
+        if (previous) rec.undoDataUrl = previous;
+        setCardImage(rec, next);
+        veil?.remove();
+        rec.sheet.querySelector(".save")?.removeAttribute("disabled");
+        rec.sheet.querySelector(".undo")?.toggleAttribute("disabled", !rec.undoDataUrl);
+      } catch (err) {
+        veil?.classList.add("error");
+        if (veil) veil.textContent = err.message || "the selected wash could not be layered.";
+        rec.sheet.querySelector(".save")?.toggleAttribute("disabled", !rec.dataUrl);
+        rec.sheet.querySelector(".undo")?.toggleAttribute("disabled", !rec.undoDataUrl);
+      }
     } else if (veil) {
       veil.classList.add("error");
       veil.textContent = "the wash dried invisibly. try re-rendering.";
     }
   }
 
+  paintingNow = false;
   drainQueue();
 }
 
 function selectPainting(id) {
   selectedId = id;
   for (const sheet of wallEl.querySelectorAll(".sheet")) {
-    sheet.classList.toggle("active", sheet.dataset.id === id);
+    const active = sheet.dataset.id === id;
+    sheet.classList.toggle("active", active);
+    sheet.setAttribute("aria-current", active ? "true" : "false");
   }
+  syncDirectEditor(cards.get(id));
+}
+
+function undoRestyle(id) {
+  const rec = cards.get(id);
+  if (!rec?.undoDataUrl || paintingNow) return;
+  setCardImage(rec, rec.undoDataUrl);
+  rec.undoDataUrl = null;
+  rec.sheet.querySelector(".undo")?.setAttribute("disabled", "");
 }
 
 async function generate({ scene, sampleId } = {}) {
@@ -1060,7 +1326,10 @@ document.addEventListener("pointerdown", (event) => {
   about.classList.remove("is-open");
 });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") about?.classList.remove("is-open");
+  if (event.key === "Escape") {
+    about?.classList.remove("is-open");
+    clearRegion();
+  }
 });
 
 function mountDeskScroll() {
