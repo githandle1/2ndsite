@@ -561,7 +561,7 @@ select.choice-native {
   box-sizing: border-box;
   position: fixed;
   inset: unset;
-  z-index: 40;
+  z-index: 80;
   margin: 0;
   padding: 6px;
   width: max-content;
@@ -1469,9 +1469,8 @@ select.choice-native {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 0;
-  flex: 0 1 auto;
-  margin-inline-end: 8px;
+  flex: 0 0 auto;
+  margin-inline-end: 14px;
   color: var(--muted);
   font-size: 10px;
   letter-spacing: 0.01em;
@@ -1588,6 +1587,7 @@ select.choice-native {
 .sheet-edit .choice {
   flex: 0 0 auto;
   width: auto;
+  margin-inline-start: 2px;
 }
 
 .sheet-edit .choice-trigger {
@@ -1596,7 +1596,7 @@ select.choice-native {
   gap: 3px;
   width: auto;
   height: 18px;
-  padding: 0 14px 0 4px;
+  padding: 0 14px 0 8px;
   border: 0;
   background: transparent;
   font-size: 10px;
@@ -1645,11 +1645,15 @@ select.choice-native {
 }
 
 .frame.is-nudging,
-.frame.is-nudging img {
+.frame.is-nudging img,
+.frame.is-carrying,
+.frame.is-carrying img,
+body:has(.frame.is-carrying) {
   cursor: grabbing;
 }
 
-.frame.is-nudging img {
+.frame.is-nudging .wash-lift,
+.frame.is-carrying .wash-lift {
   will-change: transform;
 }
 
@@ -1696,6 +1700,11 @@ select.choice-native {
   cursor: pointer;
 }
 
+.frame .pick::before,
+.frame .pick::after {
+  grid-area: 1 / 1;
+}
+
 .frame .pick::after {
   content: "";
   width: 6px;
@@ -1727,6 +1736,39 @@ select.choice-native {
   cursor: default;
 }
 
+.frame .sheet-close {
+  display: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+.sheet.is-expanded .sheet-close {
+  display: grid;
+  place-items: center;
+}
+
+.frame .sheet-close svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.frame .sheet-close:hover,
+.frame .sheet-close:focus-visible {
+  color: var(--hover);
+  background: transparent;
+}
+
+.frame .sheet-close:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--hover) 45%, transparent);
+  outline-offset: 1px;
+}
+
 .frame img {
   display: block;
   width: 100%;
@@ -1734,6 +1776,18 @@ select.choice-native {
   object-fit: cover;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+.wash-lift {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.frame.is-nudging .wash-lift,
+.frame.is-carrying .wash-lift {
+  filter: drop-shadow(0 6px 14px rgba(36, 33, 31, 0.14));
 }
 
 .caption {
@@ -1773,39 +1827,6 @@ select.choice-native {
   display: none;
 }
 
-.sheet-stage-close {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  z-index: 3;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.sheet-stage-close svg {
-  display: block;
-  width: 14px;
-  height: 14px;
-}
-
-.sheet-stage-close:hover,
-.sheet-stage-close:focus-visible {
-  color: var(--hover);
-}
-
-.sheet-stage-close:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--hover) 45%, transparent);
-  outline-offset: 1px;
-}
-
 .sheet-stage .sheet {
   position: relative;
   display: block;
@@ -1835,6 +1856,78 @@ select.choice-native {
 .sheet-stage .caption .caption-name,
 .sheet-stage .caption .sheet-edit {
   pointer-events: auto;
+}
+
+.sheet-stage .sheet-edit {
+  gap: 8px;
+}
+
+.sheet-stage .sheet-edit.is-bottom,
+.sheet-stage .sheet-edit.is-left,
+.sheet-stage .sheet-edit.is-right,
+.sheet-stage .sheet-edit.is-free,
+.sheet-stage .sheet-edit.is-dragging {
+  padding: 7px 12px;
+}
+
+.sheet-stage .sheet-edit.is-left,
+.sheet-stage .sheet-edit.is-right {
+  padding: 8px 6px 7px;
+}
+
+.sheet-stage .sheet-edit-grip {
+  width: 12px;
+  height: 12px;
+}
+
+.sheet-stage .sheet-edit-color {
+  width: 20px;
+  height: 20px;
+}
+
+.sheet-stage .sheet-edit-swatch {
+  width: 18px;
+  height: 18px;
+}
+
+.sheet-stage .sheet-edit-sat {
+  gap: 12px;
+  margin-inline-end: 18px;
+  font-size: 12px;
+}
+
+.sheet-stage .sheet-edit-sat-rail {
+  width: 76px;
+  height: 10px;
+}
+
+.sheet-stage .sheet-edit-sat-rail::after {
+  width: 10px;
+  height: 10px;
+}
+
+.sheet-stage .sheet-edit.is-left .sheet-edit-sat-rail,
+.sheet-stage .sheet-edit.is-right .sheet-edit-sat-rail {
+  width: 10px;
+  height: 76px;
+}
+
+.sheet-stage .sheet-edit-sat-rail input::-webkit-slider-thumb,
+.sheet-stage .sheet-edit-sat-rail input::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+}
+
+.sheet-stage .sheet-edit .choice-trigger {
+  height: 22px;
+  padding: 0 16px 0 10px;
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.sheet-stage .sheet-edit .choice-trigger svg {
+  width: 13px;
+  height: 13px;
 }
 
 .sheet-stage .expand {
@@ -2110,7 +2203,8 @@ body.is-sheet-open {
   .upload:active,
   .reset:active,
   .save:active,
-  .expand:active {
+  .expand:active,
+  .sheet-close:active {
     color: var(--hover);
   }
 
@@ -2410,7 +2504,8 @@ body.is-sheet-open {
   }
 
   .frame .expand,
-  .frame .pick {
+  .frame .pick,
+  .frame .sheet-close {
     width: 44px;
     height: 44px;
   }
@@ -2419,31 +2514,20 @@ body.is-sheet-open {
     display: none;
   }
 
-  .frame .expand svg {
+  .frame .expand svg,
+  .frame .sheet-close svg {
     width: 16px;
     height: 16px;
   }
 
   .frame .pick::after {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   .sheet-stage {
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
       env(safe-area-inset-left);
-  }
-
-  .sheet-stage-close {
-    top: max(10px, env(safe-area-inset-top));
-    right: max(10px, env(safe-area-inset-right));
-    width: 44px;
-    height: 44px;
-  }
-
-  .sheet-stage-close svg {
-    width: 16px;
-    height: 16px;
   }
 
   .sheet-stage .caption {

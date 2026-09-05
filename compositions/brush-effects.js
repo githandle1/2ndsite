@@ -267,8 +267,9 @@ function point(x, y, e) {
   scale *= amp(e.intimacy, 0.86, 1.2);
   scale *= amp(e.grandeur, 0.88, 1.24);
   scale *= amp(e.spatialDepth, 1.08, 0.9);
-  const dx = amp(e.placeX, -168, 168);
-  const dy = amp(e.placeY, 168, -168);
+  const reach = (typeof window.width === "number" ? window.width : 720) / 2;
+  const dx = amp(e.placeX, -reach, reach);
+  const dy = amp(e.placeY, reach, -reach);
   return {
     x: cx + (x - cx) * scale + dx,
     y: cy + (y - cy) * scale + dy,

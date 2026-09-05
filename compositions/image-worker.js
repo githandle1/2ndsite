@@ -1,4 +1,4 @@
-import { CELLS, averageHex, blobToDataUrl, planFromPixels, rasterContain } from "./photo-wash-plan.js?v=1";
+import { CELLS, averageHex, blobToDataUrl, planFromPixels, rasterContain, splitSubjectFromImageData } from "./photo-wash-plan.js?v=2";
 
 async function sourceFrom(payload) {
   if (payload.bitmap) return payload.bitmap;
@@ -41,7 +41,27 @@ async function encodePng(payload) {
   return { dataUrl: await blobToDataUrl(blob) };
 }
 
-const jobs = { rasterize, planWash, encodePng };
+async function canvasUrl(pixels, width, height) {
+  const canvas = new OffscreenCanvas(width, height);
+  canvas.getContext("2d").putImageData(new ImageData(pixels, width, height), 0, 0);
+  return blobToDataUrl(await canvas.convertToBlob({ type: "image/png" }));
+}
+
+async function splitSubject(payload) {
+  const bitmap = await sourceFrom(payload);
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(bitmap, 0, 0);
+  const split = splitSubjectFromImageData(ctx.getImageData(0, 0, bitmap.width, bitmap.height));
+  bitmap.close?.();
+  const [baseUrl, liftUrl] = await Promise.all([
+    canvasUrl(split.base, split.width, split.height),
+    canvasUrl(split.lift, split.width, split.height),
+  ]);
+  return { baseUrl, liftUrl, hits: split.hits, hitsSize: split.hitsSize };
+}
+
+const jobs = { rasterize, planWash, encodePng, splitSubject };
 
 self.onmessage = async (event) => {
   const { id, type } = event.data || {};
