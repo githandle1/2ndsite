@@ -147,13 +147,15 @@ function mountChoice(select, options = {}) {
     menu.style.left = compact ? `${rect.right}px` : `${rect.left}px`;
     menu.style.top = `${rect.bottom + gap}px`;
     const box = menu.getBoundingClientRect();
+    const view = viewSize();
+    menu.style.maxHeight = `${Math.min(280, view.height - 16)}px`;
     if (compact) {
       menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
     }
-    if (box.bottom > window.innerHeight - 8 && rect.top > box.height + gap + 8) {
+    if (box.bottom > view.height - 8 && rect.top > box.height + gap + 8) {
       menu.style.top = `${rect.top - box.height - gap}px`;
     }
-    if (!compact && box.right > window.innerWidth - 8) {
+    if (!compact && box.right > view.width - 8) {
       menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
     }
   }
@@ -174,9 +176,10 @@ function mountChoice(select, options = {}) {
     trigger.setAttribute("aria-expanded", "true");
     document.body.append(menu);
     menu.hidden = false;
+    holdPopovers();
     placeMenu();
     const selected = menu.querySelector("[role=option].is-selected") || menu.querySelector("[role=option]");
-    selected?.focus();
+    selected?.focus({ preventScroll: true });
   }
 
   function pick(value) {
@@ -259,7 +262,29 @@ function mountChoice(select, options = {}) {
   return select;
 }
 
+function isCompact() {
+  return window.matchMedia("(max-width: 720px), (max-height: 540px) and (max-width: 960px)").matches;
+}
+
+function viewSize() {
+  return {
+    width: Math.round(window.visualViewport?.width || window.innerWidth),
+    height: Math.round(window.visualViewport?.height || window.innerHeight),
+  };
+}
+
+function syncAppHeight() {
+  document.documentElement.style.setProperty("--app-h", `${viewSize().height}px`);
+}
+
+let popoverHold = 0;
+
+function holdPopovers(ms = 400) {
+  popoverHold = Date.now() + ms;
+}
+
 function closePopovers() {
+  if (Date.now() < popoverHold) return;
   closeChoiceMenus();
   closeSheetColorMenus();
 }
@@ -280,8 +305,30 @@ document.addEventListener("keydown", (event) => {
   if (stagedSheet) closeSheetStage();
 });
 
-window.addEventListener("resize", () => closePopovers());
-document.addEventListener("scroll", () => closePopovers(), true);
+window.addEventListener("resize", () => {
+  closePopovers();
+  sizeScene();
+  syncAppHeight();
+});
+document.addEventListener(
+  "scroll",
+  (event) => {
+    const target = event.target;
+    if (target instanceof Element && target.closest(".choice-menu, .sheet-color-menu, .sheet-edit")) return;
+    closePopovers();
+  },
+  true
+);
+window.visualViewport?.addEventListener("resize", syncAppHeight);
+window.visualViewport?.addEventListener("scroll", syncAppHeight);
+window.addEventListener("orientationchange", () => {
+  requestAnimationFrame(() => {
+    syncAppHeight();
+    sizeScene();
+    closePopovers();
+  });
+});
+syncAppHeight();
 
 mountChoice(countEl, {
   renderTrigger(trigger, _value, label) {
@@ -298,11 +345,15 @@ mountChoice(providerEl);
 
 function sizeScene() {
   sceneEl.style.height = "0px";
-  const next = Math.min(sceneEl.scrollHeight, 280);
-  sceneEl.style.height = `${Math.max(next, 96)}px`;
+  const compact = isCompact();
+  const next = Math.min(sceneEl.scrollHeight, compact ? 148 : 280);
+  sceneEl.style.height = `${Math.max(next, compact ? 68 : 96)}px`;
 }
 
 sceneEl.addEventListener("input", sizeScene);
+sceneEl.addEventListener("focus", () => {
+  requestAnimationFrame(() => sceneEl.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+});
 
 function setPhotoLabel(name) {
   const label = name ? name : "upload photo";
@@ -473,7 +524,12 @@ function fitPaintKit() {
   const samples = document.querySelector("#sampleKit");
   if (samples) samples.open = true;
   paintKit.addEventListener("toggle", () => {
-    if (paintKit.open) openPaintSections();
+    if (paintKit.open) {
+      openPaintSections();
+      if (isCompact()) {
+        requestAnimationFrame(() => paintKit.querySelector("summary")?.scrollIntoView({ block: "nearest" }));
+      }
+    }
     const desk = document.querySelector(".desk");
     if (!paintKit.open && desk) desk.scrollTop = 0;
   });
@@ -657,8 +713,9 @@ function mountSheetEditor(sheet, item) {
     let left = rect.left + rect.width / 2 - box.width / 2;
     let top = rect.top - box.height - gap;
     if (top < 8) top = rect.bottom + gap;
-    left = Math.max(8, Math.min(left, window.innerWidth - box.width - 8));
-    top = Math.max(8, Math.min(top, window.innerHeight - box.height - 8));
+    const view = viewSize();
+    left = Math.max(8, Math.min(left, view.width - box.width - 8));
+    top = Math.max(8, Math.min(top, view.height - box.height - 8));
     colorMenu.style.left = `${left}px`;
     colorMenu.style.top = `${top}px`;
   };
@@ -669,8 +726,9 @@ function mountSheetEditor(sheet, item) {
     colorBtn.setAttribute("aria-expanded", "true");
     document.body.append(colorMenu);
     colorMenu.hidden = false;
+    holdPopovers();
     placeColorMenu();
-    colorMenu.querySelector(".color-square-map")?.focus();
+    colorMenu.querySelector(".color-square-map")?.focus({ preventScroll: true });
   };
 
   edit.addEventListener("click", (event) => event.stopPropagation());
@@ -680,10 +738,16 @@ function mountSheetEditor(sheet, item) {
     if (!event.target.closest(".sheet-edit-color, .sheet-color-menu")) closeSheetColorMenus();
   });
 
+  let colorOpenedAt = 0;
   colorBtn.addEventListener("click", (event) => {
     event.preventDefault();
-    if (colorBtn.getAttribute("aria-expanded") === "true") closeSheetColorMenus();
-    else openColorMenu();
+    if (colorBtn.getAttribute("aria-expanded") === "true") {
+      if (Date.now() - colorOpenedAt < 400) return;
+      closeSheetColorMenus();
+    } else {
+      openColorMenu();
+      colorOpenedAt = Date.now();
+    }
   });
   colorMenu.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
@@ -720,6 +784,7 @@ function mountSheetEditor(sheet, item) {
   };
 
   grip.addEventListener("pointerdown", (event) => {
+    if (isCompact()) return;
     if (event.button != null && event.button !== 0) return;
     event.preventDefault();
     closePopovers();
@@ -830,15 +895,17 @@ function mountStick(xInput, yInput) {
   thumb.className = "stick-thumb";
   well.append(thumb);
 
-  const reach = 22;
+  const reachOf = () => Math.max(18, well.clientWidth / 2 - 12);
 
   function syncThumb() {
+    const reach = reachOf();
     const x = Number(xInput.value) / 100;
     const y = Number(yInput.value) / 100;
     thumb.style.transform = `translate(${(x - 0.5) * 2 * reach}px, ${(0.5 - y) * 2 * reach}px)`;
   }
 
   function setFromPointer(clientX, clientY) {
+    const reach = reachOf();
     const box = well.getBoundingClientRect();
     const dx = clientX - (box.left + box.width / 2);
     const dy = clientY - (box.top + box.height / 2);
@@ -853,6 +920,7 @@ function mountStick(xInput, yInput) {
   }
 
   well.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
     well.classList.add("is-dragging");
     well.setPointerCapture(event.pointerId);
     setFromPointer(event.clientX, event.clientY);
@@ -1147,10 +1215,10 @@ function renderGrid(items) {
         <div class="frame-tools">
           <button type="button" class="expand" data-id="${item.id}" aria-label="expand" title="expand">
             <svg viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M3 6.2V3h3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
-              <path d="M9.8 3H13v3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
-              <path d="M13 9.8V13H9.8" fill="none" stroke="currentColor" stroke-width="1.5" />
-              <path d="M6.2 13H3V9.8" fill="none" stroke="currentColor" stroke-width="1.5" />
+              <path d="M9 3h4v4" fill="none" stroke="currentColor" stroke-width="1.5" />
+              <path d="M13 3 8.2 7.8" fill="none" stroke="currentColor" stroke-width="1.5" />
+              <path d="M7 13H3V9" fill="none" stroke="currentColor" stroke-width="1.5" />
+              <path d="M3 13l4.8-4.8" fill="none" stroke="currentColor" stroke-width="1.5" />
             </svg>
           </button>
           <button type="button" class="pick" data-id="${item.id}" aria-label="export training json" title="export for tinker" aria-pressed="false"${item.code ? "" : " disabled"}></button>
@@ -1445,19 +1513,27 @@ if (renderer.contentDocument?.readyState === "complete") {
 }
 
 const about = document.querySelector(".about");
+const aboutLabel = about?.querySelector(".about-label");
+
+function setAboutOpen(open) {
+  about?.classList.toggle("is-open", open);
+  aboutLabel?.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
 about?.addEventListener("click", (event) => {
   if (event.target.closest("a")) return;
-  about.classList.toggle("is-open");
+  if (event.target.closest(".about-menu")) return;
+  setAboutOpen(!about.classList.contains("is-open"));
 });
 about?.addEventListener("mouseleave", () => {
-  about.classList.remove("is-open");
+  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setAboutOpen(false);
 });
 document.addEventListener("pointerdown", (event) => {
   if (!about || !(event.target instanceof Element) || event.target.closest(".about")) return;
-  about.classList.remove("is-open");
+  setAboutOpen(false);
 });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") about?.classList.remove("is-open");
+  if (event.key === "Escape") setAboutOpen(false);
 });
 
 function mountDeskScroll() {
@@ -1539,6 +1615,24 @@ sheetStageEl?.querySelector(".sheet-stage-close")?.addEventListener("click", (ev
   event.stopPropagation();
   closeSheetStage();
 });
+
+{
+  let startY = 0;
+  let tracking = false;
+  sheetStageEl?.addEventListener("pointerdown", (event) => {
+    if (!isCompact() || event.target.closest("button, input, select, .sheet-edit, a, .choice-menu")) return;
+    startY = event.clientY;
+    tracking = true;
+  });
+  sheetStageEl?.addEventListener("pointerup", (event) => {
+    if (!tracking) return;
+    tracking = false;
+    if (event.clientY - startY > 72) closeSheetStage();
+  });
+  sheetStageEl?.addEventListener("pointercancel", () => {
+    tracking = false;
+  });
+}
 
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
