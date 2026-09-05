@@ -1069,37 +1069,52 @@ function mountDeskScroll() {
   const thumb = document.querySelector(".desk-scroll");
   if (!desk || !rail || !thumb) return;
 
-  const thumbH = 64;
+  const minThumbH = 32;
   let dragging = false;
+  let syncFrame = 0;
 
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
-  const metrics = () => {
-    const max = Math.max(0, desk.scrollHeight - desk.clientHeight);
+  const metrics = (max = Math.max(0, desk.scrollHeight - desk.clientHeight)) => {
+    const thumbH = clamp(
+      rail.clientHeight * (desk.clientHeight / desk.scrollHeight),
+      minThumbH,
+      rail.clientHeight,
+    );
     const travel = Math.max(1, rail.clientHeight - thumbH);
-    return { max, travel };
+    return { max, thumbH, travel };
   };
 
-  const sync = () => {
-    const { max, travel } = metrics();
+  const render = () => {
+    const max = Math.max(0, desk.scrollHeight - desk.clientHeight);
     if (max <= 4) {
       rail.hidden = true;
       return;
     }
     rail.hidden = false;
+    const { thumbH, travel } = metrics(max);
     const ratio = clamp(desk.scrollTop / max, 0, 1);
-    thumb.style.top = `${ratio * travel}px`;
+    thumb.style.height = `${thumbH}px`;
+    thumb.style.transform = `translate3d(0, ${ratio * travel}px, 0)`;
     rail.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
     rail.setAttribute("aria-valuemin", "0");
     rail.setAttribute("aria-valuemax", "100");
   };
 
+  const sync = () => {
+    if (syncFrame) return;
+    syncFrame = requestAnimationFrame(() => {
+      syncFrame = 0;
+      render();
+    });
+  };
+
   const scrollToClientY = (clientY) => {
-    const { max, travel } = metrics();
+    const { max, thumbH, travel } = metrics();
     if (max <= 4) return;
     const y = clamp(clientY - rail.getBoundingClientRect().top - thumbH / 2, 0, travel);
     desk.scrollTop = (y / travel) * max;
-    thumb.style.top = `${y}px`;
+    thumb.style.transform = `translate3d(0, ${y}px, 0)`;
   };
 
   rail.addEventListener("pointerdown", (event) => {
@@ -1131,7 +1146,7 @@ function mountDeskScroll() {
   desk.addEventListener("scroll", sync, { passive: true });
   new ResizeObserver(sync).observe(desk);
   new ResizeObserver(sync).observe(rail);
-  desk.addEventListener("toggle", () => requestAnimationFrame(sync), true);
+  desk.addEventListener("toggle", sync, true);
   sync();
 }
 
