@@ -1324,14 +1324,18 @@ select.choice-native {
     max-height: 48dvh;
   }
 
+  .desk-frame {
+    height: 100%;
+  }
+
   .desk {
     position: relative;
     top: auto;
     width: 100%;
-    height: 100%;
+    height: auto;
     min-width: 0;
     min-height: 0;
-    max-height: none;
+    max-height: 100%;
     margin: 0;
     padding: 14px 14px 12px;
     gap: 14px;
@@ -1340,6 +1344,10 @@ select.choice-native {
     overflow-y: auto;
     overscroll-behavior-x: none;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .desk:has(.paint-kit[open]) {
+    height: 100%;
   }
 
   h1 {
