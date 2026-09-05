@@ -2537,6 +2537,9 @@ body.is-sheet-open {
   }
 
   .sheet-stage .sheet-edit {
+    flex: 0 0 auto;
+    width: max-content;
+    max-width: calc(100% - 96px);
     gap: 4px;
     padding: 3px 5px;
     border-radius: 999px;
