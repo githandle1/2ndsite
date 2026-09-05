@@ -2246,9 +2246,9 @@ body.is-sheet-open {
   }
 
   .slide input[type="range"]::-webkit-slider-thumb {
-    width: 22px;
-    height: 22px;
-    margin-top: -10px;
+    width: 11px;
+    height: 11px;
+    margin-top: -4.5px;
   }
 
   .slide input[type="range"]::-moz-range-track {
@@ -2256,8 +2256,8 @@ body.is-sheet-open {
   }
 
   .slide input[type="range"]::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 11px;
+    height: 11px;
   }
 
   select,
@@ -2317,8 +2317,8 @@ body.is-sheet-open {
 
   .color-square-hue::-webkit-slider-thumb,
   .color-square-hue::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 11px;
+    height: 11px;
   }
 
   .color-square-hex {
@@ -2415,8 +2415,8 @@ body.is-sheet-open {
   }
 
   .sheet-edit-sat-rail::after {
-    width: 16px;
-    height: 16px;
+    width: 8px;
+    height: 8px;
   }
 
   .sheet-edit.is-left .sheet-edit-sat-rail,
@@ -2488,8 +2488,8 @@ body.is-sheet-open {
 
   .sheet-color-menu .color-square-hue::-webkit-slider-thumb,
   .sheet-color-menu .color-square-hue::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 8px;
+    height: 8px;
   }
 
   .sheet-color-menu .color-square-hex {
