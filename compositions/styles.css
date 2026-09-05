@@ -321,14 +321,6 @@ h1 {
   min-width: 0;
 }
 
-.create-hint {
-  display: none;
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
 .field-head .choice {
   flex: 0 0 auto;
   width: auto;
@@ -1980,10 +1972,6 @@ body.is-sheet-open {
   .field-head {
     justify-content: flex-start;
     gap: 12px;
-  }
-
-  .create-hint {
-    display: block;
   }
 
   #scene,
