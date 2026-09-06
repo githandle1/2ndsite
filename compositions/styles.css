@@ -328,6 +328,38 @@ h1 {
   height: 0;
 }
 
+@media (min-width: 721px) {
+  .desk {
+    gap: 14px;
+    padding: 20px;
+  }
+
+  .about-label {
+    margin-top: 7px;
+  }
+
+  .mode-switch {
+    gap: 12px;
+    margin-top: 0;
+  }
+
+  .stack {
+    gap: 12px;
+  }
+
+  .stack > .field {
+    gap: 12px;
+  }
+
+  .scene-row {
+    gap: 8px;
+  }
+
+  .chips {
+    gap: 6px;
+  }
+}
+
 .desk-rail {
   position: absolute;
   top: 22px;
@@ -815,6 +847,10 @@ select.choice-native {
   display: block;
   width: 14px;
   height: 14px;
+}
+
+.paint .lucide-icon {
+  stroke-width: 1.75;
 }
 
 .reset,
@@ -3305,7 +3341,7 @@ body.is-sheet-open {
     height: 21px;
     fill: none;
     stroke: currentColor;
-    stroke-width: 1.45;
+    stroke-width: 1.75;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
