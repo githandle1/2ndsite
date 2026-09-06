@@ -1026,6 +1026,12 @@ function mountSubjectDrag(sheet, item) {
   let dragEffects = null;
   let moveFrame = null;
   let pendingPoint = null;
+  let preparing = false;
+  let pointerDown = false;
+  let activePointerId = null;
+  let gestureStart = null;
+  let latestPoint = null;
+  let preparationCancelled = false;
 
   const img = () => frame.querySelector("img:not(.wash-lift)");
 
@@ -1044,6 +1050,18 @@ function mountSubjectDrag(sheet, item) {
     if (!lift) return;
     const box = dragBox || frame.getBoundingClientRect();
     lift.style.transform = `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
+  };
+
+  const transformFor = (placeX, placeY) => {
+    const box = dragBox || frame.getBoundingClientRect();
+    return `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
+  };
+
+  const previewComposite = (clientX, clientY) => {
+    const picture = img();
+    if (!picture || !isPhone()) return;
+    const next = placementFrom(clientX, clientY);
+    picture.style.transform = transformFor(next.placeX, next.placeY);
   };
 
   const write = (placeX, placeY, syncControls = false) => {
@@ -1069,6 +1087,7 @@ function mountSubjectDrag(sheet, item) {
       const point = pendingPoint;
       pendingPoint = null;
       if (point && (holding || carrying)) follow(point.clientX, point.clientY);
+      else if (point && preparing) previewComposite(point.clientX, point.clientY);
     });
   };
 
@@ -1078,12 +1097,10 @@ function mountSubjectDrag(sheet, item) {
     pendingPoint = null;
   };
 
-  const showLift = (rec) => {
+  const showLift = (rec, placeX = startPlaceX, placeY = startPlaceY) => {
     const picture = img();
     const split = rec.split;
     if (!picture || !split?.baseUrl || !split?.liftUrl) return false;
-    picture.src = split.baseUrl;
-    picture.style.transform = "";
     let lift = liftEl();
     if (!lift) {
       lift = document.createElement("img");
@@ -1093,7 +1110,9 @@ function mountSubjectDrag(sheet, item) {
       frame.append(lift);
     }
     lift.src = split.liftUrl;
-    lift.style.transform = "";
+    lift.style.transform = transformFor(placeX, placeY);
+    picture.src = split.baseUrl;
+    picture.style.transform = "";
     return true;
   };
 
@@ -1112,12 +1131,14 @@ function mountSubjectDrag(sheet, item) {
     dragBox = null;
     holding = false;
     carrying = false;
-    activeSubjectDragId = null;
+    pointerDown = false;
+    activePointerId = null;
     moved = true;
     unbindCarry();
     frame.classList.remove("is-nudging", "is-carrying");
     persistSettings();
     scheduleSheetRender(item.id);
+    activeSubjectDragId = null;
     dragEffects = null;
   };
 
@@ -1125,6 +1146,8 @@ function mountSubjectDrag(sheet, item) {
     stopFollowing();
     holding = false;
     carrying = false;
+    pointerDown = false;
+    activePointerId = null;
     activeSubjectDragId = null;
     unbindCarry();
     write(startPlaceX, startPlaceY, true);
@@ -1177,7 +1200,7 @@ function mountSubjectDrag(sheet, item) {
     // On phones, inactive gallery cards remain scrollable. The selected card
     // keeps vertical panning in CSS while accepting horizontal subject drags.
     if (isPhone() && !sheet.classList.contains("active") && !sheet.classList.contains("is-expanded")) return;
-    if (carrying) return;
+    if (carrying || holding || preparing) return;
     if (event.button != null && event.button !== 0) return;
     if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .veil")) return;
     if (!img()) return;
@@ -1186,51 +1209,130 @@ function mountSubjectDrag(sheet, item) {
     if (!rec?.dataUrl) return;
     event.preventDefault();
     selectPainting(item.id);
-    const waited = !rec.split?.baseUrl;
-    if (waited) frame.classList.add("is-nudging");
-    try {
-      await ensureSplit(rec);
-    } catch {
-      frame.classList.remove("is-nudging");
-      return;
-    }
-    if (!hitSubject(frame, rec, event.clientX, event.clientY)) {
-      frame.classList.remove("is-nudging");
-      return;
-    }
-    if (!showLift(rec)) {
-      frame.classList.remove("is-nudging");
-      return;
-    }
-    activeSubjectDragId = item.id;
     const fx = sheetEffects(rec);
     dragEffects = fx;
-    moved = false;
     startX = event.clientX;
     startY = event.clientY;
     startPlaceX = fx.placeX ?? 0.5;
     startPlaceY = fx.placeY ?? 0.5;
     dragBox = frame.getBoundingClientRect();
-    if (waited) {
-      carrying = true;
-      frame.classList.add("is-carrying");
-      bindCarry();
-      return;
-    }
-    holding = true;
-    frame.classList.add("is-nudging");
+    preparing = true;
+    pointerDown = true;
+    preparationCancelled = false;
+    activePointerId = event.pointerId;
+    gestureStart = { clientX: event.clientX, clientY: event.clientY };
+    latestPoint = gestureStart;
+    moved = false;
+    activeSubjectDragId = item.id;
     try {
       frame.setPointerCapture(event.pointerId);
     } catch {
       /* ignore */
     }
+    const waited = !rec.split?.baseUrl;
+    if (waited) frame.classList.add("is-nudging");
+    try {
+      await ensureSplit(rec);
+    } catch {
+      activeSubjectDragId = null;
+      stopFollowing();
+      preparing = false;
+      pointerDown = false;
+      activePointerId = null;
+      gestureStart = null;
+      latestPoint = null;
+      dragBox = null;
+      dragEffects = null;
+      clearPreview(true);
+      return;
+    }
+    if (preparationCancelled || activePointerId !== event.pointerId) {
+      activeSubjectDragId = null;
+      preparing = false;
+      pointerDown = false;
+      activePointerId = null;
+      gestureStart = null;
+      latestPoint = null;
+      dragBox = null;
+      dragEffects = null;
+      clearPreview(true);
+      return;
+    }
+    const origin = gestureStart;
+    const finalPoint = latestPoint || origin;
+    if (!origin || !hitSubject(frame, rec, origin.clientX, origin.clientY)) {
+      activeSubjectDragId = null;
+      stopFollowing();
+      preparing = false;
+      pointerDown = false;
+      activePointerId = null;
+      gestureStart = null;
+      latestPoint = null;
+      dragBox = null;
+      dragEffects = null;
+      clearPreview(true);
+      return;
+    }
+    const finalPlacement = placementFrom(finalPoint.clientX, finalPoint.clientY);
+    if (!showLift(rec, finalPlacement.placeX, finalPlacement.placeY)) {
+      activeSubjectDragId = null;
+      stopFollowing();
+      preparing = false;
+      pointerDown = false;
+      activePointerId = null;
+      gestureStart = null;
+      latestPoint = null;
+      dragBox = null;
+      dragEffects = null;
+      clearPreview(true);
+      return;
+    }
+    preparing = false;
+    gestureStart = null;
+    latestPoint = null;
+    if (pointerDown) {
+      holding = true;
+      frame.classList.add("is-nudging");
+      if (moved) follow(finalPoint.clientX, finalPoint.clientY);
+      return;
+    }
+    activePointerId = null;
+    if (moved) {
+      drop(finalPoint.clientX, finalPoint.clientY);
+      return;
+    }
+    if (waited && !isPhone()) {
+      carrying = true;
+      frame.classList.add("is-carrying");
+      bindCarry();
+      return;
+    }
+    clearPreview(true);
+    activeSubjectDragId = null;
+    dragBox = null;
+    dragEffects = null;
   }
   frame.addEventListener("pointermove", (event) => {
+    if (event.pointerId !== activePointerId) return;
+    if (preparing) {
+      latestPoint = { clientX: event.clientX, clientY: event.clientY };
+      if (gestureStart && Math.hypot(event.clientX - gestureStart.clientX, event.clientY - gestureStart.clientY) > 4) moved = true;
+      queueFollow(event.clientX, event.clientY);
+      return;
+    }
     if (!holding || carrying) return;
     queueFollow(event.clientX, event.clientY);
     if (Math.hypot(event.clientX - startX, event.clientY - startY) > 4) moved = true;
   });
   frame.addEventListener("pointerup", (event) => {
+    if (event.pointerId !== activePointerId) return;
+    pointerDown = false;
+    if (preparing) {
+      latestPoint = { clientX: event.clientX, clientY: event.clientY };
+      if (gestureStart && Math.hypot(event.clientX - gestureStart.clientX, event.clientY - gestureStart.clientY) > 4) moved = true;
+      queueFollow(event.clientX, event.clientY);
+      return;
+    }
     if (!holding || carrying) return;
     holding = false;
     try {
@@ -1246,7 +1348,18 @@ function mountSubjectDrag(sheet, item) {
     frame.classList.add("is-carrying");
     bindCarry();
   });
-  frame.addEventListener("pointercancel", () => {
+  frame.addEventListener("pointercancel", (event) => {
+    if (event.pointerId !== activePointerId) return;
+    pointerDown = false;
+    if (preparing) {
+      preparationCancelled = true;
+      activeSubjectDragId = null;
+      stopFollowing();
+      dragBox = null;
+      dragEffects = null;
+      clearPreview(true);
+      return;
+    }
     if (holding && !carrying) cancel();
   });
   sheet.addEventListener("click", (event) => {
