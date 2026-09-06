@@ -380,8 +380,8 @@ h1 {
   .scene-row .upload,
   .scene-row .paint {
     flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
   }
 
@@ -393,8 +393,8 @@ h1 {
 
   .scene-row .upload svg,
   .scene-row .paint svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
   .scene-row .paint {
@@ -3200,8 +3200,8 @@ body.is-sheet-open {
   .mobile-sheet .scene-row .upload,
   .mobile-sheet .scene-row .paint {
     flex: 0 0 auto;
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
   }
 
@@ -3213,8 +3213,8 @@ body.is-sheet-open {
 
   .mobile-sheet .scene-row .upload svg,
   .mobile-sheet .scene-row .paint svg {
-    width: 19px;
-    height: 19px;
+    width: 17px;
+    height: 17px;
   }
 
   .mobile-sheet .scene-row .paint {
@@ -3551,4 +3551,10 @@ body.is-sheet-open {
     padding: 4px 0;
     min-height: 0;
   }
+}
+
+.stack > .field #scene:focus,
+.stack > .field #scene:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
