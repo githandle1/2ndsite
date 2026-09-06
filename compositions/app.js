@@ -766,7 +766,7 @@ function mountSheetEditor(sheet, item) {
   }
   mountChoice(brush, {
     renderTrigger(trigger, _value, label) {
-      const icon = document.querySelector("#paint svg")?.cloneNode(true) || document.createElement("span");
+      const icon = document.querySelector('[data-mobile-tool="brush"] svg')?.cloneNode(true) || document.createElement("span");
       icon.setAttribute("aria-hidden", "true");
       const word = document.createElement("span");
       word.textContent = label;
@@ -1303,7 +1303,9 @@ function mountMobileEditor() {
     onChange: (color) => applyMobilePatch({ color }),
   });
   for (const button of mobileToolButtons) {
-    button.addEventListener("click", () => setMobileTool(button.dataset.mobileTool));
+    button.addEventListener("click", () => {
+      setMobileTool(button.classList.contains("is-active") ? null : button.dataset.mobileTool);
+    });
   }
   for (const input of mobileEffectInputs) {
     input.addEventListener("input", () => {
@@ -1311,7 +1313,7 @@ function mountMobileEditor() {
       applyMobilePatch({ [input.dataset.mobileEffect]: Number(input.value) / 100 });
     });
   }
-  setMobileTool("brush");
+  setMobileTool(null);
 }
 
 function makeSlider(id, label, value) {
