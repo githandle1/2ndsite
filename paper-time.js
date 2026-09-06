@@ -58,24 +58,6 @@
     };
 
     const STORAGE_KEY = "cabinet-scheme";
-    const TIME_ZONE = "America/New_York";
-
-    const partNumber = (parts, type) =>
-        Number(parts.find((part) => part.type === type)?.value || 0);
-
-    const hourInTimeZone = (date, timeZone) => {
-        const parts = new Intl.DateTimeFormat("en-US", {
-            timeZone,
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
-            hourCycle: "h23"
-        }).formatToParts(date);
-
-        return partNumber(parts, "hour")
-            + partNumber(parts, "minute") / 60
-            + partNumber(parts, "second") / 3600;
-    };
 
     const toRgb = (hex) => [
         Number.parseInt(hex.slice(1, 3), 16),
@@ -145,7 +127,8 @@
             return requestedHour;
         }
 
-        return hourInTimeZone(new Date(), TIME_ZONE);
+        const now = new Date();
+        return now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
     };
 
     const updatePaper = () => {
@@ -183,8 +166,6 @@
     window.paperTime = {
         setScheme,
         getScheme: activeScheme,
-        getHour: localHour,
-        timeZone: TIME_ZONE,
         updatePaper
     };
 })();
