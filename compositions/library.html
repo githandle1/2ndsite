@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#faf9f6" />
+    <title>library · compositions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css?v=180" />
+  </head>
+  <body class="library-body">
+    <main class="library-studio">
+      <aside class="library-desk">
+        <header class="library-masthead">
+          <a class="library-back" href="./">← compositions</a>
+          <h1>library</h1>
+          <p class="library-intro">a private open-access image shelf for future paintings.</p>
+        </header>
+
+        <form class="library-search" id="librarySearch">
+          <label for="libraryQuery">search by meaning</label>
+          <div class="library-search-row">
+            <input
+              id="libraryQuery"
+              name="q"
+              type="search"
+              value="lonely kitchen at dusk"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button class="library-search-button" type="submit">search</button>
+          </div>
+          <p class="library-search-note">
+            kept and seed images are ranked from their detailed captions, not filenames.
+          </p>
+        </form>
+
+        <div class="library-filters" aria-labelledby="sourceLabel">
+          <span id="sourceLabel">source</span>
+          <div class="chips" role="group" aria-label="image source">
+            <button class="chip" type="button" data-source="commons">commons</button>
+            <button class="chip" type="button" data-source="met">met</button>
+            <button class="chip active" type="button" data-source="both">both</button>
+          </div>
+        </div>
+
+        <div class="library-filters" aria-labelledby="genreLabel">
+          <span id="genreLabel">genre</span>
+          <div class="chips" role="group" aria-label="artistic genre">
+            <button class="chip active" type="button" data-genre="">all</button>
+            <button class="chip" type="button" data-genre="impressionism">impressionism</button>
+            <button class="chip" type="button" data-genre="still-life">still life</button>
+            <button class="chip" type="button" data-genre="landscape">landscape</button>
+            <button class="chip" type="button" data-genre="portrait">portrait</button>
+            <button class="chip" type="button" data-genre="cubism">cubism</button>
+            <button class="chip" type="button" data-genre="ukiyo-e">ukiyo-e</button>
+            <button class="chip" type="button" data-genre="baroque">baroque</button>
+            <button class="chip" type="button" data-genre="abstract">abstract</button>
+          </div>
+        </div>
+
+        <div class="library-filters" aria-labelledby="licenseLabel">
+          <span id="licenseLabel">license</span>
+          <div class="chips" role="group" aria-label="license">
+            <button class="chip active" type="button" data-license="public-domain">
+              public domain + cc0
+            </button>
+            <button class="chip" type="button" data-license="cc0">cc0 only</button>
+          </div>
+        </div>
+
+        <p class="status library-status" id="libraryStatus" role="status"></p>
+
+        <details class="library-kept" open>
+          <summary>
+            kept
+            <span class="library-count" id="keptCount">0</span>
+          </summary>
+          <div class="library-kept-list" id="keptList"></div>
+          <p class="library-empty" id="keptEmpty">kept images will gather here.</p>
+        </details>
+
+        <section class="library-export" aria-labelledby="exportLabel">
+          <span id="exportLabel">export</span>
+          <div class="library-export-row">
+            <div class="chips" role="group" aria-label="export format">
+              <button class="chip active" type="button" data-format="json">json</button>
+              <button class="chip" type="button" data-format="jsonl">jsonl</button>
+            </div>
+            <button class="library-export-button" id="exportKept" type="button" disabled>
+              download
+            </button>
+          </div>
+          <p class="library-note">
+            exports keep dense + short captions and provenance. a later <code>paint()</code>
+            distillation step turns references into code-painting training pairs.
+          </p>
+        </section>
+      </aside>
+
+      <section class="library-wall" aria-labelledby="resultsTitle">
+        <header class="library-wall-head">
+          <div>
+            <span class="library-eyebrow">caption index + commons + met open access</span>
+            <h2 id="resultsTitle">meaning shelves</h2>
+          </div>
+          <span class="library-result-count" id="resultCount"></span>
+        </header>
+        <div class="library-grid" id="libraryGrid" aria-live="polite"></div>
+        <button class="library-more" id="libraryMore" type="button" hidden>
+          more open-access images
+        </button>
+      </section>
+    </main>
+    <script type="module" src="library.js?v=7"></script>
+  </body>
+</html>
