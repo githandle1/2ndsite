@@ -11,13 +11,13 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=168" />
+    <link rel="stylesheet" href="styles.css?v=172" />
   </head>
   <body>
     <main class="studio">
       <div class="desk-shell">
       <div class="desk-frame">
-      <aside class="desk" id="desk">
+      <aside class="desk" id="desk" data-mode="create">
         <div class="masthead">
           <h1>compositions</h1>
           <div class="about">
@@ -35,28 +35,35 @@
               </p>
             </div>
           </div>
+          <div class="mode-switch" role="tablist" aria-label="studio mode">
+            <button type="button" class="mode-btn is-active" data-mode="create" role="tab" aria-selected="true" aria-controls="createPane" id="modeCreate">create</button>
+            <button type="button" class="mode-btn" data-mode="customize" role="tab" aria-selected="false" aria-controls="paintKit" id="modeCustomize">customize</button>
+            <button id="resetAll" class="reset" type="button" aria-label="reset" title="reset">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="mobile-sheet" id="mobileSheet">
           <button
             class="mobile-sheet-handle"
             type="button"
-            aria-label="open customize"
+            aria-label="open tools"
             aria-expanded="false"
-            aria-controls="paintKit"
+            aria-controls="createPane"
           >
             <span class="mobile-sheet-grip" aria-hidden="true"></span>
             <span class="mobile-sheet-label">customize more</span>
           </button>
-        <div class="stack">
+        <div class="stack" id="createPane" role="tabpanel" aria-labelledby="modeCreate">
           <div class="field">
-            <div class="field-head">
-              <span>create</span>
-              <select id="count" aria-label="variations">
-                <option value="3">3</option>
-                <option value="4" selected>4</option>
-                <option value="6">6</option>
-              </select>
-            </div>
             <div class="scene-row">
               <textarea id="scene" rows="1" placeholder="fingerprints" aria-label="create"></textarea>
               <div class="scene-caption" id="sceneCaption" hidden>
@@ -109,6 +116,13 @@
                 </button>
               </div>
             </div>
+            <div class="field-head">
+              <select id="count" aria-label="variations">
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="6">6</option>
+              </select>
+            </div>
           </div>
           <details class="sample-kit" id="sampleKit" open>
             <summary>samples</summary>
@@ -116,21 +130,8 @@
           </details>
         </div>
 
-        <details class="paint-kit" id="paintKit">
-          <summary>
-            customize
-            <button id="resetAll" class="reset" type="button" aria-label="reset" title="reset">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path
-                  d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            </button>
-          </summary>
+        <details class="paint-kit" id="paintKit" role="tabpanel" aria-labelledby="modeCustomize">
+          <summary class="paint-kit-summary">customize</summary>
           <div class="paint-kit-body">
             <details class="pane" id="brush">
               <summary>brush</summary>
@@ -201,6 +202,6 @@
     <div id="sheetStage" class="sheet-stage" hidden></div>
 
     <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=58"></iframe>
-    <script type="module" src="app.js?v=124"></script>
+    <script type="module" src="app.js?v=125"></script>
   </body>
 </html>

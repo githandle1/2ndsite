@@ -123,6 +123,62 @@ h1 {
   cursor: default;
 }
 
+.mode-switch {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin: 16px 0 0;
+}
+
+.mode-btn {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.2;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.mode-btn.is-active {
+  color: var(--ink);
+}
+
+.mode-btn:hover,
+.mode-btn:focus-visible {
+  color: var(--hover);
+}
+
+.mode-switch .reset {
+  margin-left: auto;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.desk[data-mode="customize"] .mode-switch .reset {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.desk[data-mode="create"] .paint-kit {
+  display: none;
+}
+
+.desk[data-mode="customize"] .stack {
+  display: none;
+}
+
+.paint-kit-summary {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
 .about {
   position: relative;
   width: fit-content;
@@ -305,7 +361,11 @@ h1 {
 }
 
 .stack > .field {
-  gap: 16px;
+  gap: 10px;
+}
+
+.stack > .field .field-head {
+  justify-content: flex-start;
 }
 
 .field > span {
@@ -471,7 +531,7 @@ select {
   min-height: 38px;
   max-height: 16em;
   line-height: 1.45;
-  padding: 9px 16px;
+  padding: 9px 16px 9px 0;
   border-radius: 12px;
 }
 
@@ -806,8 +866,8 @@ select.choice-native {
 
 .paint-kit {
   margin: 0;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
+  padding-top: 0;
+  border-top: 0;
 }
 
 .paint-kit > summary,
@@ -2142,6 +2202,11 @@ body.is-sheet-open {
     gap: 8px;
   }
 
+  .mode-switch {
+    margin-top: 10px;
+    gap: 16px;
+  }
+
   .field-head {
     justify-content: flex-start;
     gap: 12px;
@@ -2156,7 +2221,7 @@ body.is-sheet-open {
   #scene {
     min-height: 42px;
     max-height: 6em;
-    padding: 9px 12px;
+    padding: 9px 12px 9px 0;
     font-size: 14px;
   }
 
@@ -2812,7 +2877,7 @@ body.is-sheet-open {
     display: none;
   }
 
-  .mobile-sheet.is-expanded .paint-kit {
+  .desk[data-mode="customize"] .mobile-sheet .paint-kit {
     display: block;
   }
 
@@ -2859,6 +2924,10 @@ body.is-sheet-open {
   }
 
   .mobile-sheet .paint-kit {
+    display: none;
+  }
+
+  .desk[data-mode="customize"] .mobile-sheet .paint-kit {
     display: block;
   }
 

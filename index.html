@@ -422,7 +422,7 @@
             display: inline-flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: calc(0.12rem * 1.15);
+            gap: 0.55rem;
             padding: 0 0 8px;
         }
 
@@ -434,9 +434,20 @@
             gap: 0.35rem;
             width: auto;
             margin-left: 0;
-            padding: calc(2px * 1.15) 0;
             font-size: 0.83rem;
             min-height: 0;
+        }
+
+        .snaps-more .snaps-preview-toggle {
+            padding: 0;
+        }
+
+        .snaps-more .snaps-footsteps-toggle {
+            padding: 0;
+        }
+
+        .snaps-more .snaps-footsteps-toggle[hidden] {
+            display: none;
         }
 
         .snaps-more .snaps-preview-mark,
@@ -444,8 +455,41 @@
             font-size: var(--toggle-mark-size);
         }
 
-        .photo-grid.is-preview .photo-item.is-extra {
+        .photo-carousel-wrap {
+            position: relative;
+            --photo-grid-col-gap: 8px;
+        }
+
+        .photo-carousel {
+            display: flex;
+            gap: var(--photo-grid-col-gap);
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+            touch-action: pan-x;
+            padding: 4px 0 6px;
+        }
+
+        .photo-carousel::-webkit-scrollbar {
             display: none;
+        }
+
+        .photo-page {
+            flex: 0 0 100%;
+            min-width: 0;
+            padding: 0;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+        }
+
+        .photo-page .photo-item:last-child:nth-child(odd):not(:only-child) {
+            grid-column: auto;
+            justify-self: stretch;
+            width: auto;
         }
 
         .photo-entry[open] summary::after {
@@ -696,7 +740,7 @@
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px var(--photo-grid-col-gap, 8px);
-            padding: 4px 0 16px;
+            padding: 0;
             --photo-grid-col-gap: 8px;
         }
 
@@ -1036,6 +1080,8 @@
             display: block;
             width: 100%;
             border-bottom: 1px solid var(--line);
+            font-weight: 400;
+            color: color-mix(in srgb, var(--ink) 75%, var(--paper));
         }
 
         .phrase:hover,
@@ -1128,7 +1174,15 @@
             .photo-grid {
                 --photo-grid-col-gap: 10px;
                 gap: 14px var(--photo-grid-col-gap);
-                padding: 6px 0 18px;
+                padding: 0;
+            }
+
+            .photo-carousel-wrap {
+                --photo-grid-col-gap: 10px;
+            }
+
+            .photo-carousel {
+                padding: 6px 0 8px;
             }
 
             .bookmark-more-toggle {
@@ -1162,7 +1216,7 @@
             .snaps-more .snaps-preview-toggle,
             .snaps-more .snaps-footsteps-toggle {
                 min-height: 0;
-                padding: calc(6px * 1.15) 0;
+                padding: 0;
             }
 
             .caption-toggle {
@@ -1459,26 +1513,6 @@
                         renderPlaces(latestPlacesData);
                     }
 
-                    return;
-                }
-
-                const previewToggle = event.target.closest('.snaps-preview-toggle');
-                if (previewToggle) {
-                    const entry = previewToggle.closest('.photo-entry');
-                    const grid = entry?.querySelector('.photo-grid');
-                    if (!grid) {
-                        return;
-                    }
-
-                    const photoCount = grid.querySelectorAll('.photo-item').length;
-
-                    if (photoVisibleCount >= photoCount) {
-                        photoVisibleCount = PHOTO_PAGE_SIZE;
-                    } else {
-                        photoVisibleCount += PHOTO_PAGE_SIZE;
-                    }
-
-                    updatePhotoVisibility();
                     return;
                 }
 
@@ -1800,15 +1834,77 @@
 
         initCabinetToggles();
 
-        const footstepsToggle = document.getElementById('snaps-footsteps-toggle');
         const footstepsMap = document.getElementById('places-map');
         let placeByPhotoSrc = new Map();
         let highlightedPlacePin = null;
 
+        function carouselAtEnd(scroller) {
+            if (!scroller) {
+                return true;
+            }
+
+            return scroller.scrollWidth <= scroller.clientWidth + 8
+                || scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 16;
+        }
+
+        function syncPhotoCarousel(scroller) {
+            const wrap = scroller?.closest('.photo-carousel-wrap');
+            const atEnd = carouselAtEnd(scroller);
+            wrap?.classList.toggle('is-ended', atEnd);
+
+            const footsteps = document.getElementById('snaps-footsteps-toggle');
+            const map = document.getElementById('places-map');
+            if (!footsteps) {
+                return;
+            }
+
+            footsteps.hidden = !atEnd;
+            if (!atEnd && map) {
+                map.hidden = true;
+                setToggleState(footsteps, false, {
+                    openLabel: 'Show footsteps map',
+                    closeLabel: 'Hide footsteps map'
+                });
+            }
+        }
+
+        function bindPhotoCarousel(carousel) {
+            if (!carousel) {
+                return;
+            }
+
+            const sync = () => syncPhotoCarousel(carousel);
+            carousel.addEventListener('scroll', sync, { passive: true });
+            carousel.addEventListener('keydown', (event) => {
+                if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+                    return;
+                }
+
+                event.preventDefault();
+                carousel.scrollBy({
+                    left: carousel.clientWidth * (event.key === 'ArrowRight' ? 1 : -1),
+                    behavior: 'smooth'
+                });
+            });
+            sync();
+        }
+
+        function revealAllPhotos() {
+            const carousel = document.querySelector('#snaps-albums .photo-carousel');
+            if (carousel) {
+                carousel.scrollTo({ left: carousel.scrollWidth, behavior: 'smooth' });
+            }
+
+            syncPhotoCarousel(carousel);
+        }
+
         function openFootstepsMap() {
+            const footstepsToggle = document.getElementById('snaps-footsteps-toggle');
             if (!footstepsToggle || !footstepsMap) {
                 return;
             }
+
+            revealAllPhotos();
 
             if (footstepsToggle.getAttribute('aria-expanded') !== 'true') {
                 setToggleState(footstepsToggle, true, {
@@ -2005,7 +2101,6 @@
         }
 
         const PHOTO_PAGE_SIZE = 4;
-        let photoVisibleCount = PHOTO_PAGE_SIZE;
 
         function flattenAlbumPhotos(albums) {
             const photos = [];
@@ -2033,37 +2128,42 @@
             return photos;
         }
 
-        function updatePhotoVisibility() {
-            const grid = document.querySelector('#snaps-albums .photo-grid');
-            const toggle = document.getElementById('snaps-more-toggle');
+        function buildPhotoItem(photo, captionToggleIndex) {
+            const item = document.createElement('div');
+            item.className = 'photo-item';
 
-            if (!grid) {
-                return;
+            const thumb = document.createElement('button');
+            thumb.type = 'button';
+            thumb.className = 'photo-slot photo-thumb';
+            thumb.dataset.src = photo.src;
+            thumb.setAttribute(
+                'aria-label',
+                photo.ariaLabel || `Open ${photo.alt || 'photo'}`
+            );
+
+            const image = document.createElement('img');
+            image.src = photo.src;
+            image.alt = photo.alt || '';
+            if (photo.objectPosition) {
+                image.style.objectPosition = photo.objectPosition;
             }
+            thumb.append(image);
 
-            const items = [...grid.children];
-            const showingAll = photoVisibleCount >= items.length;
+            const meta = document.createElement('div');
+            meta.className = 'photo-meta';
 
-            items.forEach((item, index) => {
-                item.classList.toggle('is-extra', index >= photoVisibleCount);
-            });
-            grid.classList.toggle('is-preview', !showingAll);
+            const captionToggle = document.createElement('button');
+            captionToggle.type = 'button';
+            captionToggle.className = `caption-toggle ${toggleToneClasses[captionToggleIndex % toggleToneClasses.length]}`;
+            captionToggle.setAttribute('aria-expanded', 'false');
+            captionToggle.setAttribute('aria-label', 'Show caption');
+            captionToggle.textContent = '+';
 
-            if (!toggle) {
-                return;
-            }
+            const caption = buildPhotoCaptionElement(photo);
 
-            if (items.length <= PHOTO_PAGE_SIZE) {
-                toggle.hidden = true;
-                return;
-            }
-
-            toggle.hidden = false;
-            setToggleState(toggle, showingAll, {
-                openLabel: 'Show more photos',
-                closeLabel: 'Show fewer photos',
-                mark: toggle.querySelector('.snaps-preview-mark')
-            });
+            meta.append(captionToggle, caption);
+            item.append(thumb, meta);
+            return item;
         }
 
         function renderSnaps(albums) {
@@ -2086,65 +2186,24 @@
             albumGroups.className = 'snaps-album-groups';
             albumGroups.dataset.snapsAlbum = '';
 
-            const grid = document.createElement('div');
-            grid.className = 'photo-grid';
-            grid.setAttribute('aria-label', 'Photos');
+            const wrap = document.createElement('div');
+            wrap.className = 'photo-carousel-wrap';
 
-            photos.forEach((photo, captionToggleIndex) => {
-                const item = document.createElement('div');
-                item.className = 'photo-item';
+            const carousel = document.createElement('div');
+            carousel.className = 'photo-carousel';
+            carousel.setAttribute('aria-label', 'Photos');
+            carousel.tabIndex = 0;
 
-                const thumb = document.createElement('button');
-                thumb.type = 'button';
-                thumb.className = 'photo-slot photo-thumb';
-                thumb.dataset.src = photo.src;
-                thumb.setAttribute(
-                    'aria-label',
-                    photo.ariaLabel || `Open ${photo.alt || 'photo'}`
-                );
+            for (let i = 0; i < photos.length; i += PHOTO_PAGE_SIZE) {
+                const page = document.createElement('div');
+                page.className = 'photo-grid photo-page';
+                photos.slice(i, i + PHOTO_PAGE_SIZE).forEach((photo, offset) => {
+                    page.append(buildPhotoItem(photo, i + offset));
+                });
+                carousel.append(page);
+            }
 
-                const image = document.createElement('img');
-                image.src = photo.src;
-                image.alt = photo.alt || '';
-                if (photo.objectPosition) {
-                    image.style.objectPosition = photo.objectPosition;
-                }
-                thumb.append(image);
-
-                const meta = document.createElement('div');
-                meta.className = 'photo-meta';
-
-                const captionToggle = document.createElement('button');
-                captionToggle.type = 'button';
-                captionToggle.className = `caption-toggle ${toggleToneClasses[captionToggleIndex % toggleToneClasses.length]}`;
-                captionToggle.setAttribute('aria-expanded', 'false');
-                captionToggle.setAttribute('aria-label', 'Show caption');
-                captionToggle.textContent = '+';
-
-                const caption = buildPhotoCaptionElement(photo);
-
-                meta.append(captionToggle, caption);
-                item.append(thumb, meta);
-                grid.append(item);
-            });
-
-            const toggle = document.createElement('button');
-            toggle.type = 'button';
-            toggle.className = 'snaps-preview-toggle';
-            toggle.id = 'snaps-more-toggle';
-            toggle.setAttribute('aria-expanded', 'false');
-            toggle.setAttribute('aria-controls', 'snaps-albums');
-            toggle.setAttribute('aria-label', 'Show more photos');
-
-            const label = document.createElement('span');
-            label.className = 'snaps-more-label';
-            label.textContent = 'more';
-
-            const mark = document.createElement('span');
-            mark.className = 'snaps-preview-mark toggle-mark--tone-d';
-            mark.setAttribute('aria-hidden', 'true');
-            mark.textContent = '+';
-            toggle.append(label, mark);
+            wrap.append(carousel);
 
             const more = document.createElement('div');
             more.className = 'snaps-more';
@@ -2166,14 +2225,14 @@
             footstepsMark.setAttribute('aria-hidden', 'true');
             footstepsMark.textContent = '+';
             footsteps.append(footstepsLabel, footstepsMark);
+            footsteps.hidden = true;
 
-            more.append(toggle, footsteps);
-            albumGroups.append(grid);
+            more.append(footsteps);
+            albumGroups.append(wrap);
             entry.append(albumGroups, more);
             root.append(entry);
 
-            photoVisibleCount = PHOTO_PAGE_SIZE;
-            updatePhotoVisibility();
+            bindPhotoCarousel(carousel);
             bindSnapsInteractions(root);
         }
 
