@@ -348,9 +348,7 @@ h1 {
   }
 
   .stack > .field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    display: block;
     padding: 7px;
     border: 1px solid rgba(36, 33, 31, 0.07);
     border-radius: 18px;
@@ -359,38 +357,37 @@ h1 {
   }
 
   .scene-row {
-    display: block;
-  }
-
-  .scene-row #scene,
-  .scene-caption {
-    width: 100%;
-    min-height: 42px;
-    border: 0;
-    background: transparent;
-  }
-
-  .scene-actions {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 6px;
   }
 
-  .scene-actions .upload,
-  .scene-actions .paint {
+  .scene-row #scene,
+  .scene-caption {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    min-height: 34px;
+    border: 0;
+    background: transparent;
+  }
+
+  .scene-row .upload,
+  .scene-row .paint {
+    grid-row: 1;
     width: 34px;
     height: 34px;
     border-radius: 50%;
   }
 
-  .scene-actions .upload {
+  .scene-row .upload {
     grid-column: 1;
     border: 1px solid var(--line);
     background: var(--paper-2);
   }
 
-  .scene-actions .paint {
+  .scene-row .paint {
     grid-column: 4;
     border: 0;
     background: var(--hover);
@@ -400,6 +397,7 @@ h1 {
 
   .stack > .field .field-head {
     grid-column: 3;
+    grid-row: 1;
     align-self: center;
     width: fit-content;
     padding-left: 0;
@@ -3125,9 +3123,7 @@ body.is-sheet-open {
   }
 
   .mobile-sheet .stack > .field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    display: block;
     padding: 7px;
     border: 1px solid rgba(36, 33, 31, 0.07);
     border-radius: 21px;
@@ -3136,23 +3132,30 @@ body.is-sheet-open {
   }
 
   .mobile-sheet .scene-row {
-    display: block;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 6px;
   }
 
   .mobile-sheet .scene-row #scene,
   .mobile-sheet .scene-caption {
-    min-height: 48px;
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    min-height: 40px;
     border: 0;
     background: transparent;
     box-shadow: none;
   }
 
   .mobile-sheet #scene {
-    padding: 11px 10px 8px;
+    padding: 8px 10px;
   }
 
-  .mobile-sheet .scene-actions .field-head {
+  .mobile-sheet .scene-row .field-head {
     grid-column: 3;
+    grid-row: 1;
     align-self: center;
     width: fit-content;
     padding-left: 0;
@@ -3184,27 +3187,21 @@ body.is-sheet-open {
     display: none;
   }
 
-  .mobile-sheet .scene-actions {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .mobile-sheet .scene-actions .upload,
-  .mobile-sheet .scene-actions .paint {
+  .mobile-sheet .scene-row .upload,
+  .mobile-sheet .scene-row .paint {
+    grid-row: 1;
     width: 40px;
     height: 40px;
     border-radius: 50%;
   }
 
-  .mobile-sheet .scene-actions .upload {
+  .mobile-sheet .scene-row .upload {
     grid-column: 1;
     border: 1px solid var(--line);
     background: var(--paper-2);
   }
 
-  .mobile-sheet .scene-actions .paint {
+  .mobile-sheet .scene-row .paint {
     grid-column: 4;
     border: 0;
     background: var(--hover);
