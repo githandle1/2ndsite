@@ -1382,15 +1382,6 @@ select.choice-native {
   border-radius: 14px;
 }
 
-/* Keep a side-docked editor a slim rail instead of letting the brush
-   selector's horizontal toolbar width turn it into a wide panel. */
-.sheet-edit.is-left .choice,
-.sheet-edit.is-right .choice {
-  flex-basis: 4.5rem;
-  width: 4.5rem;
-  max-width: 4.5rem;
-}
-
 .sheet-edit.is-left {
   left: 8px;
   top: 50%;
@@ -1492,7 +1483,7 @@ select.choice-native {
   align-items: center;
   gap: 10px;
   flex: 0 0 auto;
-  margin-inline-end: 16px;
+  margin-inline-end: 4px;
   color: var(--muted);
   font-size: 10px;
   letter-spacing: 0.01em;
@@ -1507,6 +1498,7 @@ select.choice-native {
 .sheet-edit.is-left .sheet-edit-sat,
 .sheet-edit.is-right .sheet-edit-sat {
   align-items: center;
+  margin-inline-end: 0;
 }
 
 .sheet-edit.is-left .sheet-edit-sat-name,
@@ -1611,8 +1603,9 @@ select.choice-native {
 }
 
 .sheet-edit .choice {
-  flex: 0 0 6.75rem;
-  width: 6.75rem;
+  flex: 0 1 auto;
+  width: fit-content;
+  min-width: 4.5rem;
   max-width: 6.75rem;
   margin-inline-start: 0;
   position: relative;
@@ -1935,9 +1928,7 @@ body:has(.frame.is-carrying) {
 
 .sheet-stage .sheet-edit.is-left .choice,
 .sheet-stage .sheet-edit.is-right .choice {
-  flex-basis: 4.75rem;
-  width: 4.75rem;
-  max-width: 4.75rem;
+  min-width: 4.75rem;
 }
 
 .sheet-stage .sheet-edit-grip {
@@ -1957,8 +1948,13 @@ body:has(.frame.is-carrying) {
 
 .sheet-stage .sheet-edit-sat {
   gap: 12px;
-  margin-inline-end: 20px;
+  margin-inline-end: 4px;
   font-size: 12px;
+}
+
+.sheet-stage .sheet-edit.is-left .sheet-edit-sat,
+.sheet-stage .sheet-edit.is-right .sheet-edit-sat {
+  margin-inline-end: 0;
 }
 
 .sheet-stage .sheet-edit-sat-rail {
@@ -1988,9 +1984,10 @@ body:has(.frame.is-carrying) {
 }
 
 .sheet-stage .sheet-edit .choice {
-  flex-basis: 8rem;
-  width: 8rem;
-  max-width: 8rem;
+  flex: 0 1 auto;
+  width: fit-content;
+  min-width: 4.75rem;
+  max-width: 7rem;
 }
 
 .sheet-stage .sheet-edit .choice-trigger {
@@ -2489,6 +2486,7 @@ body.is-sheet-open {
 
   .sheet-edit-sat {
     font-size: 12px;
+    margin-inline-end: 0;
   }
 
   .sheet-edit-sat-name {
@@ -2545,9 +2543,10 @@ body.is-sheet-open {
   }
 
   .sheet-edit .choice {
-    flex-basis: 8.25rem;
-    width: 8.25rem;
-    max-width: 8.25rem;
+    flex: 0 1 auto;
+    width: fit-content;
+    min-width: 4.5rem;
+    max-width: 6.75rem;
   }
 
   .sheet-edit .choice-trigger {
@@ -2871,7 +2870,10 @@ body.is-sheet-open {
     height: 100%;
   }
 
-  .desk,
+  .desk {
+    height: auto;
+  }
+
   .desk:has(.paint-kit[open]) {
     height: 100%;
   }
