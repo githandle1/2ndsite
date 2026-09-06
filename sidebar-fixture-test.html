@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="compositions/styles.css" />
+    <title>Sidebar fixture</title>
+  </head>
+  <body>
+    <div class="sheet-stage">
+      <div class="sheet">
+        <div class="frame">
+          <div class="sheet-edit is-left" role="toolbar" aria-label="edit wash">
+            <button type="button" class="sheet-edit-grip" aria-label="move editor"></button>
+            <button type="button" class="sheet-edit-color" aria-label="color">
+              <span class="sheet-edit-swatch" style="background:#7e3e28"></span>
+            </button>
+            <label class="sheet-edit-sat">
+              <span class="sheet-edit-sat-name">saturation</span>
+              <span class="sheet-edit-sat-rail" style="--sat:.36;--pigment:#7e3e28">
+                <input type="range" value="36" aria-label="saturation" />
+              </span>
+            </label>
+            <div class="choice is-sheet">
+              <button type="button" class="choice-trigger">
+                <span>✎</span><span>hb</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

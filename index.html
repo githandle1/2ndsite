@@ -127,7 +127,7 @@
             --toggle-tone-b: color-mix(in srgb, var(--hover) 68%, var(--toggle-mix-target));
             --toggle-tone-c: color-mix(in srgb, var(--hover) 78%, var(--hover));
             --toggle-tone-d: color-mix(in srgb, var(--hover) 88%, var(--ink));
-            --toggle-mark-size: 0.9em;
+            --toggle-mark-size: 1.08em;
         }
 
         h1 {
@@ -175,6 +175,14 @@
             color: inherit;
             text-align: left;
             cursor: pointer;
+        }
+
+        /* Keep the controls visually quiet while making their hit areas forgiving. */
+        .intro-lead,
+        .snaps-preview-toggle,
+        .snaps-footsteps-toggle,
+        .bookmark-more-toggle {
+            min-height: 32px;
         }
 
         .intro-lead-text {
@@ -744,9 +752,14 @@
         }
 
         .caption-toggle {
+            display: inline-grid;
+            place-items: center;
+            width: 32px;
+            height: 32px;
             border: none;
             background: none;
-            padding: 0 1px;
+            padding: 0;
+            margin: -8px;
             font-family: inherit;
             font-size: var(--toggle-mark-size);
             font-weight: 400;
@@ -1081,6 +1094,7 @@
                 width: min(calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), 720px);
                 padding-top: max(40px, calc(24px + env(safe-area-inset-top, 0px)));
                 padding-bottom: max(72px, calc(48px + env(safe-area-inset-bottom, 0px)));
+                --toggle-mark-size: 1.33em;
             }
 
             h1 {
@@ -1097,9 +1111,38 @@
                 padding: 6px 0 18px;
             }
 
-            .snaps-footsteps-toggle,
             .bookmark-more-toggle {
                 font-size: var(--list-size);
+            }
+
+            .snaps-preview-toggle,
+            .snaps-footsteps-toggle {
+                font-size: 0.83rem;
+            }
+
+            .snaps-preview-toggle {
+                padding-bottom: 0;
+            }
+
+            .snaps-preview-mark {
+                font-size: var(--toggle-mark-size);
+            }
+
+            .snaps-footer {
+                padding-top: 2px;
+            }
+
+            .intro-lead,
+            .snaps-preview-toggle,
+            .snaps-footsteps-toggle,
+            .bookmark-more-toggle {
+                min-height: 44px;
+            }
+
+            .caption-toggle {
+                width: 44px;
+                height: 44px;
+                margin: -14px;
             }
 
             .places-map {

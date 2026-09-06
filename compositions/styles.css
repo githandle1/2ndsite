@@ -1382,6 +1382,15 @@ select.choice-native {
   border-radius: 14px;
 }
 
+/* Keep a side-docked editor a slim rail instead of letting the brush
+   selector's horizontal toolbar width turn it into a wide panel. */
+.sheet-edit.is-left .choice,
+.sheet-edit.is-right .choice {
+  flex-basis: 4.5rem;
+  width: 4.5rem;
+  max-width: 4.5rem;
+}
+
 .sheet-edit.is-left {
   left: 8px;
   top: 50%;
@@ -1920,7 +1929,15 @@ body:has(.frame.is-carrying) {
 
 .sheet-stage .sheet-edit.is-left,
 .sheet-stage .sheet-edit.is-right {
-  padding: 8px 6px 7px;
+  gap: 6px;
+  padding: 8px 4px 7px;
+}
+
+.sheet-stage .sheet-edit.is-left .choice,
+.sheet-stage .sheet-edit.is-right .choice {
+  flex-basis: 4.75rem;
+  width: 4.75rem;
+  max-width: 4.75rem;
 }
 
 .sheet-stage .sheet-edit-grip {
