@@ -1,6 +1,8 @@
 import { commonsSearchUrl, normalizeCommonsResponse } from "../lib/compositions/commons.mjs";
 
 const ALLOWED_FILTERS = new Set(["public-domain", "cc0"]);
+const PAGE_SIZE = 100;
+const COMMONS_BATCH_SIZE = 50;
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -19,18 +21,29 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(commonsSearchUrl(search, offset), {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "mayasthinking-compositions/1.0 (open access image curator)",
-      },
-    });
-
-    if (!response.ok) throw new Error(`commons returned ${response.status}`);
-
-    const normalized = normalizeCommonsResponse(await response.json(), license);
+    const responses = await Promise.all(
+      [offset, offset + COMMONS_BATCH_SIZE].map((batchOffset) =>
+        fetch(commonsSearchUrl(search, batchOffset, COMMONS_BATCH_SIZE), {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "mayasthinking-compositions/1.0 (open access image curator)",
+          },
+        }),
+      ),
+    );
+    if (responses.some((response) => !response.ok)) {
+      throw new Error(`commons returned ${responses.find((response) => !response.ok).status}`);
+    }
+    const batches = await Promise.all(
+      responses.map(async (response) =>
+        normalizeCommonsResponse(await response.json(), license),
+      ),
+    );
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=900");
-    res.status(200).json(normalized);
+    res.status(200).json({
+      items: batches.flatMap((batch) => batch.items),
+      continue: batches.some((batch) => batch.continue !== null) ? offset + PAGE_SIZE : null,
+    });
   } catch (error) {
     console.error("commons search failed", error);
     res.status(502).json({ error: "commons is quiet right now. try again in a moment." });

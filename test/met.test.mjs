@@ -22,6 +22,7 @@ function metObject(overrides = {}) {
     title: "Evening Interior",
     artistDisplayName: "Example Painter",
     objectName: "Painting",
+    classification: "Paintings",
     medium: "Oil on canvas",
     objectDate: "1888",
     culture: "American",
@@ -29,6 +30,7 @@ function metObject(overrides = {}) {
     accessionNumber: "12.34",
     creditLine: "Gift of an Example Donor, 1912",
     repository: "Metropolitan Museum of Art, New York, NY",
+    tags: [{ term: "Interiors" }, { term: "Evening" }],
     ...overrides,
   };
 }
@@ -68,12 +70,16 @@ test("Met records use the shared item shape and preserve Open Access provenance"
     accessionNumber: "12.34",
     repository: "Metropolitan Museum of Art, New York, NY",
     department: "American Paintings and Sculpture",
+    classification: "Paintings",
     objectName: "Painting",
     objectDate: "1888",
     culture: "American",
     medium: "Oil on canvas",
     creditLine: "Gift of an Example Donor, 1912",
+    tags: ["Interiors", "Evening"],
   });
+  assert.match(item.caption, /Paintings/);
+  assert.match(item.caption, /Interiors, Evening/);
 
   const record = toDatasetRecord(item);
   assert.equal(record.source, "met open access");

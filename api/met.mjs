@@ -4,11 +4,32 @@ import {
   normalizeMetObjects,
 } from "../lib/compositions/met.mjs";
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 60;
+const CONCURRENCY = 12;
 const REQUEST_HEADERS = {
   Accept: "application/json",
   "User-Agent": "mayasthinking-compositions/1.0 (private open-access image curator)",
 };
+
+async function fetchObjectBatch(objectIds) {
+  const objects = [];
+  for (let index = 0; index < objectIds.length; index += CONCURRENCY) {
+    const batch = objectIds.slice(index, index + CONCURRENCY);
+    const responses = await Promise.allSettled(
+      batch.map(async (objectId) => {
+        const response = await fetch(metObjectUrl(objectId), { headers: REQUEST_HEADERS });
+        if (!response.ok) throw new Error(`met object ${objectId} returned ${response.status}`);
+        return response.json();
+      }),
+    );
+    objects.push(
+      ...responses
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value),
+    );
+  }
+  return objects;
+}
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -30,16 +51,7 @@ export default async function handler(req, res) {
 
     const objectIds = (await searchResponse.json()).objectIDs || [];
     const pageIds = objectIds.slice(offset, offset + PAGE_SIZE);
-    const objectResponses = await Promise.allSettled(
-      pageIds.map(async (objectId) => {
-        const response = await fetch(metObjectUrl(objectId), { headers: REQUEST_HEADERS });
-        if (!response.ok) throw new Error(`met object ${objectId} returned ${response.status}`);
-        return response.json();
-      }),
-    );
-    const objects = objectResponses
-      .filter((result) => result.status === "fulfilled")
-      .map((result) => result.value);
+    const objects = await fetchObjectBatch(pageIds);
 
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=900");
     res.status(200).json({

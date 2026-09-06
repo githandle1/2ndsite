@@ -10,6 +10,7 @@ import {
 } from "../scripts/caption-compositions.mjs";
 import {
   expandVisualQuery,
+  genreSearchQuery,
   rankSeedRecords,
 } from "../lib/compositions/semantic-search.mjs";
 
@@ -94,6 +95,37 @@ test("Commons intake expands visual concepts while preserving the original query
   const expanded = expandVisualQuery("lonely kitchen at dusk");
   assert.match(expanded, /^lonely kitchen at dusk /);
   assert.match(expanded, /interior|room|twilight|evening|solitary/);
+});
+
+test("genre searches preserve keywords and add source-appropriate vocabulary", () => {
+  const commons = genreSearchQuery("citrus", "still-life", "commons");
+  const met = genreSearchQuery("citrus", "still-life", "met");
+  assert.match(commons, /^citrus still life /);
+  assert.match(commons, /fruit|flowers|tabletop/);
+  assert.match(met, /^citrus still life /);
+  assert.ok(met.split(" ").length < commons.split(" ").length);
+});
+
+test("genre selection boosts matching seed captions", () => {
+  const candidates = [
+    {
+      id: "interior",
+      title: "Untitled",
+      caption_long: "A dim furnished room with a chair.",
+      caption_short: "an empty room",
+      category: "interior",
+    },
+    {
+      id: "still-life",
+      title: "Untitled",
+      caption_long: "A still life arranges fruit and flowers on a tabletop.",
+      caption_short: "fruit on a table",
+      category: "still life",
+    },
+  ];
+  const ranked = rankSeedRecords("citrus", candidates, {}, null, "still-life");
+  assert.equal(ranked[0].id, "still-life");
+  assert.ok(ranked[0].semanticScore > ranked[1].semanticScore);
 });
 
 test("browser semantic search imports the published Transformers.js web bundle", async () => {

@@ -60,6 +60,11 @@ re-ranks returned title + description text with the same embedding model when av
 improves recall but cannot retrieve an image Commons never returned, and sparse or inaccurate
 Commons descriptions still limit ranking quality.
 
+Genre pills combine with the free-text query. They add source-aware vocabulary for Commons and
+The Met, and explicitly boost seed records whose title, category, or captions contain matching
+genre language. For example, selecting `still life` and entering `citrus` searches for both the
+genre and subject while preserving `citrus` as the leading term.
+
 ## Next step: `paint()` distillation
 
 This dataset is the image + caption layer only. A later reviewed transform should pair each

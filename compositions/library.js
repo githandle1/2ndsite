@@ -11,6 +11,7 @@ import {
 import {
   cosineSimilarity,
   expandVisualQuery,
+  genreSearchQuery,
   rankSeedRecords,
   SEMANTIC_MODEL,
   SEMANTIC_MODEL_DTYPE,
@@ -32,6 +33,7 @@ const exportButton = document.querySelector("#exportKept");
 
 let licenseFilter = "public-domain";
 let sourceFilter = "both";
+let genreFilter = "";
 let exportFormat = "json";
 let continuations = { commons: null, met: null };
 let currentQuery = "";
@@ -142,6 +144,14 @@ async function embedTexts(texts) {
   );
 }
 
+async function embedTextsInBatches(texts, batchSize = 24) {
+  const vectors = [];
+  for (let index = 0; index < texts.length; index += batchSize) {
+    vectors.push(...(await embedTexts(texts.slice(index, index + batchSize))));
+  }
+  return vectors;
+}
+
 async function fetchCommons(search, offset, signal) {
   const params = new URLSearchParams({ q: search, license: licenseFilter });
   if (offset) params.set("continue", offset);
@@ -155,9 +165,24 @@ async function fetchCommons(search, offset, signal) {
     return await response.json();
   } catch (error) {
     if (error.name === "AbortError") throw error;
-    const response = await fetch(commonsSearchUrl(search, offset), { signal });
-    if (!response.ok) throw new Error(`commons returned ${response.status}`);
-    return normalizeCommonsResponse(await response.json(), licenseFilter);
+    const batchSize = 50;
+    const responses = await Promise.all(
+      [offset || 0, (offset || 0) + batchSize].map((batchOffset) =>
+        fetch(commonsSearchUrl(search, batchOffset, batchSize), { signal }),
+      ),
+    );
+    if (responses.some((response) => !response.ok)) {
+      throw new Error(`commons returned ${responses.find((response) => !response.ok).status}`);
+    }
+    const batches = await Promise.all(
+      responses.map(async (response) =>
+        normalizeCommonsResponse(await response.json(), licenseFilter),
+      ),
+    );
+    return {
+      items: batches.flatMap((batch) => batch.items),
+      continue: batches.some((batch) => batch.continue !== null) ? (offset || 0) + 100 : null,
+    };
   }
 }
 
@@ -177,14 +202,22 @@ async function fetchMet(search, offset = 0, signal) {
     const searchResponse = await fetch(metSearchUrl(search), { signal });
     if (!searchResponse.ok) throw new Error(`met returned ${searchResponse.status}`);
     const objectIds = (await searchResponse.json()).objectIDs || [];
-    const pageSize = 24;
+    const pageSize = 60;
+    const concurrency = 12;
     const pageIds = objectIds.slice(offset, offset + pageSize);
-    const responses = await Promise.all(
-      pageIds.map((objectId) => fetch(metObjectUrl(objectId), { signal })),
-    );
-    const objects = await Promise.all(
-      responses.filter((response) => response.ok).map((response) => response.json()),
-    );
+    const objects = [];
+    for (let index = 0; index < pageIds.length; index += concurrency) {
+      const responses = await Promise.all(
+        pageIds
+          .slice(index, index + concurrency)
+          .map((objectId) => fetch(metObjectUrl(objectId), { signal })),
+      );
+      objects.push(
+        ...(await Promise.all(
+          responses.filter((response) => response.ok).map((response) => response.json()),
+        )),
+      );
+    }
     return {
       items: normalizeMetObjects(objects),
       continue: offset + pageSize < objectIds.length ? offset + pageSize : null,
@@ -203,16 +236,30 @@ function rankedSeed(query, queryEmbedding = null) {
     seedRecords.filter((record) => licenseFilter !== "cc0" || record.license === "cc0"),
     semanticIndex,
     queryEmbedding,
+    genreFilter,
   )
     .filter((record) => record.semanticScore > 0.08)
     .slice(0, 12)
     .map(seedToItem);
 }
 
+function interleaveSources(items) {
+  if (sourceFilter !== "both") return items;
+  const commons = items.filter((item) => item.source === "wikimedia commons");
+  const met = items.filter((item) => item.source === "met open access");
+  const interleaved = [];
+  for (let index = 0; index < Math.max(commons.length, met.length); index += 1) {
+    if (commons[index]) interleaved.push(commons[index]);
+    if (met[index]) interleaved.push(met[index]);
+  }
+  return interleaved;
+}
+
 function currentVisibleResults(query, queryEmbedding = null) {
   const seed = rankedSeed(query, queryEmbedding);
   const known = new Set(seed.map((item) => item.id));
-  return [...seed, ...remoteResults.filter((item) => !known.has(item.id))]
+  const remote = interleaveSources(remoteResults.filter((item) => !known.has(item.id)));
+  return [...seed, ...remote]
     .filter((item) => licenseFilter !== "cc0" || item.license === "cc0")
     .filter((item) => !skipped.has(item.id));
 }
@@ -224,7 +271,9 @@ async function rerankWithModel(query, sequence) {
 
     const missing = remoteResults.filter((item) => !candidateVectors.has(item.id));
     if (missing.length) {
-      const vectors = await embedTexts(missing.map((item) => semanticText(toDatasetRecord(item))));
+      const vectors = await embedTextsInBatches(
+        missing.map((item) => semanticText(toDatasetRecord(item))),
+      );
       missing.forEach((item, index) => candidateVectors.set(item.id, vectors[index]));
     }
     if (sequence !== searchSequence) return;
@@ -250,11 +299,12 @@ async function rerankWithModel(query, sequence) {
 
 async function searchLibrary({ append = false } = {}) {
   const search = queryInput.value.trim();
-  if (!search) {
+  if (!search && !genreFilter) {
     queryInput.focus();
-    setStatus("add something to search for.");
+    setStatus("add a search or choose a genre.");
     return;
   }
+  const rankQuery = genreSearchQuery(search, genreFilter, "semantic");
 
   requestController?.abort();
   requestController = new AbortController();
@@ -266,12 +316,13 @@ async function searchLibrary({ append = false } = {}) {
     continuations = { commons: null, met: null };
     skipped.clear();
     gridEl.setAttribute("aria-busy", "true");
-    renderResults(search);
+    renderResults(rankQuery);
   }
   setStatus(append ? "opening another image shelf…" : "ranking captions by meaning…", true);
 
   try {
-    const expanded = expandVisualQuery(search);
+    const expanded = expandVisualQuery(genreSearchQuery(search, genreFilter, "commons"), 8);
+    const metQuery = genreSearchQuery(search, genreFilter, "met");
     const sources = selectedSources().filter(
       (source) => !append || continuations[source] !== null,
     );
@@ -279,7 +330,7 @@ async function searchLibrary({ append = false } = {}) {
       sources.map((source) =>
         source === "commons"
           ? fetchCommons(expanded, continuations.commons, requestController.signal)
-          : fetchMet(search, continuations.met, requestController.signal),
+          : fetchMet(metQuery, continuations.met, requestController.signal),
       ),
     );
     if (responses.some((result) => result.reason?.name === "AbortError")) {
@@ -297,17 +348,17 @@ async function searchLibrary({ append = false } = {}) {
     if (responses.every((result) => result.status === "rejected")) {
       throw new Error("all sources unavailable");
     }
-    renderResults(search);
+    renderResults(rankQuery);
     setStatus(
-      `${rankedSeed(search).length} caption matches · ${remoteResults.length} open-access candidates. refining…`,
+      `${rankedSeed(rankQuery).length} caption matches · ${remoteResults.length} open-access candidates. refining…`,
       true,
     );
-    rerankWithModel(search, sequence);
+    rerankWithModel(rankQuery, sequence);
   } catch (error) {
     if (error.name !== "AbortError") {
-      renderResults(search);
-      setStatus(`${rankedSeed(search).length} local caption matches · image sources are quiet right now.`);
-      rerankWithModel(search, sequence);
+      renderResults(rankQuery);
+      setStatus(`${rankedSeed(rankQuery).length} local caption matches · image sources are quiet right now.`);
+      rerankWithModel(rankQuery, sequence);
     }
   } finally {
     gridEl.removeAttribute("aria-busy");
@@ -315,7 +366,11 @@ async function searchLibrary({ append = false } = {}) {
   }
 }
 
-function renderResults(query = currentQuery, queryEmbedding = null, modelRanked = false) {
+function renderResults(
+  query = genreSearchQuery(currentQuery, genreFilter, "semantic"),
+  queryEmbedding = null,
+  modelRanked = false,
+) {
   gridEl.replaceChildren();
   const visible = currentVisibleResults(query, queryEmbedding);
   for (const item of visible) gridEl.append(createCandidateCard(item, modelRanked));
@@ -488,6 +543,16 @@ for (const button of document.querySelectorAll("[data-source]")) {
       peer.classList.toggle("active", peer === button);
     }
     queryInput.value = currentQuery || queryInput.value;
+    searchLibrary();
+  });
+}
+
+for (const button of document.querySelectorAll("[data-genre]")) {
+  button.addEventListener("click", () => {
+    genreFilter = button.dataset.genre;
+    for (const peer of document.querySelectorAll("[data-genre]")) {
+      peer.classList.toggle("active", peer === button);
+    }
     searchLibrary();
   });
 }
