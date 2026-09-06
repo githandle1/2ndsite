@@ -7,6 +7,8 @@ let instanceSize = 0;
 let instanceDensity = 0;
 let paintFn = () => {};
 let currentSeed = 1;
+let currentRequestId = null;
+let currentGeneration = null;
 
 window.__PAINTING_DONE = false;
 window.__PAINTING_ERROR = null;
@@ -71,12 +73,16 @@ async function snapshotCanvas(canvas) {
 }
 
 function finish(error, canvas, dataUrl = null) {
+  const requestId = currentRequestId;
+  const generation = currentGeneration;
   const send = (url, fail) => {
     window.__PAINTING_ERROR = fail || null;
     window.__PAINTING_DONE = true;
     parent.postMessage(
       {
         type: "painted",
+        requestId,
+        generation,
         error: fail || null,
         dataUrl: fail ? null : url,
       },
@@ -164,6 +170,8 @@ function ensureInstance(size, density) {
 }
 
 window.renderPainting = function renderPainting({
+  requestId = null,
+  generation = null,
   code,
   photo,
   seed = 1,
@@ -171,6 +179,8 @@ window.renderPainting = function renderPainting({
   density = 1,
   effects = null,
 }) {
+  currentRequestId = requestId;
+  currentGeneration = generation;
   window.__PAINTING_DONE = false;
   window.__PAINTING_ERROR = null;
   currentSeed = seed;
@@ -193,6 +203,7 @@ window.renderPainting = function renderPainting({
       }
       build({ photo: photoSrc, seed, size, effects })
         .then((fn) => {
+          if (requestId !== currentRequestId || generation !== currentGeneration) return;
           paintFn = fn;
           const same = Boolean(instance) && instanceSize === size && instanceDensity === density;
           const p = ensureInstance(size, density);

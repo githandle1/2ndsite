@@ -55,6 +55,12 @@ const PAINT_SIZE = 720;
 let currentPhoto = null;
 let paintWatch = 0;
 let waitingDensity = 1;
+let paintRequestSerial = 0;
+let waitingRequestId = null;
+let paintGeneration = 0;
+let waitingGeneration = null;
+let waitingRevision = null;
+let activeSubjectDragId = null;
 
 window.addEventListener("message", onFrameMessage);
 
@@ -1082,6 +1088,7 @@ function mountSubjectDrag(sheet, item) {
     const next = follow(clientX, clientY);
     holding = false;
     carrying = false;
+    activeSubjectDragId = null;
     moved = true;
     unbindCarry();
     frame.classList.remove("is-nudging", "is-carrying");
@@ -1093,6 +1100,7 @@ function mountSubjectDrag(sheet, item) {
   const cancel = () => {
     holding = false;
     carrying = false;
+    activeSubjectDragId = null;
     unbindCarry();
     write(startPlaceX, startPlaceY);
     clearPreview(true);
@@ -1167,6 +1175,7 @@ function mountSubjectDrag(sheet, item) {
       frame.classList.remove("is-nudging");
       return;
     }
+    activeSubjectDragId = item.id;
     const fx = sheetEffects(rec);
     moved = false;
     startX = event.clientX;
@@ -1438,6 +1447,8 @@ function scheduleEffectRender() {
 
 function scheduleSheetRender(id) {
   if (!id) return;
+  const rec = cards.get(id);
+  if (rec) rec.paintRevision = (rec.paintRevision || 0) + 1;
   dirtyIds.add(id);
   clearTimeout(effectTimer);
   effectTimer = setTimeout(flushEffects, 280);
@@ -1446,9 +1457,9 @@ function scheduleSheetRender(id) {
 function flushEffects() {
   if (!dirtyIds.size) return;
   if (paintingNow) return;
-  const ids = [...dirtyIds];
-  dirtyIds.clear();
+  const ids = [...dirtyIds].filter((id) => id !== activeSubjectDragId);
   for (const id of ids) {
+    dirtyIds.delete(id);
     const rec = cards.get(id);
     if (rec?.item.code || rec?.item.photo) queuePaint(id, { replace: true });
   }
@@ -1657,10 +1668,12 @@ function clearWall() {
   closeSheetStage();
   closePopovers();
   document.querySelectorAll(".sheet-color-menu").forEach((menu) => menu.remove());
+  paintGeneration += 1;
   paintQueue.length = 0;
   photoPreviewQueue.length = 0;
-  paintingNow = false;
-  waitingId = null;
+  clearTimeout(effectTimer);
+  dirtyIds.clear();
+  activeSubjectDragId = null;
   cards.clear();
   wallEl.innerHTML = "";
 }
@@ -1750,7 +1763,7 @@ function renderGrid(items) {
       downloadPainting(item.id);
     });
     grid.append(sheet);
-    cards.set(item.id, { item, sheet, dataUrl: null });
+    cards.set(item.id, { item, sheet, dataUrl: null, generation: paintGeneration, paintRevision: 0 });
     mountSheetEditor(sheet, item);
     mountSubjectDrag(sheet, item);
 
@@ -1790,12 +1803,41 @@ function drainQueue() {
   paintingNow = true;
   waitingId = id;
   clearTimeout(paintWatch);
+  const frame = renderer.contentWindow;
+  if (frame) frame.__pendingPhoto = rec.item.photo || null;
+  waitingDensity = rec.wantDensity || paintDensityFor(id);
+  rec.wantDensity = waitingDensity;
+  waitingRequestId = ++paintRequestSerial;
+  waitingGeneration = rec.generation;
+  waitingRevision = rec.paintRevision || 0;
+  const paintEffects = sheetEffects(rec);
+  frame?.postMessage(
+    {
+      type: "paint",
+      requestId: waitingRequestId,
+      generation: waitingGeneration,
+      code: rec.item.code,
+      photo: Boolean(rec.item.photo),
+      seed: rec.item.seed,
+      size: PAINT_SIZE,
+      density: waitingDensity,
+      effects: paintEffects,
+    },
+    "*"
+  );
+  const timedRequestId = waitingRequestId;
+  const timedGeneration = waitingGeneration;
   paintWatch = setTimeout(() => {
-    if (!paintingNow || waitingId !== id) return;
+    if (!paintingNow || waitingId !== id || waitingRequestId !== timedRequestId || waitingGeneration !== timedGeneration) return;
     paintingNow = false;
     waitingId = null;
+    waitingRequestId = null;
+    waitingGeneration = null;
+    waitingRevision = null;
     const stuck = cards.get(id);
-    const veil = stuck?.sheet.querySelector(".veil");
+    const veil = timedGeneration === paintGeneration && stuck?.generation === paintGeneration
+      ? stuck.sheet.querySelector(".veil")
+      : null;
     if (veil) {
       veil.classList.add("error");
       veil.textContent = "the wash never dried. try the photo again.";
@@ -1803,22 +1845,6 @@ function drainQueue() {
     setStatus("the wash never dried. try the photo again.");
     drainQueue();
   }, 35000);
-  const frame = renderer.contentWindow;
-  if (frame) frame.__pendingPhoto = rec.item.photo || null;
-  waitingDensity = rec.wantDensity || paintDensityFor(id);
-  rec.wantDensity = waitingDensity;
-  frame?.postMessage(
-    {
-      type: "paint",
-      code: rec.item.code,
-      photo: Boolean(rec.item.photo),
-      seed: rec.item.seed,
-      size: PAINT_SIZE,
-      density: waitingDensity,
-      effects: sheetEffects(rec),
-    },
-    "*"
-  );
 }
 
 function onFrameMessage(event) {
@@ -1830,12 +1856,21 @@ function onFrameMessage(event) {
   }
   if (event.data.type !== "painted") return;
 
-  const rec = cards.get(waitingId);
+  const rec = waitingGeneration === paintGeneration ? cards.get(waitingId) : null;
+  if (event.data.requestId !== waitingRequestId || event.data.generation !== waitingGeneration) return;
+
   paintingNow = false;
-  waitingId = null;
   clearTimeout(paintWatch);
 
-  if (rec) {
+  const stale = rec && (
+    rec.generation !== waitingGeneration ||
+    (rec.paintRevision || 0) !== waitingRevision ||
+    dirtyIds.has(waitingId) ||
+    activeSubjectDragId === waitingId
+  );
+  if (stale) {
+    dirtyIds.add(waitingId);
+  } else if (rec) {
     const veil = rec.sheet.querySelector(".veil");
     if (event.data.error) {
       rec.sheet.classList.remove("is-adjusting");
@@ -1849,6 +1884,10 @@ function onFrameMessage(event) {
     }
   }
 
+  waitingId = null;
+  waitingRequestId = null;
+  waitingGeneration = null;
+  waitingRevision = null;
   drainQueue();
 }
 
