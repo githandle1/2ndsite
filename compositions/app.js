@@ -1523,7 +1523,7 @@ function applyPaintedData(rec, dataUrl, density = 1) {
   img.draggable = false;
   frame.querySelector(".wash-lift")?.remove();
   rec.split = null;
-  if (!isPhone()) prefetchSplit(rec);
+  if (!isPhone() || selectedId === rec.item.id) prefetchSplit(rec);
   rec.sheet.classList.remove("is-adjusting");
   rec.sheet.querySelector(".veil")?.remove();
   rec.sheet.querySelector(".save")?.removeAttribute("disabled");
@@ -1889,6 +1889,7 @@ function selectPainting(id) {
   rec.item.effects = sheetEffects(rec);
   applyEffectsToControls(rec.item.effects);
   syncSheetEditor(rec);
+  if (isPhone()) prefetchSplit(rec);
 }
 
 async function renderBuiltInSample(sampleId, prompt) {
