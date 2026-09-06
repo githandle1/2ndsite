@@ -348,9 +348,9 @@ h1 {
   }
 
   .stack > .field {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
-    gap: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     padding: 7px;
     border: 1px solid rgba(36, 33, 31, 0.07);
     border-radius: 18px;
@@ -359,13 +359,11 @@ h1 {
   }
 
   .scene-row {
-    display: contents;
+    display: block;
   }
 
   .scene-row #scene,
   .scene-caption {
-    grid-column: 1 / -1;
-    grid-row: 1;
     width: 100%;
     min-height: 42px;
     border: 0;
@@ -373,13 +371,14 @@ h1 {
   }
 
   .scene-actions {
-    display: contents;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 6px;
   }
 
   .scene-actions .upload,
   .scene-actions .paint {
-    grid-row: 2;
-    align-self: center;
     width: 34px;
     height: 34px;
     border-radius: 50%;
@@ -401,7 +400,6 @@ h1 {
 
   .stack > .field .field-head {
     grid-column: 3;
-    grid-row: 2;
     align-self: center;
     width: fit-content;
     padding-left: 0;
@@ -3127,9 +3125,9 @@ body.is-sheet-open {
   }
 
   .mobile-sheet .stack > .field {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
-    gap: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     padding: 7px;
     border: 1px solid rgba(36, 33, 31, 0.07);
     border-radius: 21px;
@@ -3138,13 +3136,11 @@ body.is-sheet-open {
   }
 
   .mobile-sheet .scene-row {
-    display: contents;
+    display: block;
   }
 
   .mobile-sheet .scene-row #scene,
   .mobile-sheet .scene-caption {
-    grid-column: 1 / -1;
-    grid-row: 1;
     min-height: 48px;
     border: 0;
     background: transparent;
@@ -3155,9 +3151,8 @@ body.is-sheet-open {
     padding: 11px 10px 8px;
   }
 
-  .mobile-sheet .field-head {
+  .mobile-sheet .scene-actions .field-head {
     grid-column: 3;
-    grid-row: 2;
     align-self: center;
     width: fit-content;
     padding-left: 0;
@@ -3190,13 +3185,14 @@ body.is-sheet-open {
   }
 
   .mobile-sheet .scene-actions {
-    display: contents;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 6px;
   }
 
   .mobile-sheet .scene-actions .upload,
   .mobile-sheet .scene-actions .paint {
-    grid-row: 2;
-    align-self: center;
     width: 40px;
     height: 40px;
     border-radius: 50%;

@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=189" />
+    <link rel="stylesheet" href="styles.css?v=190" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true">
@@ -81,26 +81,26 @@
                 <img id="sceneCaptionImg" alt="" />
                 <span id="sceneCaptionText"></span>
               </div>
-              <div class="scene-actions">
-                <label class="upload" id="photoChip" aria-label="upload photo" title="upload photo">
-                  <input id="photo" type="file" accept="image/*" />
-                  <svg class="lucide-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <use href="#icon-plus"></use>
-                  </svg>
-                </label>
-                <button id="paint" class="paint" type="button" aria-label="generate images" title="generate images">
-                  <svg class="lucide-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <use href="#icon-paintbrush"></use>
-                  </svg>
-                </button>
-              </div>
             </div>
-            <div class="field-head">
-              <select id="count" aria-label="variations">
-                <option value="3" selected>3</option>
-                <option value="4">4</option>
-                <option value="6">6</option>
-              </select>
+            <div class="scene-actions">
+              <label class="upload" id="photoChip" aria-label="upload photo" title="upload photo">
+                <input id="photo" type="file" accept="image/*" />
+                <svg class="lucide-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <use href="#icon-plus"></use>
+                </svg>
+              </label>
+              <div class="field-head">
+                <select id="count" aria-label="variations">
+                  <option value="3" selected>3</option>
+                  <option value="4">4</option>
+                  <option value="6">6</option>
+                </select>
+              </div>
+              <button id="paint" class="paint" type="button" aria-label="generate images" title="generate images">
+                <svg class="lucide-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <use href="#icon-paintbrush"></use>
+                </svg>
+              </button>
             </div>
           </div>
           <details class="sample-kit" id="sampleKit" open>
