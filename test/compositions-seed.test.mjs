@@ -96,6 +96,15 @@ test("Commons intake expands visual concepts while preserving the original query
   assert.match(expanded, /interior|room|twilight|evening|solitary/);
 });
 
+test("browser semantic search imports the published Transformers.js web bundle", async () => {
+  const library = await readFile(
+    new URL("../compositions/library.js", import.meta.url),
+    "utf8",
+  );
+  assert.match(library, /dist\/transformers\.web\.min\.js/);
+  assert.doesNotMatch(library, /dist\/transformers\.web\.min\.mjs/);
+});
+
 test("the public compositions studio does not expose the library route", async () => {
   const studio = await readFile(
     new URL("../compositions/index.html", import.meta.url),
