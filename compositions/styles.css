@@ -20,8 +20,8 @@
   --control: 6.5rem;
   --control-sm: 3.2rem;
   --pad: 28px;
-  --ui: "Satoshi", sans-serif;
-  --serif: "Satoshi", sans-serif;
+  --ui: "Inter", sans-serif;
+  --serif: "Inter", sans-serif;
 }
 
 * {
@@ -79,6 +79,21 @@ summary,
 body {
   min-height: 100vh;
   position: relative;
+}
+
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.lucide-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .studio {
