@@ -2074,6 +2074,10 @@ body.is-sheet-open {
   overflow: hidden;
 }
 
+.mobile-editor {
+  display: none;
+}
+
 .frame .veil {
   position: absolute;
   inset: 0;
@@ -2936,6 +2940,399 @@ body.is-sheet-open {
   .sheet.is-expanded .frame:has(img) {
     cursor: pointer;
     touch-action: pan-y;
+  }
+
+  .masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 34px;
+  }
+
+  .masthead .about {
+    display: none;
+  }
+
+  .wall {
+    padding: 8px 8px 4px;
+  }
+
+  .wall:empty::before {
+    content: "";
+    width: min(78vw, 360px);
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.7), transparent 58%),
+      var(--paper-2);
+    box-shadow:
+      inset 0 0 0 1px rgba(36, 33, 31, 0.035),
+      0 18px 46px rgba(36, 33, 31, 0.055);
+  }
+
+  .mobile-sheet {
+    max-height: none;
+    padding: 8px;
+    border-radius: 26px;
+    background: color-mix(in srgb, var(--paper) 92%, #fff);
+    box-shadow:
+      0 0 0 1px rgba(36, 33, 31, 0.055),
+      0 12px 36px rgba(36, 33, 31, 0.09);
+    overflow: visible;
+  }
+
+  .mobile-sheet-handle,
+  .mobile-sheet .mode-switch,
+  .mobile-sheet .sample-kit,
+  .mobile-sheet .paint-kit {
+    display: none !important;
+  }
+
+  .mobile-sheet > .stack {
+    display: block;
+  }
+
+  .mobile-sheet .stack > .field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+    padding: 7px;
+    border: 1px solid rgba(36, 33, 31, 0.07);
+    border-radius: 21px;
+    background: var(--paper);
+  }
+
+  .mobile-sheet .scene-row {
+    display: contents;
+  }
+
+  .mobile-sheet .scene-row #scene,
+  .mobile-sheet .scene-caption {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 48px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .mobile-sheet #scene {
+    padding: 11px 10px 8px;
+  }
+
+  .mobile-sheet .field-head {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+    width: fit-content;
+    padding-left: 6px;
+  }
+
+  .mobile-sheet .field-head .choice-trigger {
+    min-height: 38px;
+    padding: 0 16px 0 0;
+    border: 0;
+    color: var(--muted);
+  }
+
+  .mobile-sheet .field-head .count-word {
+    display: none;
+  }
+
+  .mobile-sheet .field-head .count-num {
+    display: inline-grid;
+    place-items: center;
+    min-width: 42px;
+    min-height: 32px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: var(--wash);
+    color: var(--hover);
+  }
+
+  .mobile-sheet .field-head .choice-trigger::after {
+    display: none;
+  }
+
+  .mobile-sheet .scene-actions {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+    gap: 6px;
+  }
+
+  .mobile-sheet .scene-actions .upload,
+  .mobile-sheet .scene-actions .paint {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+
+  .mobile-sheet .scene-actions .upload {
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+
+  .mobile-sheet .scene-actions .paint {
+    border: 0;
+    background: var(--hover);
+    color: var(--paper);
+  }
+
+  .mobile-sheet.has-paintings,
+  .mobile-sheet.has-paintings:not(.is-expanded) {
+    height: auto;
+    max-height: min(43dvh, 350px);
+    padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+
+  .mobile-sheet.has-paintings > .stack,
+  .mobile-sheet.has-paintings > .mode-switch,
+  .mobile-sheet.has-paintings > .mobile-sheet-handle,
+  .mobile-sheet.has-paintings > .paint-kit {
+    display: none !important;
+  }
+
+  .mobile-editor {
+    display: none;
+  }
+
+  .mobile-sheet.has-paintings .mobile-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .mobile-tool-panel {
+    display: grid;
+    place-items: center;
+    min-height: 82px;
+    max-height: 190px;
+    overflow-x: auto;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .mobile-tool-panel::-webkit-scrollbar {
+    display: none;
+  }
+
+  [data-tool-panel] {
+    display: none;
+  }
+
+  [data-tool-panel].is-active {
+    display: flex;
+  }
+
+  .mobile-brush-options {
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    padding: 4px 5px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mobile-brush-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 58px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 10px;
+    cursor: pointer;
+  }
+
+  .mobile-brush-mark {
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--paper-2);
+  }
+
+  .mobile-brush-mark::before {
+    content: "";
+    width: 22px;
+    height: 3px;
+    border-radius: 999px;
+    background: currentColor;
+    transform: rotate(-32deg);
+  }
+
+  .mobile-brush-option.is-active {
+    color: var(--hover);
+  }
+
+  .mobile-brush-option.is-active .mobile-brush-mark {
+    border-color: color-mix(in srgb, var(--hover) 30%, transparent);
+    background: var(--wash);
+    box-shadow: 0 4px 14px rgba(139, 47, 50, 0.08);
+  }
+
+  .mobile-color-panel {
+    justify-content: center;
+    width: 100%;
+    padding: 4px;
+  }
+
+  #mobilePigments.color-square {
+    width: 132px;
+  }
+
+  #mobilePigments .color-square-map {
+    min-height: 0;
+  }
+
+  #mobilePigments .color-square-hex {
+    height: 30px;
+    font-size: 13px;
+  }
+
+  .mobile-tick-control {
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .mobile-tick-scale {
+    position: relative;
+    display: block;
+    width: min(88vw, 390px);
+    height: 48px;
+    --value: 50;
+    background:
+      linear-gradient(90deg, transparent 49.7%, var(--hover) 49.7% 50.3%, transparent 50.3%),
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 7px,
+        color-mix(in srgb, var(--ink) 24%, transparent) 7px 8px
+      );
+    background-position: center;
+    background-size: 100% 32px, auto 18px;
+    background-repeat: no-repeat;
+    mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+  }
+
+  .mobile-tick-scale::after {
+    content: "";
+    position: absolute;
+    left: calc(var(--value) * 1%);
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--hover);
+    border-radius: 50%;
+    background: var(--paper);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .mobile-tick-scale input {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: ew-resize;
+  }
+
+  .mobile-tool-dock {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+    padding: 4px 2px 1px;
+    border-top: 1px solid var(--line);
+  }
+
+  .mobile-tool {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 9px;
+    line-height: 1.2;
+    cursor: pointer;
+  }
+
+  .mobile-tool-circle {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    max-width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--paper-2);
+    transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+  }
+
+  .mobile-tool-circle svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.45;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .mobile-color-icon {
+    --tool-color: var(--hover);
+  }
+
+  .mobile-color-icon::before {
+    content: "";
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: var(--tool-color);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  }
+
+  .mobile-tool.is-active {
+    color: var(--hover);
+  }
+
+  .mobile-tool.is-active .mobile-tool-circle {
+    border-color: color-mix(in srgb, var(--hover) 28%, transparent);
+    background: var(--wash);
+    box-shadow: 0 5px 15px rgba(139, 47, 50, 0.08);
+  }
+
+  .grid {
+    align-content: start;
+  }
+
+  .sheet .caption {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 7px 3px 2px;
+  }
+
+  .sheet .caption > .sheet-edit {
+    display: none;
+  }
+
+  .caption-name {
+    font-size: 11px;
   }
 }
 

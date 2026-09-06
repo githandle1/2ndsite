@@ -29,6 +29,11 @@ const brushEl = document.querySelector("#brush");
 const brushControlsEl = document.querySelector("#brushControls");
 const placementEl = document.querySelector("#placement");
 const placementControlsEl = document.querySelector("#placementControls");
+const mobileEditor = document.querySelector("#mobileEditor");
+const mobileBrushOptions = document.querySelector(".mobile-brush-options");
+const mobileToolButtons = [...document.querySelectorAll("[data-mobile-tool]")];
+const mobileToolPanels = [...document.querySelectorAll("[data-tool-panel]")];
+const mobileEffectInputs = [...document.querySelectorAll("[data-mobile-effect]")];
 
 const stored = JSON.parse(localStorage.getItem("wash.settings") || "{}");
 if (stored.provider) providerEl.value = stored.provider;
@@ -352,7 +357,7 @@ mountChoice(countEl, {
     word.textContent = "variations";
     const num = document.createElement("span");
     num.className = "count-num";
-    num.textContent = label;
+    num.textContent = `×${label}`;
     trigger.replaceChildren(word, num);
   },
 });
@@ -368,6 +373,11 @@ function sizeScene() {
 }
 
 sceneEl.addEventListener("input", sizeScene);
+sceneEl.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+  event.preventDefault();
+  paintEl.click();
+});
 sceneEl.addEventListener("focus", () => {
   requestAnimationFrame(() => sceneEl.scrollIntoView({ block: "nearest", behavior: "smooth" }));
 });
@@ -1233,6 +1243,76 @@ function readEffects() {
 }
 
 let colorPicker = null;
+let mobileColorPicker = null;
+
+function applyMobilePatch(patch) {
+  const rec = selectedId ? cards.get(selectedId) : null;
+  if (!rec?.item) return;
+  rec.item.effects = clampEffects({ ...sheetEffects(rec), ...patch });
+  applyEffectsToControls(rec.item.effects);
+  syncSheetEditor(rec);
+  syncMobileEditor(rec);
+  persistSettings();
+  scheduleSheetRender(selectedId);
+}
+
+function syncMobileEditor(rec = selectedId ? cards.get(selectedId) : null) {
+  if (!mobileEditor || !rec?.item) return;
+  const fx = sheetEffects(rec);
+  mobileEditor.dataset.selected = rec.item.id;
+  for (const input of mobileEffectInputs) {
+    input.value = String(Math.round((fx[input.dataset.mobileEffect] ?? 0.5) * 100));
+    input.closest(".mobile-tick-scale")?.style.setProperty("--value", input.value);
+  }
+  for (const button of mobileBrushOptions?.querySelectorAll("[data-brush-type]") || []) {
+    const on = button.dataset.brushType === fx.brushType;
+    button.classList.toggle("is-active", on);
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  const hex = oklchToHex(fx.color || DEFAULT_COLOR);
+  document.querySelector(".mobile-color-icon")?.style.setProperty("--tool-color", hex);
+  mobileColorPicker?.setValue(fx.color || DEFAULT_COLOR);
+}
+
+function setMobileTool(name) {
+  for (const button of mobileToolButtons) {
+    const on = button.dataset.mobileTool === name;
+    button.classList.toggle("is-active", on);
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  for (const panel of mobileToolPanels) {
+    panel.classList.toggle("is-active", panel.dataset.toolPanel === name);
+  }
+}
+
+function mountMobileEditor() {
+  if (!mobileEditor || !mobileBrushOptions) return;
+  for (const name of BRUSH_TYPES) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "mobile-brush-option";
+    button.dataset.brushType = name;
+    button.setAttribute("aria-pressed", "false");
+    button.innerHTML = `<span class="mobile-brush-mark" aria-hidden="true"></span><span>${name.toLowerCase()}</span>`;
+    button.addEventListener("click", () => applyMobilePatch({ brushType: name }));
+    mobileBrushOptions.append(button);
+  }
+  mobileColorPicker = mountColorSquare({
+    host: document.querySelector("#mobilePigments"),
+    value: effects.color || DEFAULT_COLOR,
+    onChange: (color) => applyMobilePatch({ color }),
+  });
+  for (const button of mobileToolButtons) {
+    button.addEventListener("click", () => setMobileTool(button.dataset.mobileTool));
+  }
+  for (const input of mobileEffectInputs) {
+    input.addEventListener("input", () => {
+      input.closest(".mobile-tick-scale")?.style.setProperty("--value", input.value);
+      applyMobilePatch({ [input.dataset.mobileEffect]: Number(input.value) / 100 });
+    });
+  }
+  setMobileTool("brush");
+}
 
 function makeSlider(id, label, value) {
   const row = document.createElement("label");
@@ -1698,7 +1778,7 @@ function renderGrid(items) {
         <div class="veil">pigment settling…</div>
       </div>
       <div class="caption">
-        <span class="caption-name">sample ${index + 1}</span>
+        <span class="caption-name">variation ${index + 1}</span>
         <div class="sheet-edit is-row" role="toolbar" aria-label="edit wash">
           <button type="button" class="sheet-edit-grip" aria-label="move editor" title="drag to the side"></button>
           <button type="button" class="sheet-edit-color" title="color" aria-label="color" aria-haspopup="listbox" aria-expanded="false">
@@ -1859,6 +1939,7 @@ function selectPainting(id) {
   rec.item.effects = sheetEffects(rec);
   applyEffectsToControls(rec.item.effects);
   syncSheetEditor(rec);
+  syncMobileEditor(rec);
 }
 
 async function renderBuiltInSample(sampleId, prompt) {
@@ -2113,6 +2194,7 @@ sheetStageEl?.addEventListener("click", (event) => {
 
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
+mountMobileEditor();
 mountModeSwitch();
 fitPaintKit();
 mountMobileSheet();

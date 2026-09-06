@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=180" />
+    <link rel="stylesheet" href="styles.css?v=181" />
   </head>
   <body>
     <main class="studio">
@@ -31,7 +31,7 @@
               </p>
               <p>
                 get started, select a preset scene below or upload an image, then tap the paint icon to generate
-                samples. you can customize each sample’s brushes, color, texture, and more.
+                variations. you can customize each image’s brushes, color, texture, and more.
               </p>
             </div>
           </div>
@@ -65,7 +65,7 @@
         <div class="stack" id="createPane" role="tabpanel" aria-labelledby="modeCreate">
           <div class="field">
             <div class="scene-row">
-              <textarea id="scene" rows="1" placeholder="fingerprints" aria-label="create"></textarea>
+              <textarea id="scene" rows="1" placeholder="describe a scene…" aria-label="scene prompt"></textarea>
               <div class="scene-caption" id="sceneCaption" hidden>
                 <img id="sceneCaptionImg" alt="" />
                 <span id="sceneCaptionText"></span>
@@ -118,14 +118,14 @@
             </div>
             <div class="field-head">
               <select id="count" aria-label="variations">
-                <option value="3">3</option>
-                <option value="4" selected>4</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
                 <option value="6">6</option>
               </select>
             </div>
           </div>
           <details class="sample-kit" id="sampleKit" open>
-            <summary>samples</summary>
+            <summary>scenes</summary>
             <div class="chips" id="samples"></div>
           </details>
         </div>
@@ -182,6 +182,62 @@
             </details>
           </div>
         </details>
+        <section class="mobile-editor" id="mobileEditor" aria-label="image adjustments">
+          <div class="mobile-tool-panel" id="mobileToolPanel">
+            <div class="mobile-brush-options" data-tool-panel="brush" aria-label="brush types"></div>
+            <div class="mobile-color-panel" data-tool-panel="color">
+              <div id="mobilePigments" aria-label="color"></div>
+            </div>
+            <label class="mobile-tick-control" data-tool-panel="saturation">
+              <span>saturation</span>
+              <span class="mobile-tick-scale">
+                <input type="range" min="0" max="100" step="1" data-mobile-effect="pigment" aria-label="saturation" />
+              </span>
+            </label>
+            <label class="mobile-tick-control" data-tool-panel="density">
+              <span>density</span>
+              <span class="mobile-tick-scale">
+                <input type="range" min="0" max="100" step="1" data-mobile-effect="density" aria-label="density" />
+              </span>
+            </label>
+            <label class="mobile-tick-control" data-tool-panel="texture">
+              <span>texture</span>
+              <span class="mobile-tick-scale">
+                <input type="range" min="0" max="100" step="1" data-mobile-effect="granulation" aria-label="texture" />
+              </span>
+            </label>
+          </div>
+          <div class="mobile-tool-dock" role="toolbar" aria-label="image tools">
+            <button type="button" class="mobile-tool is-active" data-mobile-tool="brush" aria-pressed="true">
+              <span class="mobile-tool-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="m14.5 4.5 5 5M8.8 15.2 17.7 6.3M8.8 15.2c-2.6-.2-4.4 1.5-4.3 4.3 2.8.1 4.5-1.7 4.3-4.3Z"/></svg>
+              </span>
+              <span>brush</span>
+            </button>
+            <button type="button" class="mobile-tool" data-mobile-tool="color" aria-pressed="false">
+              <span class="mobile-tool-circle mobile-color-icon" aria-hidden="true"></span>
+              <span>color</span>
+            </button>
+            <button type="button" class="mobile-tool" data-mobile-tool="saturation" aria-pressed="false">
+              <span class="mobile-tool-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3.5c3 4 6 7.1 6 10.4a6 6 0 0 1-12 0C6 10.6 9 7.5 12 3.5Z"/></svg>
+              </span>
+              <span>saturation</span>
+            </button>
+            <button type="button" class="mobile-tool" data-mobile-tool="density" aria-pressed="false">
+              <span class="mobile-tool-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M7 17 17 7M6 8h.01M10 12h.01M14 16h.01M18 12h.01"/></svg>
+              </span>
+              <span>density</span>
+            </button>
+            <button type="button" class="mobile-tool" data-mobile-tool="texture" aria-pressed="false">
+              <span class="mobile-tool-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M6 7h12M5 12h14M7 17h10"/></svg>
+              </span>
+              <span>texture</span>
+            </button>
+          </div>
+        </section>
         </div>
       </aside>
       <div
@@ -202,6 +258,6 @@
     <div id="sheetStage" class="sheet-stage" hidden></div>
 
     <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=58"></iframe>
-    <script type="module" src="app.js?v=126"></script>
+    <script type="module" src="app.js?v=127"></script>
   </body>
 </html>
