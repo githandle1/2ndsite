@@ -11,6 +11,7 @@ import {
 import {
   cosineSimilarity,
   expandVisualQuery,
+  genreMatchScore,
   genreSearchQuery,
   rankSeedRecords,
   SEMANTIC_MODEL,
@@ -341,8 +342,15 @@ async function searchLibrary({ append = false } = {}) {
     responses.forEach((result, index) => {
       if (result.status !== "fulfilled") return;
       const source = sources[index];
-      remoteResults.push(...result.value.items.filter((item) => !known.has(item.id)));
-      result.value.items.forEach((item) => known.add(item.id));
+      const incoming = result.value.items
+        .filter((item) => !known.has(item.id))
+        .sort(
+          (left, right) =>
+            genreMatchScore(genreFilter, semanticText(toDatasetRecord(right))) -
+            genreMatchScore(genreFilter, semanticText(toDatasetRecord(left))),
+        );
+      remoteResults.push(...incoming);
+      incoming.forEach((item) => known.add(item.id));
       continuations[source] = result.value.continue;
     });
     if (responses.every((result) => result.status === "rejected")) {
