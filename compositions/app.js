@@ -1034,9 +1034,6 @@ function mountSubjectDrag(sheet, item) {
     if (!lift) return;
     const box = frame.getBoundingClientRect();
     lift.style.transform = `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
-    // #region agent log
-    navigator.sendBeacon("http://localhost:8765", JSON.stringify({ hypothesisId: "D,E", location: "compositions/app.js:preview", message: "lift preview transformed", data: { placeX, placeY, startPlaceX, startPlaceY, transform: lift.style.transform, connected: lift.isConnected }, timestamp: Date.now() }));
-    // #endregion
   };
 
   const write = (placeX, placeY) => {
@@ -1142,9 +1139,6 @@ function mountSubjectDrag(sheet, item) {
   });
 
   async function startPick(event) {
-    // #region agent log
-    navigator.sendBeacon("http://localhost:8765", JSON.stringify({ hypothesisId: "A,B,C", location: "compositions/app.js:startPick", message: "subject pointerdown entered", data: { id: item.id, pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY, expanded: sheet.classList.contains("is-expanded"), phone: isPhone(), hasSplit: Boolean(cards.get(item.id)?.split?.baseUrl), buttons: event.buttons }, timestamp: Date.now() }));
-    // #endregion
     // On phones, inactive gallery cards remain scrollable. The selected card
     // keeps vertical panning in CSS while accepting horizontal subject drags.
     if (isPhone() && !sheet.classList.contains("active") && !sheet.classList.contains("is-expanded")) return;
@@ -1158,7 +1152,6 @@ function mountSubjectDrag(sheet, item) {
     event.preventDefault();
     selectPainting(item.id);
     const waited = !rec.split?.baseUrl;
-    const splitStartedAt = performance.now();
     if (waited) frame.classList.add("is-nudging");
     try {
       await ensureSplit(rec);
@@ -1166,19 +1159,11 @@ function mountSubjectDrag(sheet, item) {
       frame.classList.remove("is-nudging");
       return;
     }
-    // #region agent log
-    navigator.sendBeacon("http://localhost:8765", JSON.stringify({ hypothesisId: "A,B", location: "compositions/app.js:startPick:split", message: "split ready after pointerdown", data: { id: item.id, waited, elapsedMs: Math.round(performance.now() - splitStartedAt), hasSplit: Boolean(rec.split?.baseUrl), currentSource: rec.split?.src === rec.dataUrl }, timestamp: Date.now() }));
-    // #endregion
-    const hit = hitSubject(frame, rec, event.clientX, event.clientY);
-    if (!hit) {
+    if (!hitSubject(frame, rec, event.clientX, event.clientY)) {
       frame.classList.remove("is-nudging");
       return;
     }
-    const shown = showLift(rec);
-    // #region agent log
-    navigator.sendBeacon("http://localhost:8765", JSON.stringify({ hypothesisId: "A,C,D", location: "compositions/app.js:startPick:activate", message: "drag activation evaluated", data: { id: item.id, waited, hit, shown, liftConnected: Boolean(liftEl()?.isConnected), pointerId: event.pointerId }, timestamp: Date.now() }));
-    // #endregion
-    if (!shown) {
+    if (!showLift(rec)) {
       frame.classList.remove("is-nudging");
       return;
     }
@@ -1203,17 +1188,11 @@ function mountSubjectDrag(sheet, item) {
     }
   }
   frame.addEventListener("pointermove", (event) => {
-    // #region agent log
-    navigator.sendBeacon("http://localhost:8765", JSON.stringify({ hypothesisId: "A,C,D", location: "compositions/app.js:pointermove", message: "frame pointermove observed", data: { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY, holding, carrying, moved, hasCapture: frame.hasPointerCapture(event.pointerId) }, timestamp: Date.now() }));
-    // #endregion
     if (!holding || carrying) return;
     follow(event.clientX, event.clientY);
     if (Math.hypot(event.clientX - startX, event.clientY - startY) > 4) moved = true;
   });
   frame.addEventListener("pointerup", (event) => {
-    // #region agent log
-    navigator.sendBeacon("http://localhost:8765", JSON.stringify({ hypothesisId: "A,C,E", location: "compositions/app.js:pointerup", message: "frame pointerup observed", data: { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY, holding, carrying, moved, hasCapture: frame.hasPointerCapture(event.pointerId), placeX: cards.get(item.id)?.item?.effects?.placeX, placeY: cards.get(item.id)?.item?.effects?.placeY }, timestamp: Date.now() }));
-    // #endregion
     if (!holding || carrying) return;
     holding = false;
     try {
@@ -1501,9 +1480,6 @@ function requestHighRes(id) {
 }
 
 function applyPaintedData(rec, dataUrl, density = 1) {
-  // #region agent log
-  navigator.sendBeacon("http://localhost:8765", JSON.stringify({ hypothesisId: "B,E", location: "compositions/app.js:applyPaintedData", message: "painted render applied", data: { id: rec?.item?.id, density, hadSplit: Boolean(rec?.split?.baseUrl), expanded: Boolean(rec?.sheet?.classList.contains("is-expanded")), placeX: rec?.item?.effects?.placeX, placeY: rec?.item?.effects?.placeY }, timestamp: Date.now() }));
-  // #endregion
   rec.dataUrl = dataUrl;
   rec.item.dataUrl = dataUrl;
   rec.paintDensity = density;
@@ -1658,9 +1634,6 @@ function openSheetStage(id) {
   rec.sheet.querySelector(".sheet-edit")?._onStage?.();
   sheetStageEl.hidden = false;
   document.body.classList.add("is-sheet-open");
-  // #region agent log
-  navigator.sendBeacon("http://localhost:8765", JSON.stringify({ hypothesisId: "A,B", location: "compositions/app.js:openSheetStage", message: "expanded sheet opened", data: { id, phone: isPhone(), hasDataUrl: Boolean(rec.dataUrl), hasSplit: Boolean(rec.split?.baseUrl), paintDensity: rec.paintDensity, targetDensity: paintDensityFor(id), paintingNow, queued: paintQueue.includes(id) }, timestamp: Date.now() }));
-  // #endregion
   if (isPhone()) prefetchSplit(rec);
   requestHighRes(id);
 }
