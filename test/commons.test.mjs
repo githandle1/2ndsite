@@ -103,19 +103,31 @@ test("dataset export contains caption and complete provenance", () => {
     "public-domain",
     retrievedAt,
   ).items[0];
-  const record = toDatasetRecord({ ...item, caption: "edited caption" });
+  const record = toDatasetRecord({
+    ...item,
+    captionLong: "An edited detailed caption.",
+    captionShort: "edited caption",
+  });
 
-  assert.equal(record.caption, "edited caption");
-  assert.deepEqual(Object.keys(record.provenance), [
-    "source",
+  assert.equal(record.caption_long, "An edited detailed caption.");
+  assert.equal(record.caption_short, "edited caption");
+  assert.deepEqual(Object.keys(record), [
+    "id",
     "source_url",
+    "image_url",
+    "thumbnail_url",
     "title",
-    "artist",
     "credit",
     "license",
     "license_url",
-    "image_url",
     "retrieved_at",
+    "ocr_text",
+    "ocr_status",
+    "caption_long",
+    "caption_short",
+    "width",
+    "height",
+    "category",
   ]);
-  assert.equal(record.provenance.retrieved_at, retrievedAt);
+  assert.equal(record.retrieved_at, retrievedAt);
 });

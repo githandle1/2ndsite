@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=165" />
+    <link rel="stylesheet" href="styles.css?v=169" />
   </head>
   <body class="library-body">
     <main class="library-studio">
@@ -19,22 +19,25 @@
         <header class="library-masthead">
           <a class="library-back" href="./">← compositions</a>
           <h1>library</h1>
-          <p class="library-intro">a small open-access image shelf for future paintings.</p>
+          <p class="library-intro">a private open-access image shelf for future paintings.</p>
         </header>
 
         <form class="library-search" id="librarySearch">
-          <label for="libraryQuery">search commons</label>
+          <label for="libraryQuery">search by meaning</label>
           <div class="library-search-row">
             <input
               id="libraryQuery"
               name="q"
               type="search"
-              value="botanical illustration"
+              value="lonely kitchen at dusk"
               autocomplete="off"
               spellcheck="false"
             />
             <button class="library-search-button" type="submit">search</button>
           </div>
+          <p class="library-search-note">
+            kept and seed images are ranked from their detailed captions, not filenames.
+          </p>
         </form>
 
         <div class="library-filters" aria-labelledby="licenseLabel">
@@ -70,8 +73,8 @@
             </button>
           </div>
           <p class="library-note">
-            this keeps captions and provenance. a later <code>paint()</code> distillation step must
-            turn references into code-painting training pairs.
+            exports keep dense + short captions and provenance. a later <code>paint()</code>
+            distillation step turns references into code-painting training pairs.
           </p>
         </section>
       </aside>
@@ -79,8 +82,8 @@
       <section class="library-wall" aria-labelledby="resultsTitle">
         <header class="library-wall-head">
           <div>
-            <span class="library-eyebrow">wikimedia commons</span>
-            <h2 id="resultsTitle">open shelves</h2>
+            <span class="library-eyebrow">caption index + wikimedia commons</span>
+            <h2 id="resultsTitle">meaning shelves</h2>
           </div>
           <span class="library-result-count" id="resultCount"></span>
         </header>
@@ -88,6 +91,6 @@
         <button class="library-more" id="libraryMore" type="button" hidden>more from commons</button>
       </section>
     </main>
-    <script type="module" src="library.js?v=1"></script>
+    <script type="module" src="library.js?v=2"></script>
   </body>
 </html>

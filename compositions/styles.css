@@ -3015,39 +3015,6 @@ body.is-sheet-open {
   }
 }
 
-.library-entry {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 2px;
-  padding: 13px 0 0;
-  border-top: 1px solid var(--line);
-  color: var(--ink);
-  font-size: 13px;
-  text-decoration: none;
-  transition: color 160ms ease;
-}
-
-.library-entry span:last-child {
-  color: var(--muted);
-  font-size: 11px;
-  text-align: right;
-}
-
-.library-entry:hover,
-.library-entry:focus-visible,
-.library-entry:hover span:last-child,
-.library-entry:focus-visible span:last-child {
-  color: var(--hover);
-}
-
-.library-entry:focus-visible {
-  border-radius: 4px;
-  outline: 2px solid color-mix(in srgb, var(--hover) 30%, transparent);
-  outline-offset: 4px;
-}
-
 .library-body {
   min-height: 100vh;
   overflow-x: hidden;
@@ -3120,6 +3087,13 @@ body.is-sheet-open {
   display: flex;
   flex-direction: column;
   gap: var(--space);
+}
+
+.library-search-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
 }
 
 .library-search > label,
@@ -3455,6 +3429,12 @@ body.is-sheet-open {
     0 12px 34px rgba(36, 33, 31, 0.055);
 }
 
+.library-card.is-semantic {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--hover) 24%, transparent),
+    0 12px 34px rgba(36, 33, 31, 0.055);
+}
+
 .library-frame {
   border-radius: 16px 16px 0 0;
 }
@@ -3494,6 +3474,14 @@ body.is-sheet-open {
   padding: 12px 14px 7px;
 }
 
+.library-match {
+  display: block;
+  margin: 0 0 4px;
+  color: var(--hover);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+}
+
 .library-card-title {
   display: -webkit-box;
   overflow: hidden;
@@ -3509,6 +3497,17 @@ body.is-sheet-open {
 .library-card-title:hover,
 .library-card-title:focus-visible {
   color: var(--hover);
+}
+
+.library-card-caption {
+  display: -webkit-box;
+  margin: 5px 0 0;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--ink) 76%, transparent);
+  font-size: 10px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .library-card-artist {

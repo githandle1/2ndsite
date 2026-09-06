@@ -3,8 +3,18 @@ import {
   normalizeCommonsResponse,
   toDatasetRecord,
 } from "../lib/compositions/commons.mjs";
+import {
+  cosineSimilarity,
+  expandVisualQuery,
+  rankSeedRecords,
+  SEMANTIC_MODEL,
+  SEMANTIC_MODEL_DTYPE,
+  semanticText,
+} from "../lib/compositions/semantic-search.mjs";
 
-const STORAGE_KEY = "compositions.library.kept.v1";
+const STORAGE_KEY = "compositions.library.kept.v2";
+const MODEL_MODULE =
+  "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0/dist/transformers.web.min.mjs";
 const searchForm = document.querySelector("#librarySearch");
 const queryInput = document.querySelector("#libraryQuery");
 const statusEl = document.querySelector("#libraryStatus");
@@ -20,8 +30,13 @@ let licenseFilter = "public-domain";
 let exportFormat = "json";
 let continuation = null;
 let currentQuery = "";
-let results = [];
+let commonsResults = [];
+let seedRecords = [];
+let semanticIndex = {};
+let semanticPipelinePromise = null;
 let requestController = null;
+let searchSequence = 0;
+const candidateVectors = new Map();
 const skipped = new Set();
 const kept = loadKept();
 
@@ -50,6 +65,78 @@ function setStatus(message, busy = false) {
   statusEl.classList.toggle("is-busy", busy);
 }
 
+function parseJsonl(content) {
+  return content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+}
+
+function seedToItem(record) {
+  return {
+    id: record.id,
+    source: "wikimedia commons",
+    sourceUrl: record.source_url,
+    imageUrl: record.image_url,
+    thumbnailUrl: record.thumbnail_url || record.image_url,
+    title: record.title,
+    artist: record.credit,
+    credit: record.credit,
+    license: record.license,
+    licenseUrl: record.license_url,
+    retrievedAt: record.retrieved_at,
+    ocrText: record.ocr_text,
+    ocrStatus: record.ocr_status,
+    caption: record.caption_long,
+    captionLong: record.caption_long,
+    captionShort: record.caption_short,
+    width: record.width,
+    height: record.height,
+    category: record.category,
+    semanticScore: record.semanticScore,
+    isSeed: true,
+  };
+}
+
+async function loadSeed() {
+  try {
+    const [recordsResponse, indexResponse] = await Promise.all([
+      fetch("data/seed/commons-seed.jsonl"),
+      fetch("data/seed/semantic-index.json"),
+    ]);
+    if (!recordsResponse.ok || !indexResponse.ok) throw new Error("seed unavailable");
+    seedRecords = parseJsonl(await recordsResponse.text());
+    semanticIndex = (await indexResponse.json()).vectors || {};
+  } catch {
+    seedRecords = [];
+    semanticIndex = {};
+  }
+}
+
+async function semanticPipeline() {
+  if (!semanticPipelinePromise) {
+    semanticPipelinePromise = import(MODEL_MODULE)
+      .then(({ pipeline }) =>
+        pipeline("feature-extraction", SEMANTIC_MODEL, { dtype: SEMANTIC_MODEL_DTYPE }),
+      )
+      .catch((error) => {
+        semanticPipelinePromise = null;
+        throw error;
+      });
+  }
+  return semanticPipelinePromise;
+}
+
+async function embedTexts(texts) {
+  const embed = await semanticPipeline();
+  const result = await embed(texts, { pooling: "mean", normalize: true });
+  const dimensions = result.dims.at(-1);
+  return texts.map((_, index) =>
+    Array.from(result.data.slice(index * dimensions, (index + 1) * dimensions)),
+  );
+}
+
 async function fetchCommons(search, offset, signal) {
   const params = new URLSearchParams({ q: search, license: licenseFilter });
   if (offset) params.set("continue", offset);
@@ -69,7 +156,58 @@ async function fetchCommons(search, offset, signal) {
   }
 }
 
-async function searchCommons({ append = false } = {}) {
+function rankedSeed(query, queryEmbedding = null) {
+  return rankSeedRecords(
+    query,
+    seedRecords.filter((record) => licenseFilter !== "cc0" || record.license === "cc0"),
+    semanticIndex,
+    queryEmbedding,
+  )
+    .filter((record) => record.semanticScore > 0.08)
+    .slice(0, 12)
+    .map(seedToItem);
+}
+
+function currentVisibleResults(query, queryEmbedding = null) {
+  const seed = rankedSeed(query, queryEmbedding);
+  const known = new Set(seed.map((item) => item.id));
+  return [...seed, ...commonsResults.filter((item) => !known.has(item.id))].filter(
+    (item) => !skipped.has(item.id),
+  );
+}
+
+async function rerankWithModel(query, sequence) {
+  try {
+    const [queryEmbedding] = await embedTexts([query]);
+    if (sequence !== searchSequence) return;
+
+    const missing = commonsResults.filter((item) => !candidateVectors.has(item.id));
+    if (missing.length) {
+      const vectors = await embedTexts(missing.map((item) => semanticText(toDatasetRecord(item))));
+      missing.forEach((item, index) => candidateVectors.set(item.id, vectors[index]));
+    }
+    if (sequence !== searchSequence) return;
+
+    commonsResults = commonsResults
+      .map((item) => ({
+        ...item,
+        semanticScore: cosineSimilarity(queryEmbedding, candidateVectors.get(item.id)),
+      }))
+      .sort((left, right) => right.semanticScore - left.semanticScore);
+    renderResults(query, queryEmbedding, true);
+    setStatus(
+      `${rankedSeed(query, queryEmbedding).length} caption matches · ${commonsResults.length} expanded commons candidates.`,
+    );
+  } catch {
+    if (sequence === searchSequence) {
+      setStatus(
+        `${rankedSeed(query).length} local caption matches · commons is expanded lexically. embedding model unavailable.`,
+      );
+    }
+  }
+}
+
+async function searchLibrary({ append = false } = {}) {
   const search = queryInput.value.trim();
   if (!search) {
     queryInput.focus();
@@ -80,32 +218,35 @@ async function searchCommons({ append = false } = {}) {
   requestController?.abort();
   requestController = new AbortController();
   const offset = append ? continuation : null;
+  const sequence = append ? searchSequence : ++searchSequence;
   currentQuery = search;
   moreButton.disabled = true;
-  setStatus(append ? "opening another shelf…" : "looking through commons…", true);
   if (!append) {
+    commonsResults = [];
+    skipped.clear();
     gridEl.setAttribute("aria-busy", "true");
-    resultCountEl.textContent = "";
+    renderResults(search);
   }
+  setStatus(append ? "opening another commons shelf…" : "ranking captions by meaning…", true);
 
   try {
-    const response = await fetchCommons(search, offset, requestController.signal);
-    if (!append) {
-      results = [];
-      skipped.clear();
-    }
-    const known = new Set(results.map((item) => item.id));
-    results.push(...response.items.filter((item) => !known.has(item.id)));
+    const expanded = expandVisualQuery(search);
+    const response = await fetchCommons(expanded, offset, requestController.signal);
+    if (sequence !== searchSequence) return;
+    const known = new Set(commonsResults.map((item) => item.id));
+    commonsResults.push(...response.items.filter((item) => !known.has(item.id)));
     continuation = response.continue;
-    renderResults();
+    renderResults(search);
     setStatus(
-      results.length
-        ? `${results.length} open ${results.length === 1 ? "file" : "files"} found.`
-        : "no public-domain files found. try another phrase.",
+      `${rankedSeed(search).length} caption matches · ${commonsResults.length} expanded commons candidates. refining…`,
+      true,
     );
+    rerankWithModel(search, sequence);
   } catch (error) {
     if (error.name !== "AbortError") {
-      setStatus("commons is quiet right now. try again in a moment.");
+      renderResults(search);
+      setStatus(`${rankedSeed(search).length} local caption matches · commons is quiet right now.`);
+      rerankWithModel(search, sequence);
     }
   } finally {
     gridEl.removeAttribute("aria-busy");
@@ -113,22 +254,25 @@ async function searchCommons({ append = false } = {}) {
   }
 }
 
-function renderResults() {
+function renderResults(query = currentQuery, queryEmbedding = null, modelRanked = false) {
   gridEl.replaceChildren();
-  const visible = results.filter((item) => !skipped.has(item.id));
-  for (const item of visible) gridEl.append(createCandidateCard(item));
-  resultCountEl.textContent = results.length ? `${visible.length} showing` : "";
+  const visible = currentVisibleResults(query, queryEmbedding);
+  for (const item of visible) gridEl.append(createCandidateCard(item, modelRanked));
+  const seedCount = visible.filter((item) => item.isSeed).length;
+  resultCountEl.textContent = visible.length
+    ? `${seedCount} meaning ${seedCount === 1 ? "match" : "matches"} · ${visible.length} showing`
+    : "";
   moreButton.hidden = continuation === null;
 }
 
-function createCandidateCard(item) {
-  const card = element("article", "library-card");
+function createCandidateCard(item, modelRanked = false) {
+  const card = element("article", `library-card${item.isSeed ? " is-semantic" : ""}`);
   card.dataset.id = item.id;
 
   const frame = element("div", "frame library-frame");
   const image = document.createElement("img");
   image.src = item.thumbnailUrl;
-  image.alt = item.title;
+  image.alt = item.captionShort || item.title;
   image.loading = "lazy";
   image.decoding = "async";
 
@@ -140,12 +284,22 @@ function createCandidateCard(item) {
   frame.append(image, license);
 
   const copy = element("div", "library-card-copy");
+  const sourceLine = element(
+    "span",
+    "library-match",
+    item.isSeed
+      ? `${modelRanked ? "semantic" : "caption"} match · ${Math.round(item.semanticScore * 100)}%`
+      : item.semanticScore
+        ? `commons rerank · ${Math.round(item.semanticScore * 100)}%`
+        : "expanded commons",
+  );
   const title = element("a", "library-card-title", item.title);
   title.href = item.sourceUrl;
   title.target = "_blank";
   title.rel = "noopener noreferrer";
+  const caption = element("p", "library-card-caption", item.captionShort || item.caption);
   const artist = element("p", "library-card-artist", item.artist);
-  copy.append(title, artist);
+  copy.append(sourceLine, title, caption, artist);
 
   const actions = element("div", "library-card-actions");
   const keepButton = element("button", "library-action library-keep");
@@ -159,8 +313,7 @@ function createCandidateCard(item) {
   skipButton.type = "button";
   skipButton.addEventListener("click", () => {
     skipped.add(item.id);
-    card.remove();
-    resultCountEl.textContent = `${results.length - skipped.size} showing`;
+    renderResults();
   });
   actions.append(keepButton, skipButton);
   card.append(frame, copy, actions);
@@ -169,7 +322,7 @@ function createCandidateCard(item) {
 
 function toggleKept(item) {
   if (kept.has(item.id)) kept.delete(item.id);
-  else kept.set(item.id, { ...item, retrievedAt: new Date().toISOString() });
+  else kept.set(item.id, { ...item, retrievedAt: item.retrievedAt || new Date().toISOString() });
   saveKept();
   renderKept();
   renderResults();
@@ -195,17 +348,29 @@ function renderKept() {
     title.target = "_blank";
     title.rel = "noopener noreferrer";
 
-    const label = element("label", "library-caption-label", "caption");
-    const caption = document.createElement("textarea");
-    caption.rows = 2;
-    caption.value = item.caption;
-    caption.setAttribute("aria-label", `caption for ${item.title}`);
-    caption.addEventListener("change", () => {
-      item.caption = caption.value.trim();
+    const longLabel = element("label", "library-caption-label", "detailed caption");
+    const longCaption = document.createElement("textarea");
+    longCaption.rows = 4;
+    longCaption.value = item.captionLong || item.caption || "";
+    longCaption.setAttribute("aria-label", `detailed caption for ${item.title}`);
+    longCaption.addEventListener("change", () => {
+      item.captionLong = longCaption.value.trim();
+      item.caption = item.captionLong;
       saveKept();
     });
-    label.append(caption);
-    body.append(title, label);
+    longLabel.append(longCaption);
+
+    const shortLabel = element("label", "library-caption-label", "short caption");
+    const shortCaption = document.createElement("textarea");
+    shortCaption.rows = 2;
+    shortCaption.value = item.captionShort || item.title;
+    shortCaption.setAttribute("aria-label", `short caption for ${item.title}`);
+    shortCaption.addEventListener("change", () => {
+      item.captionShort = shortCaption.value.trim();
+      saveKept();
+    });
+    shortLabel.append(shortCaption);
+    body.append(title, longLabel, shortLabel);
 
     const remove = element("button", "library-remove", "×");
     remove.type = "button";
@@ -238,10 +403,10 @@ function downloadKept() {
 
 searchForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  searchCommons();
+  searchLibrary();
 });
 
-moreButton.addEventListener("click", () => searchCommons({ append: true }));
+moreButton.addEventListener("click", () => searchLibrary({ append: true }));
 exportButton.addEventListener("click", downloadKept);
 
 for (const button of document.querySelectorAll("[data-license]")) {
@@ -251,7 +416,7 @@ for (const button of document.querySelectorAll("[data-license]")) {
       peer.classList.toggle("active", peer === button);
     }
     queryInput.value = currentQuery || queryInput.value;
-    searchCommons();
+    searchLibrary();
   });
 }
 
@@ -264,5 +429,6 @@ for (const button of document.querySelectorAll("[data-format]")) {
   });
 }
 
+await loadSeed();
 renderKept();
-searchCommons();
+searchLibrary();
