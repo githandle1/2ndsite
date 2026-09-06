@@ -350,9 +350,9 @@ h1 {
   .stack > .field {
     display: block;
     min-height: 0;
-    padding: 12px 10px 10px;
+    padding: 8px;
     border: 1px solid rgba(36, 33, 31, 0.1);
-    border-radius: 20px;
+    border-radius: 999px;
     background: var(--paper);
     box-shadow: none;
   }
@@ -360,25 +360,24 @@ h1 {
   .scene-row {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 8px 6px;
+    flex-wrap: nowrap;
+    gap: 6px;
     width: 100%;
   }
 
   .scene-row #scene,
   .scene-caption {
-    order: -1;
-    flex: 1 1 100%;
+    flex: 1 1 auto;
     min-width: 0;
-    width: 100%;
-    min-height: 0;
+    width: auto;
+    min-height: 30px;
     margin: 0;
-    padding: 6px 6px 4px;
+    padding: 4px 6px;
     border: 0;
     border-radius: 0;
     background: transparent;
     font-size: 15px;
-    line-height: 1.4;
+    line-height: 22px;
   }
 
   .scene-row .upload,
@@ -412,7 +411,7 @@ h1 {
     flex: 0 0 auto;
     align-self: center;
     width: fit-content;
-    margin-left: auto;
+    margin-left: 0;
     padding-left: 0;
   }
 
@@ -428,13 +427,13 @@ h1 {
   .stack > .field .field-head .count-num {
     display: inline-grid;
     place-items: center;
-    min-width: 30px;
-    min-height: 30px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: transparent;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--hover) 10%, var(--paper));
     font-size: 13px;
-    color: var(--muted);
+    color: var(--hover);
   }
 
   .stack > .field .field-head .choice-trigger::after {
@@ -3139,9 +3138,9 @@ body.is-sheet-open {
   .mobile-sheet .stack > .field {
     display: block;
     min-height: 0;
-    padding: 12px 10px 10px;
+    padding: 8px;
     border: 1px solid rgba(36, 33, 31, 0.1);
-    border-radius: 22px;
+    border-radius: 999px;
     background: var(--paper);
     box-shadow: none;
   }
@@ -3149,18 +3148,17 @@ body.is-sheet-open {
   .mobile-sheet .scene-row {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 8px 6px;
+    flex-wrap: nowrap;
+    gap: 6px;
     width: 100%;
   }
 
   .mobile-sheet .scene-row #scene,
   .mobile-sheet .scene-caption {
-    order: -1;
-    flex: 1 1 100%;
+    flex: 1 1 auto;
     min-width: 0;
-    width: 100%;
-    min-height: 0;
+    width: auto;
+    min-height: 32px;
     margin: 0;
     border: 0;
     border-radius: 0;
@@ -3169,16 +3167,16 @@ body.is-sheet-open {
   }
 
   .mobile-sheet #scene {
-    padding: 6px 6px 4px;
+    padding: 5px 6px;
     font-size: 16px;
-    line-height: 1.4;
+    line-height: 22px;
   }
 
   .mobile-sheet .scene-row .field-head {
     flex: 0 0 auto;
     align-self: center;
     width: fit-content;
-    margin-left: auto;
+    margin-left: 0;
     padding-left: 0;
   }
 
@@ -3196,13 +3194,13 @@ body.is-sheet-open {
   .mobile-sheet .field-head .count-num {
     display: inline-grid;
     place-items: center;
-    min-width: 32px;
-    min-height: 32px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: transparent;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--hover) 10%, var(--paper));
     font-size: 14px;
-    color: var(--muted);
+    color: var(--hover);
   }
 
   .mobile-sheet .field-head .choice-trigger::after {
