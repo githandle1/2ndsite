@@ -1022,13 +1022,17 @@ function mountSubjectDrag(sheet, item) {
   let startY = 0;
   let startPlaceX = 0.5;
   let startPlaceY = 0.5;
+  let dragBox = null;
+  let dragEffects = null;
+  let moveFrame = null;
+  let pendingPoint = null;
 
   const img = () => frame.querySelector("img:not(.wash-lift)");
 
   const liftEl = () => frame.querySelector(".wash-lift");
 
   const placementFrom = (clientX, clientY) => {
-    const box = frame.getBoundingClientRect();
+    const box = dragBox || frame.getBoundingClientRect();
     return {
       placeX: Math.min(1, Math.max(0, startPlaceX + (clientX - startX) / box.width)),
       placeY: Math.min(1, Math.max(0, startPlaceY - (clientY - startY) / box.height)),
@@ -1038,22 +1042,40 @@ function mountSubjectDrag(sheet, item) {
   const preview = (placeX, placeY) => {
     const lift = liftEl();
     if (!lift) return;
-    const box = frame.getBoundingClientRect();
+    const box = dragBox || frame.getBoundingClientRect();
     lift.style.transform = `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
   };
 
-  const write = (placeX, placeY) => {
+  const write = (placeX, placeY, syncControls = false) => {
     const rec = cards.get(item.id);
     if (!rec) return;
-    rec.item.effects = clampEffects({ ...sheetEffects(rec), placeX, placeY });
-    if (selectedId === item.id) applyEffectsToControls(rec.item.effects);
+    rec.item.effects = { ...(dragEffects || sheetEffects(rec)), placeX, placeY };
+    dragEffects = rec.item.effects;
+    if (syncControls && selectedId === item.id) applyEffectsToControls(rec.item.effects);
   };
 
-  const follow = (clientX, clientY) => {
+  const follow = (clientX, clientY, syncControls = false) => {
     const next = placementFrom(clientX, clientY);
-    write(next.placeX, next.placeY);
+    write(next.placeX, next.placeY, syncControls);
     preview(next.placeX, next.placeY);
     return next;
+  };
+
+  const queueFollow = (clientX, clientY) => {
+    pendingPoint = { clientX, clientY };
+    if (moveFrame != null) return;
+    moveFrame = requestAnimationFrame(() => {
+      moveFrame = null;
+      const point = pendingPoint;
+      pendingPoint = null;
+      if (point && (holding || carrying)) follow(point.clientX, point.clientY);
+    });
+  };
+
+  const stopFollowing = () => {
+    if (moveFrame != null) cancelAnimationFrame(moveFrame);
+    moveFrame = null;
+    pendingPoint = null;
   };
 
   const showLift = (rec) => {
@@ -1085,30 +1107,35 @@ function mountSubjectDrag(sheet, item) {
   };
 
   const drop = (clientX, clientY) => {
-    const next = follow(clientX, clientY);
+    stopFollowing();
+    const next = follow(clientX, clientY, true);
+    dragBox = null;
     holding = false;
     carrying = false;
     activeSubjectDragId = null;
     moved = true;
     unbindCarry();
     frame.classList.remove("is-nudging", "is-carrying");
-    write(next.placeX, next.placeY);
     persistSettings();
     scheduleSheetRender(item.id);
+    dragEffects = null;
   };
 
   const cancel = () => {
+    stopFollowing();
     holding = false;
     carrying = false;
     activeSubjectDragId = null;
     unbindCarry();
-    write(startPlaceX, startPlaceY);
+    write(startPlaceX, startPlaceY, true);
+    dragBox = null;
+    dragEffects = null;
     clearPreview(true);
   };
 
   const onDocMove = (event) => {
     if (!carrying) return;
-    follow(event.clientX, event.clientY);
+    queueFollow(event.clientX, event.clientY);
   };
 
   const onDocDown = (event) => {
@@ -1177,11 +1204,13 @@ function mountSubjectDrag(sheet, item) {
     }
     activeSubjectDragId = item.id;
     const fx = sheetEffects(rec);
+    dragEffects = fx;
     moved = false;
     startX = event.clientX;
     startY = event.clientY;
     startPlaceX = fx.placeX ?? 0.5;
     startPlaceY = fx.placeY ?? 0.5;
+    dragBox = frame.getBoundingClientRect();
     if (waited) {
       carrying = true;
       frame.classList.add("is-carrying");
@@ -1198,7 +1227,7 @@ function mountSubjectDrag(sheet, item) {
   }
   frame.addEventListener("pointermove", (event) => {
     if (!holding || carrying) return;
-    follow(event.clientX, event.clientY);
+    queueFollow(event.clientX, event.clientY);
     if (Math.hypot(event.clientX - startX, event.clientY - startY) > 4) moved = true;
   });
   frame.addEventListener("pointerup", (event) => {
