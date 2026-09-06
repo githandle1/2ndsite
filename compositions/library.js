@@ -13,8 +13,7 @@ import {
 } from "../lib/compositions/semantic-search.mjs";
 
 const STORAGE_KEY = "compositions.library.kept.v2";
-const MODEL_MODULE =
-  "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0/dist/transformers.web.min.js";
+const MODEL_MODULE = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0/+esm";
 const searchForm = document.querySelector("#librarySearch");
 const queryInput = document.querySelector("#libraryQuery");
 const statusEl = document.querySelector("#libraryStatus");

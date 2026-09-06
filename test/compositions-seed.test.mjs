@@ -101,8 +101,8 @@ test("browser semantic search imports the published Transformers.js web bundle",
     new URL("../compositions/library.js", import.meta.url),
     "utf8",
   );
-  assert.match(library, /dist\/transformers\.web\.min\.js/);
-  assert.doesNotMatch(library, /dist\/transformers\.web\.min\.mjs/);
+  assert.match(library, /@huggingface\/transformers@4\.2\.0\/\+esm/);
+  assert.doesNotMatch(library, /dist\/transformers\.web/);
 });
 
 test("the public compositions studio does not expose the library route", async () => {
