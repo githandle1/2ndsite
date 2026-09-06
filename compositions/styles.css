@@ -531,7 +531,7 @@ select {
   min-height: 38px;
   max-height: 16em;
   line-height: 1.45;
-  padding: 9px 16px 9px 0;
+  padding: 9px 16px 9px 12px;
   border-radius: 12px;
 }
 
@@ -2221,7 +2221,7 @@ body.is-sheet-open {
   #scene {
     min-height: 42px;
     max-height: 6em;
-    padding: 9px 12px 9px 0;
+    padding: 9px 12px 9px 12px;
     font-size: 14px;
   }
 

@@ -1583,7 +1583,7 @@ async function loadSamples() {
     const data = await res.json();
     samples = data.samples || [];
   } catch {
-    const { samples: builtInSamples } = await import("../lib/compositions/templates.js?v=6");
+    const { samples: builtInSamples } = await import("../lib/compositions/templates.js?v=7");
     samples = builtInSamples || [];
   }
   samplesEl.innerHTML = "";
@@ -1863,7 +1863,7 @@ function selectPainting(id) {
 
 async function renderBuiltInSample(sampleId, prompt) {
   if (!sampleId) return false;
-  const { templates } = await import("../lib/compositions/templates.js?v=6");
+  const { templates } = await import("../lib/compositions/templates.js?v=7");
   const code = templates?.[sampleId];
   if (!code) return false;
   const n = Math.max(1, Math.min(6, Number(countEl.value) || 4));
