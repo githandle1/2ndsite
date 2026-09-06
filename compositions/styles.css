@@ -349,9 +349,10 @@ h1 {
 
   .stack > .field {
     display: block;
-    padding: 7px;
-    border: 1px solid rgba(36, 33, 31, 0.07);
-    border-radius: 18px;
+    min-height: 60px;
+    padding: 8px 10px;
+    border: 1px solid rgba(36, 33, 31, 0.1);
+    border-radius: 30px;
     background: var(--paper);
     box-shadow: none;
   }
@@ -359,8 +360,9 @@ h1 {
   .scene-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: nowrap;
+    width: 100%;
   }
 
   .scene-row #scene,
@@ -368,23 +370,31 @@ h1 {
     flex: 1 1 auto;
     min-width: 0;
     width: 100%;
-    min-height: 34px;
+    min-height: 40px;
+    padding: 0 8px;
     border: 0;
     background: transparent;
+    font-size: 15px;
   }
 
   .scene-row .upload,
   .scene-row .paint {
     flex: 0 0 auto;
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
   }
 
   .scene-row .upload {
     grid-column: 1;
-    border: 1px solid var(--line);
-    background: var(--paper-2);
+    border: 0;
+    background: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  }
+
+  .scene-row .upload svg,
+  .scene-row .paint svg {
+    width: 18px;
+    height: 18px;
   }
 
   .scene-row .paint {
@@ -403,7 +413,7 @@ h1 {
   }
 
   .stack > .field .field-head .choice-trigger {
-    min-height: 34px;
+    min-height: 40px;
     padding: 0;
   }
 
@@ -414,9 +424,9 @@ h1 {
   .stack > .field .field-head .count-num {
     display: inline-grid;
     place-items: center;
-    min-width: 28px;
-    min-height: 28px;
-    padding: 0 4px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0 6px;
     border-radius: 999px;
     background: transparent;
     color: var(--muted);
@@ -3123,9 +3133,10 @@ body.is-sheet-open {
 
   .mobile-sheet .stack > .field {
     display: block;
-    padding: 7px;
-    border: 1px solid rgba(36, 33, 31, 0.07);
-    border-radius: 21px;
+    min-height: 64px;
+    padding: 8px 10px;
+    border: 1px solid rgba(36, 33, 31, 0.1);
+    border-radius: 32px;
     background: var(--paper);
     box-shadow: none;
   }
@@ -3133,8 +3144,9 @@ body.is-sheet-open {
   .mobile-sheet .scene-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: nowrap;
+    width: 100%;
   }
 
   .mobile-sheet .scene-row #scene,
@@ -3142,14 +3154,14 @@ body.is-sheet-open {
     flex: 1 1 auto;
     min-width: 0;
     width: 100%;
-    min-height: 40px;
+    min-height: 42px;
     border: 0;
     background: transparent;
     box-shadow: none;
   }
 
   .mobile-sheet #scene {
-    padding: 8px 10px;
+    padding: 0 8px;
   }
 
   .mobile-sheet .scene-row .field-head {
@@ -3160,7 +3172,7 @@ body.is-sheet-open {
   }
 
   .mobile-sheet .field-head .choice-trigger {
-    min-height: 38px;
+    min-height: 42px;
     padding: 0;
     border: 0;
     color: var(--muted);
@@ -3173,9 +3185,9 @@ body.is-sheet-open {
   .mobile-sheet .field-head .count-num {
     display: inline-grid;
     place-items: center;
-    min-width: 30px;
-    min-height: 32px;
-    padding: 0 4px;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0 6px;
     border-radius: 999px;
     background: transparent;
     color: var(--muted);
@@ -3188,15 +3200,21 @@ body.is-sheet-open {
   .mobile-sheet .scene-row .upload,
   .mobile-sheet .scene-row .paint {
     flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
   }
 
   .mobile-sheet .scene-row .upload {
     grid-column: 1;
-    border: 1px solid var(--line);
-    background: var(--paper-2);
+    border: 0;
+    background: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  }
+
+  .mobile-sheet .scene-row .upload svg,
+  .mobile-sheet .scene-row .paint svg {
+    width: 19px;
+    height: 19px;
   }
 
   .mobile-sheet .scene-row .paint {
