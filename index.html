@@ -233,7 +233,7 @@
             overflow: hidden;
             opacity: 0;
             font-size: inherit;
-            line-height: 1.5;
+            line-height: 1.62;
             text-align: left;
             color: var(--ink);
             transition: max-height 280ms ease, opacity 220ms ease, margin-top 220ms ease;
@@ -246,7 +246,7 @@
         }
 
         .intro-blurb p {
-            margin: 0 0 0.5em;
+            margin: 0 0 0.68em;
         }
 
         .intro-blurb p:last-child {
@@ -254,13 +254,13 @@
         }
 
         .intro-blurb ul {
-            margin: 0 0 0.5em;
+            margin: 0 0 0.68em;
             padding-left: 1.25em;
             list-style: disc;
         }
 
         .intro-blurb li {
-            margin: 0.12em 0;
+            margin: 0.2em 0;
         }
 
         .intro-blurb li::marker {
@@ -268,7 +268,9 @@
         }
 
         .intro-blurb .caption-toggle {
-            margin-left: 0.12em;
+            width: auto;
+            height: auto;
+            margin: 0 0 0 0.55rem;
             vertical-align: baseline;
         }
 
@@ -1081,7 +1083,7 @@
             width: 100%;
             border-bottom: 1px solid var(--line);
             font-weight: 400;
-            color: color-mix(in srgb, var(--ink) 75%, var(--paper));
+            color: var(--ink);
         }
 
         .phrase:hover,
@@ -1223,6 +1225,12 @@
                 width: 44px;
                 height: 44px;
                 margin: -14px;
+            }
+
+            .intro-blurb .caption-toggle {
+                width: auto;
+                height: auto;
+                margin: 0 0 0 0.55rem;
             }
 
             .places-map {

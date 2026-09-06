@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=173" />
+    <link rel="stylesheet" href="styles.css?v=178" />
   </head>
   <body>
     <main class="studio">
@@ -35,6 +35,18 @@
               </p>
             </div>
           </div>
+        </div>
+        <div class="mobile-sheet" id="mobileSheet">
+          <button
+            class="mobile-sheet-handle"
+            type="button"
+            aria-label="open tools"
+            aria-expanded="false"
+            aria-controls="createPane"
+          >
+            <span class="mobile-sheet-grip" aria-hidden="true"></span>
+            <span class="mobile-sheet-label">customize more</span>
+          </button>
           <div class="mode-switch" role="tablist" aria-label="studio mode">
             <button type="button" class="mode-btn is-active" data-mode="create" role="tab" aria-selected="true" aria-controls="createPane" id="modeCreate">create</button>
             <button type="button" class="mode-btn" data-mode="customize" role="tab" aria-selected="false" aria-controls="paintKit" id="modeCustomize">customize</button>
@@ -50,18 +62,6 @@
               </svg>
             </button>
           </div>
-        </div>
-        <div class="mobile-sheet" id="mobileSheet">
-          <button
-            class="mobile-sheet-handle"
-            type="button"
-            aria-label="open tools"
-            aria-expanded="false"
-            aria-controls="createPane"
-          >
-            <span class="mobile-sheet-grip" aria-hidden="true"></span>
-            <span class="mobile-sheet-label">customize more</span>
-          </button>
         <div class="stack" id="createPane" role="tabpanel" aria-labelledby="modeCreate">
           <div class="field">
             <div class="scene-row">
