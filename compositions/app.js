@@ -609,17 +609,17 @@ function syncMobileSheet(expanded) {
 
 function setMobileSheet(expanded) {
   if (!isPhone() || !paintKit) return;
-  const fromTop = mobileSheet?.getBoundingClientRect().top;
+  const fromHeight = mobileSheet?.getBoundingClientRect().height;
   syncMobileSheet(expanded);
   paintKit.open = studioMode() === "customize";
-  if (fromTop == null || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (fromHeight == null || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   requestAnimationFrame(() => {
-    const toTop = mobileSheet.getBoundingClientRect().top;
-    const distance = fromTop - toTop;
-    if (Math.abs(distance) < 1) return;
+    const toHeight = mobileSheet.getBoundingClientRect().height;
+    if (Math.abs(toHeight - fromHeight) < 1) return;
     mobileSheet.getAnimations().forEach((animation) => animation.cancel());
+    // The sheet stays pinned to the bottom; only its top edge grows or shrinks.
     mobileSheet.animate(
-      [{ transform: `translateY(${distance}px)` }, { transform: "translateY(0)" }],
+      [{ height: `${fromHeight}px` }, { height: `${toHeight}px` }],
       { duration: 220, easing: "cubic-bezier(.22,.8,.32,1)" }
     );
   });

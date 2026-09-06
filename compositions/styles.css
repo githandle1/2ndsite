@@ -2202,8 +2202,20 @@ body.is-sheet-open {
     gap: 8px;
   }
 
+  /* Prompt on top; variations sits left on the same row as upload + brush. */
   .stack > .field {
-    gap: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 10px;
+  }
+
+  .stack > .field .field-head {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+    gap: 12px;
+    min-width: 0;
   }
 
   .mode-switch {
@@ -2230,20 +2242,19 @@ body.is-sheet-open {
   }
 
   .scene-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 6px 8px;
+    display: contents;
   }
 
   .scene-row #scene,
   .scene-caption {
     grid-column: 1 / -1;
+    grid-row: 1;
     width: 100%;
   }
 
   .scene-actions {
-    grid-column: 1 / -1;
+    grid-column: 2;
+    grid-row: 2;
     flex-direction: row;
     justify-content: flex-end;
     gap: 6px;
@@ -2808,14 +2819,15 @@ body.is-sheet-open {
     width: 100%;
     min-width: 0;
     min-height: 0;
-    max-height: min(36dvh, 300px);
+    max-height: min(46dvh, 400px);
     padding: 5px 14px 12px;
     border-radius: 16px;
     background: color-mix(in srgb, var(--paper) 88%, #fff);
     box-shadow:
       0 0 0 1px rgba(36, 33, 31, 0.045),
       0 10px 32px rgba(36, 33, 31, 0.06);
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     scrollbar-width: none;
   }
 
@@ -2835,7 +2847,7 @@ body.is-sheet-open {
     top: 28px;
     z-index: 7;
     flex: 0 0 auto;
-    margin: 8px 0 6px;
+    margin: 2px 0 4px;
     padding-bottom: 4px;
     background: color-mix(in srgb, var(--paper) 88%, #fff);
   }
@@ -2875,6 +2887,7 @@ body.is-sheet-open {
     height: 44px;
     max-height: 44px;
     padding: 4px 14px 6px;
+    overflow: hidden;
   }
 
   .mobile-sheet.has-paintings:not(.is-expanded) > .stack,
