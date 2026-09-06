@@ -349,10 +349,10 @@ h1 {
 
   .stack > .field {
     display: block;
-    min-height: 60px;
-    padding: 8px 10px;
+    min-height: 0;
+    padding: 12px 10px 10px;
     border: 1px solid rgba(36, 33, 31, 0.1);
-    border-radius: 30px;
+    border-radius: 20px;
     background: var(--paper);
     box-shadow: none;
   }
@@ -360,45 +360,48 @@ h1 {
   .scene-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    gap: 8px 6px;
     width: 100%;
   }
 
   .scene-row #scene,
   .scene-caption {
-    flex: 1 1 auto;
+    order: -1;
+    flex: 1 1 100%;
     min-width: 0;
     width: 100%;
-    min-height: 40px;
-    padding: 0 8px;
+    min-height: 0;
+    margin: 0;
+    padding: 6px 6px 4px;
     border: 0;
+    border-radius: 0;
     background: transparent;
     font-size: 15px;
+    line-height: 1.4;
   }
 
   .scene-row .upload,
   .scene-row .paint {
     flex: 0 0 auto;
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
   }
 
   .scene-row .upload {
-    grid-column: 1;
-    border: 0;
-    background: color-mix(in srgb, var(--ink) 6%, var(--paper));
+    border: 1px solid rgba(36, 33, 31, 0.14);
+    background: transparent;
+    color: var(--ink);
   }
 
   .scene-row .upload svg,
   .scene-row .paint svg {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
   }
 
   .scene-row .paint {
-    grid-column: 4;
     border: 0;
     background: var(--hover);
     color: var(--paper);
@@ -409,11 +412,12 @@ h1 {
     flex: 0 0 auto;
     align-self: center;
     width: fit-content;
+    margin-left: auto;
     padding-left: 0;
   }
 
   .stack > .field .field-head .choice-trigger {
-    min-height: 40px;
+    min-height: 30px;
     padding: 0;
   }
 
@@ -424,11 +428,12 @@ h1 {
   .stack > .field .field-head .count-num {
     display: inline-grid;
     place-items: center;
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 30px;
+    min-height: 30px;
     padding: 0 6px;
     border-radius: 999px;
     background: transparent;
+    font-size: 13px;
     color: var(--muted);
   }
 
@@ -3133,10 +3138,10 @@ body.is-sheet-open {
 
   .mobile-sheet .stack > .field {
     display: block;
-    min-height: 64px;
-    padding: 8px 10px;
+    min-height: 0;
+    padding: 12px 10px 10px;
     border: 1px solid rgba(36, 33, 31, 0.1);
-    border-radius: 32px;
+    border-radius: 22px;
     background: var(--paper);
     box-shadow: none;
   }
@@ -3144,35 +3149,41 @@ body.is-sheet-open {
   .mobile-sheet .scene-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    gap: 8px 6px;
     width: 100%;
   }
 
   .mobile-sheet .scene-row #scene,
   .mobile-sheet .scene-caption {
-    flex: 1 1 auto;
+    order: -1;
+    flex: 1 1 100%;
     min-width: 0;
     width: 100%;
-    min-height: 42px;
+    min-height: 0;
+    margin: 0;
     border: 0;
+    border-radius: 0;
     background: transparent;
     box-shadow: none;
   }
 
   .mobile-sheet #scene {
-    padding: 0 8px;
+    padding: 6px 6px 4px;
+    font-size: 16px;
+    line-height: 1.4;
   }
 
   .mobile-sheet .scene-row .field-head {
     flex: 0 0 auto;
     align-self: center;
     width: fit-content;
+    margin-left: auto;
     padding-left: 0;
   }
 
   .mobile-sheet .field-head .choice-trigger {
-    min-height: 42px;
+    min-height: 32px;
     padding: 0;
     border: 0;
     color: var(--muted);
@@ -3185,11 +3196,12 @@ body.is-sheet-open {
   .mobile-sheet .field-head .count-num {
     display: inline-grid;
     place-items: center;
-    min-width: 34px;
-    min-height: 34px;
+    min-width: 32px;
+    min-height: 32px;
     padding: 0 6px;
     border-radius: 999px;
     background: transparent;
+    font-size: 14px;
     color: var(--muted);
   }
 
@@ -3200,25 +3212,24 @@ body.is-sheet-open {
   .mobile-sheet .scene-row .upload,
   .mobile-sheet .scene-row .paint {
     flex: 0 0 auto;
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
   }
 
   .mobile-sheet .scene-row .upload {
-    grid-column: 1;
-    border: 0;
-    background: color-mix(in srgb, var(--ink) 6%, var(--paper));
+    border: 1px solid rgba(36, 33, 31, 0.14);
+    background: transparent;
+    color: var(--ink);
   }
 
   .mobile-sheet .scene-row .upload svg,
   .mobile-sheet .scene-row .paint svg {
-    width: 17px;
-    height: 17px;
+    width: 16px;
+    height: 16px;
   }
 
   .mobile-sheet .scene-row .paint {
-    grid-column: 4;
     border: 0;
     background: var(--hover);
     color: var(--paper);
