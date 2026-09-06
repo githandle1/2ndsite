@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Maya's filing cabinet: photos and personal notes.">
-    <script src="paper-time.js?v=7"></script>
+    <script src="paper-time.js?v=8"></script>
     <title>maya bakir</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1359,7 +1359,7 @@
         <footer class="cabinet-footer">
             <a class="sketchbook-link phrase cabinet-footer-files" href="/compositions/">compositions <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
             <a class="sketchbook-link phrase cabinet-footer-sketchbook" href="sketchbook.html">visit my sketchbook <span class="arrow" aria-hidden="true">&#x2197;&#xFE0E;</span></a>
-            <p class="local-date" aria-label="Your local date and time">
+            <p class="local-date" aria-label="New York date and time">
                 <time id="local-date-stamp"></time>
             </p>
         </footer>
@@ -3351,16 +3351,19 @@
         });
 
         const localDateStamp = document.getElementById('local-date-stamp');
+        const nycTimeZone = 'America/New_York';
         const localDateFormatter = new Intl.DateTimeFormat('en-US', {
             month: 'long',
             day: 'numeric',
-            year: 'numeric'
+            year: 'numeric',
+            timeZone: nycTimeZone
         });
         const localTimeFormatter = new Intl.DateTimeFormat('en-US', {
             hour: 'numeric',
             minute: '2-digit',
             second: '2-digit',
             hour12: true,
+            timeZone: nycTimeZone,
             timeZoneName: 'short'
         });
 
