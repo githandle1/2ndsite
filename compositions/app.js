@@ -16,8 +16,10 @@ const samplesEl = document.querySelector("#samples");
 const photoEl = document.querySelector("#photo");
 const photoChip = document.querySelector("#photoChip");
 const paintKit = document.querySelector("#paintKit");
+const deskEl = document.querySelector("#desk");
 const mobileSheet = document.querySelector("#mobileSheet");
 const mobileSheetHandle = document.querySelector(".mobile-sheet-handle");
+const modeButtons = [...document.querySelectorAll(".mode-btn")];
 const providerEl = document.querySelector("#provider");
 const apiKeyEl = document.querySelector("#apiKey");
 const renderer = document.querySelector("#renderer");
@@ -541,36 +543,67 @@ function openPaintSections() {
   }
 }
 
+function studioMode() {
+  return deskEl?.dataset.mode === "customize" ? "customize" : "create";
+}
+
+function setStudioMode(mode) {
+  const next = mode === "customize" ? "customize" : "create";
+  if (deskEl) deskEl.dataset.mode = next;
+  for (const btn of modeButtons) {
+    const on = btn.dataset.mode === next;
+    btn.classList.toggle("is-active", on);
+    btn.setAttribute("aria-selected", on ? "true" : "false");
+    btn.tabIndex = on ? 0 : -1;
+  }
+  if (paintKit) paintKit.open = next === "customize";
+  if (next === "customize") openPaintSections();
+  if (deskEl && next === "create") {
+    deskEl.scrollTop = 0;
+    requestAnimationFrame(() => {
+      deskEl.scrollTop = 0;
+    });
+  }
+  if (isPhone()) setMobileSheet(true);
+}
+
+function mountModeSwitch() {
+  for (const btn of modeButtons) {
+    btn.addEventListener("click", () => setStudioMode(btn.dataset.mode));
+  }
+  document.querySelector(".mode-switch")?.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+    event.preventDefault();
+    setStudioMode(studioMode() === "create" ? "customize" : "create");
+    document.querySelector(`.mode-btn[data-mode="${studioMode()}"]`)?.focus();
+  });
+}
+
 function fitPaintKit() {
   if (!paintKit || fitPaintKit.done) return;
-  paintKit.open = false;
+  paintKit.open = studioMode() === "customize";
   openPaintSections();
   const samples = document.querySelector("#sampleKit");
   if (samples) samples.open = true;
+  paintKit.querySelector("summary")?.addEventListener("click", (event) => {
+    event.preventDefault();
+  });
   paintKit.addEventListener("toggle", () => {
-    if (paintKit.open) {
-      openPaintSections();
-      if (isCompact()) {
-        requestAnimationFrame(() => paintKit.querySelector("summary")?.scrollIntoView({ block: "nearest" }));
-      }
-    }
-    const desk = document.querySelector(".desk");
-    if (!paintKit.open && desk) {
-      desk.scrollTop = 0;
-      requestAnimationFrame(() => {
-        desk.scrollTop = 0;
-      });
-    }
-    if (isPhone()) syncMobileSheet(paintKit.open);
+    if (paintKit.open) openPaintSections();
+    if (isPhone()) syncMobileSheet(mobileSheet?.classList.contains("is-expanded"));
   });
   fitPaintKit.done = true;
 }
 
 function syncMobileSheet(expanded) {
   if (!mobileSheet || !mobileSheetHandle) return;
+  const mode = studioMode();
   mobileSheet.classList.toggle("is-expanded", expanded);
   mobileSheetHandle.setAttribute("aria-expanded", expanded ? "true" : "false");
-  mobileSheetHandle.setAttribute("aria-label", expanded ? "close customize" : "open customize");
+  mobileSheetHandle.setAttribute("aria-label", expanded ? `close ${mode}` : `open ${mode}`);
+  mobileSheetHandle.setAttribute("aria-controls", mode === "customize" ? "paintKit" : "createPane");
+  const label = mobileSheetHandle.querySelector(".mobile-sheet-label");
+  if (label) label.textContent = mode;
   if (!expanded) mobileSheet.scrollTop = 0;
 }
 
@@ -578,7 +611,7 @@ function setMobileSheet(expanded) {
   if (!isPhone() || !paintKit) return;
   const fromTop = mobileSheet?.getBoundingClientRect().top;
   syncMobileSheet(expanded);
-  paintKit.open = expanded;
+  paintKit.open = studioMode() === "customize";
   if (fromTop == null || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   requestAnimationFrame(() => {
     const toTop = mobileSheet.getBoundingClientRect().top;
@@ -2080,6 +2113,7 @@ sheetStageEl?.addEventListener("click", (event) => {
 
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
+mountModeSwitch();
 fitPaintKit();
 mountMobileSheet();
 sizeScene();
