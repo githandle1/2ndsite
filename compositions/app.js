@@ -55,6 +55,12 @@ const PAINT_SIZE = 720;
 let currentPhoto = null;
 let paintWatch = 0;
 let waitingDensity = 1;
+let paintRequestSerial = 0;
+let waitingRequestId = null;
+let paintGeneration = 0;
+let waitingGeneration = null;
+let waitingRevision = null;
+let activeSubjectDragId = null;
 
 window.addEventListener("message", onFrameMessage);
 
@@ -1016,13 +1022,23 @@ function mountSubjectDrag(sheet, item) {
   let startY = 0;
   let startPlaceX = 0.5;
   let startPlaceY = 0.5;
+  let dragBox = null;
+  let dragEffects = null;
+  let moveFrame = null;
+  let pendingPoint = null;
+  let preparing = false;
+  let pointerDown = false;
+  let activePointerId = null;
+  let gestureStart = null;
+  let latestPoint = null;
+  let preparationCancelled = false;
 
   const img = () => frame.querySelector("img:not(.wash-lift)");
 
   const liftEl = () => frame.querySelector(".wash-lift");
 
   const placementFrom = (clientX, clientY) => {
-    const box = frame.getBoundingClientRect();
+    const box = dragBox || frame.getBoundingClientRect();
     return {
       placeX: Math.min(1, Math.max(0, startPlaceX + (clientX - startX) / box.width)),
       placeY: Math.min(1, Math.max(0, startPlaceY - (clientY - startY) / box.height)),
@@ -1032,30 +1048,59 @@ function mountSubjectDrag(sheet, item) {
   const preview = (placeX, placeY) => {
     const lift = liftEl();
     if (!lift) return;
-    const box = frame.getBoundingClientRect();
+    const box = dragBox || frame.getBoundingClientRect();
     lift.style.transform = `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
   };
 
-  const write = (placeX, placeY) => {
-    const rec = cards.get(item.id);
-    if (!rec) return;
-    rec.item.effects = clampEffects({ ...sheetEffects(rec), placeX, placeY });
-    if (selectedId === item.id) applyEffectsToControls(rec.item.effects);
+  const transformFor = (placeX, placeY) => {
+    const box = dragBox || frame.getBoundingClientRect();
+    return `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
   };
 
-  const follow = (clientX, clientY) => {
+  const previewComposite = (clientX, clientY) => {
+    const picture = img();
+    if (!picture || !isPhone()) return;
     const next = placementFrom(clientX, clientY);
-    write(next.placeX, next.placeY);
+    picture.style.transform = transformFor(next.placeX, next.placeY);
+  };
+
+  const write = (placeX, placeY, syncControls = false) => {
+    const rec = cards.get(item.id);
+    if (!rec) return;
+    rec.item.effects = { ...(dragEffects || sheetEffects(rec)), placeX, placeY };
+    dragEffects = rec.item.effects;
+    if (syncControls && selectedId === item.id) applyEffectsToControls(rec.item.effects);
+  };
+
+  const follow = (clientX, clientY, syncControls = false) => {
+    const next = placementFrom(clientX, clientY);
+    write(next.placeX, next.placeY, syncControls);
     preview(next.placeX, next.placeY);
     return next;
   };
 
-  const showLift = (rec) => {
+  const queueFollow = (clientX, clientY) => {
+    pendingPoint = { clientX, clientY };
+    if (moveFrame != null) return;
+    moveFrame = requestAnimationFrame(() => {
+      moveFrame = null;
+      const point = pendingPoint;
+      pendingPoint = null;
+      if (point && (holding || carrying)) follow(point.clientX, point.clientY);
+      else if (point && preparing) previewComposite(point.clientX, point.clientY);
+    });
+  };
+
+  const stopFollowing = () => {
+    if (moveFrame != null) cancelAnimationFrame(moveFrame);
+    moveFrame = null;
+    pendingPoint = null;
+  };
+
+  const showLift = (rec, placeX = startPlaceX, placeY = startPlaceY) => {
     const picture = img();
     const split = rec.split;
     if (!picture || !split?.baseUrl || !split?.liftUrl) return false;
-    picture.src = split.baseUrl;
-    picture.style.transform = "";
     let lift = liftEl();
     if (!lift) {
       lift = document.createElement("img");
@@ -1065,7 +1110,9 @@ function mountSubjectDrag(sheet, item) {
       frame.append(lift);
     }
     lift.src = split.liftUrl;
-    lift.style.transform = "";
+    lift.style.transform = transformFor(placeX, placeY);
+    picture.src = split.baseUrl;
+    picture.style.transform = "";
     return true;
   };
 
@@ -1079,28 +1126,39 @@ function mountSubjectDrag(sheet, item) {
   };
 
   const drop = (clientX, clientY) => {
-    const next = follow(clientX, clientY);
+    stopFollowing();
+    const next = follow(clientX, clientY, true);
+    dragBox = null;
     holding = false;
     carrying = false;
+    pointerDown = false;
+    activePointerId = null;
     moved = true;
     unbindCarry();
     frame.classList.remove("is-nudging", "is-carrying");
-    write(next.placeX, next.placeY);
     persistSettings();
     scheduleSheetRender(item.id);
+    activeSubjectDragId = null;
+    dragEffects = null;
   };
 
   const cancel = () => {
+    stopFollowing();
     holding = false;
     carrying = false;
+    pointerDown = false;
+    activePointerId = null;
+    activeSubjectDragId = null;
     unbindCarry();
-    write(startPlaceX, startPlaceY);
+    write(startPlaceX, startPlaceY, true);
+    dragBox = null;
+    dragEffects = null;
     clearPreview(true);
   };
 
   const onDocMove = (event) => {
     if (!carrying) return;
-    follow(event.clientX, event.clientY);
+    queueFollow(event.clientX, event.clientY);
   };
 
   const onDocDown = (event) => {
@@ -1139,8 +1197,10 @@ function mountSubjectDrag(sheet, item) {
   });
 
   async function startPick(event) {
-    if (isPhone()) return;
-    if (carrying) return;
+    // On phones, inactive gallery cards remain scrollable. The selected card
+    // keeps vertical panning in CSS while accepting horizontal subject drags.
+    if (isPhone() && !sheet.classList.contains("active") && !sheet.classList.contains("is-expanded")) return;
+    if (carrying || holding || preparing) return;
     if (event.button != null && event.button !== 0) return;
     if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .veil")) return;
     if (!img()) return;
@@ -1149,48 +1209,130 @@ function mountSubjectDrag(sheet, item) {
     if (!rec?.dataUrl) return;
     event.preventDefault();
     selectPainting(item.id);
-    const waited = !rec.split?.baseUrl;
-    if (waited) frame.classList.add("is-nudging");
-    try {
-      await ensureSplit(rec);
-    } catch {
-      frame.classList.remove("is-nudging");
-      return;
-    }
-    if (!hitSubject(frame, rec, event.clientX, event.clientY)) {
-      frame.classList.remove("is-nudging");
-      return;
-    }
-    if (!showLift(rec)) {
-      frame.classList.remove("is-nudging");
-      return;
-    }
     const fx = sheetEffects(rec);
-    moved = false;
+    dragEffects = fx;
     startX = event.clientX;
     startY = event.clientY;
     startPlaceX = fx.placeX ?? 0.5;
     startPlaceY = fx.placeY ?? 0.5;
-    if (waited) {
-      carrying = true;
-      frame.classList.add("is-carrying");
-      bindCarry();
-      return;
-    }
-    holding = true;
-    frame.classList.add("is-nudging");
+    dragBox = frame.getBoundingClientRect();
+    preparing = true;
+    pointerDown = true;
+    preparationCancelled = false;
+    activePointerId = event.pointerId;
+    gestureStart = { clientX: event.clientX, clientY: event.clientY };
+    latestPoint = gestureStart;
+    moved = false;
+    activeSubjectDragId = item.id;
     try {
       frame.setPointerCapture(event.pointerId);
     } catch {
       /* ignore */
     }
+    const waited = !rec.split?.baseUrl;
+    if (waited) frame.classList.add("is-nudging");
+    try {
+      await ensureSplit(rec);
+    } catch {
+      activeSubjectDragId = null;
+      stopFollowing();
+      preparing = false;
+      pointerDown = false;
+      activePointerId = null;
+      gestureStart = null;
+      latestPoint = null;
+      dragBox = null;
+      dragEffects = null;
+      clearPreview(true);
+      return;
+    }
+    if (preparationCancelled || activePointerId !== event.pointerId) {
+      activeSubjectDragId = null;
+      preparing = false;
+      pointerDown = false;
+      activePointerId = null;
+      gestureStart = null;
+      latestPoint = null;
+      dragBox = null;
+      dragEffects = null;
+      clearPreview(true);
+      return;
+    }
+    const origin = gestureStart;
+    const finalPoint = latestPoint || origin;
+    if (!origin || !hitSubject(frame, rec, origin.clientX, origin.clientY)) {
+      activeSubjectDragId = null;
+      stopFollowing();
+      preparing = false;
+      pointerDown = false;
+      activePointerId = null;
+      gestureStart = null;
+      latestPoint = null;
+      dragBox = null;
+      dragEffects = null;
+      clearPreview(true);
+      return;
+    }
+    const finalPlacement = placementFrom(finalPoint.clientX, finalPoint.clientY);
+    if (!showLift(rec, finalPlacement.placeX, finalPlacement.placeY)) {
+      activeSubjectDragId = null;
+      stopFollowing();
+      preparing = false;
+      pointerDown = false;
+      activePointerId = null;
+      gestureStart = null;
+      latestPoint = null;
+      dragBox = null;
+      dragEffects = null;
+      clearPreview(true);
+      return;
+    }
+    preparing = false;
+    gestureStart = null;
+    latestPoint = null;
+    if (pointerDown) {
+      holding = true;
+      frame.classList.add("is-nudging");
+      if (moved) follow(finalPoint.clientX, finalPoint.clientY);
+      return;
+    }
+    activePointerId = null;
+    if (moved) {
+      drop(finalPoint.clientX, finalPoint.clientY);
+      return;
+    }
+    if (waited && !isPhone()) {
+      carrying = true;
+      frame.classList.add("is-carrying");
+      bindCarry();
+      return;
+    }
+    clearPreview(true);
+    activeSubjectDragId = null;
+    dragBox = null;
+    dragEffects = null;
   }
   frame.addEventListener("pointermove", (event) => {
+    if (event.pointerId !== activePointerId) return;
+    if (preparing) {
+      latestPoint = { clientX: event.clientX, clientY: event.clientY };
+      if (gestureStart && Math.hypot(event.clientX - gestureStart.clientX, event.clientY - gestureStart.clientY) > 4) moved = true;
+      queueFollow(event.clientX, event.clientY);
+      return;
+    }
     if (!holding || carrying) return;
-    follow(event.clientX, event.clientY);
+    queueFollow(event.clientX, event.clientY);
     if (Math.hypot(event.clientX - startX, event.clientY - startY) > 4) moved = true;
   });
   frame.addEventListener("pointerup", (event) => {
+    if (event.pointerId !== activePointerId) return;
+    pointerDown = false;
+    if (preparing) {
+      latestPoint = { clientX: event.clientX, clientY: event.clientY };
+      if (gestureStart && Math.hypot(event.clientX - gestureStart.clientX, event.clientY - gestureStart.clientY) > 4) moved = true;
+      queueFollow(event.clientX, event.clientY);
+      return;
+    }
     if (!holding || carrying) return;
     holding = false;
     try {
@@ -1206,7 +1348,18 @@ function mountSubjectDrag(sheet, item) {
     frame.classList.add("is-carrying");
     bindCarry();
   });
-  frame.addEventListener("pointercancel", () => {
+  frame.addEventListener("pointercancel", (event) => {
+    if (event.pointerId !== activePointerId) return;
+    pointerDown = false;
+    if (preparing) {
+      preparationCancelled = true;
+      activeSubjectDragId = null;
+      stopFollowing();
+      dragBox = null;
+      dragEffects = null;
+      clearPreview(true);
+      return;
+    }
     if (holding && !carrying) cancel();
   });
   sheet.addEventListener("click", (event) => {
@@ -1436,6 +1589,8 @@ function scheduleEffectRender() {
 
 function scheduleSheetRender(id) {
   if (!id) return;
+  const rec = cards.get(id);
+  if (rec) rec.paintRevision = (rec.paintRevision || 0) + 1;
   dirtyIds.add(id);
   clearTimeout(effectTimer);
   effectTimer = setTimeout(flushEffects, 280);
@@ -1444,9 +1599,9 @@ function scheduleSheetRender(id) {
 function flushEffects() {
   if (!dirtyIds.size) return;
   if (paintingNow) return;
-  const ids = [...dirtyIds];
-  dirtyIds.clear();
+  const ids = [...dirtyIds].filter((id) => id !== activeSubjectDragId);
   for (const id of ids) {
+    dirtyIds.delete(id);
     const rec = cards.get(id);
     if (rec?.item.code || rec?.item.photo) queuePaint(id, { replace: true });
   }
@@ -1497,7 +1652,7 @@ function applyPaintedData(rec, dataUrl, density = 1) {
   img.draggable = false;
   frame.querySelector(".wash-lift")?.remove();
   rec.split = null;
-  if (!isPhone()) prefetchSplit(rec);
+  if (!isPhone() || selectedId === rec.item.id) prefetchSplit(rec);
   rec.sheet.classList.remove("is-adjusting");
   rec.sheet.querySelector(".veil")?.remove();
   rec.sheet.querySelector(".save")?.removeAttribute("disabled");
@@ -1632,6 +1787,7 @@ function openSheetStage(id) {
   rec.sheet.querySelector(".sheet-edit")?._onStage?.();
   sheetStageEl.hidden = false;
   document.body.classList.add("is-sheet-open");
+  if (isPhone()) prefetchSplit(rec);
   requestHighRes(id);
 }
 
@@ -1654,10 +1810,12 @@ function clearWall() {
   closeSheetStage();
   closePopovers();
   document.querySelectorAll(".sheet-color-menu").forEach((menu) => menu.remove());
+  paintGeneration += 1;
   paintQueue.length = 0;
   photoPreviewQueue.length = 0;
-  paintingNow = false;
-  waitingId = null;
+  clearTimeout(effectTimer);
+  dirtyIds.clear();
+  activeSubjectDragId = null;
   cards.clear();
   wallEl.innerHTML = "";
 }
@@ -1747,7 +1905,7 @@ function renderGrid(items) {
       downloadPainting(item.id);
     });
     grid.append(sheet);
-    cards.set(item.id, { item, sheet, dataUrl: null });
+    cards.set(item.id, { item, sheet, dataUrl: null, generation: paintGeneration, paintRevision: 0 });
     mountSheetEditor(sheet, item);
     mountSubjectDrag(sheet, item);
 
@@ -1787,12 +1945,41 @@ function drainQueue() {
   paintingNow = true;
   waitingId = id;
   clearTimeout(paintWatch);
+  const frame = renderer.contentWindow;
+  if (frame) frame.__pendingPhoto = rec.item.photo || null;
+  waitingDensity = rec.wantDensity || paintDensityFor(id);
+  rec.wantDensity = waitingDensity;
+  waitingRequestId = ++paintRequestSerial;
+  waitingGeneration = rec.generation;
+  waitingRevision = rec.paintRevision || 0;
+  const paintEffects = sheetEffects(rec);
+  frame?.postMessage(
+    {
+      type: "paint",
+      requestId: waitingRequestId,
+      generation: waitingGeneration,
+      code: rec.item.code,
+      photo: Boolean(rec.item.photo),
+      seed: rec.item.seed,
+      size: PAINT_SIZE,
+      density: waitingDensity,
+      effects: paintEffects,
+    },
+    "*"
+  );
+  const timedRequestId = waitingRequestId;
+  const timedGeneration = waitingGeneration;
   paintWatch = setTimeout(() => {
-    if (!paintingNow || waitingId !== id) return;
+    if (!paintingNow || waitingId !== id || waitingRequestId !== timedRequestId || waitingGeneration !== timedGeneration) return;
     paintingNow = false;
     waitingId = null;
+    waitingRequestId = null;
+    waitingGeneration = null;
+    waitingRevision = null;
     const stuck = cards.get(id);
-    const veil = stuck?.sheet.querySelector(".veil");
+    const veil = timedGeneration === paintGeneration && stuck?.generation === paintGeneration
+      ? stuck.sheet.querySelector(".veil")
+      : null;
     if (veil) {
       veil.classList.add("error");
       veil.textContent = "the wash never dried. try the photo again.";
@@ -1800,22 +1987,6 @@ function drainQueue() {
     setStatus("the wash never dried. try the photo again.");
     drainQueue();
   }, 35000);
-  const frame = renderer.contentWindow;
-  if (frame) frame.__pendingPhoto = rec.item.photo || null;
-  waitingDensity = rec.wantDensity || paintDensityFor(id);
-  rec.wantDensity = waitingDensity;
-  frame?.postMessage(
-    {
-      type: "paint",
-      code: rec.item.code,
-      photo: Boolean(rec.item.photo),
-      seed: rec.item.seed,
-      size: PAINT_SIZE,
-      density: waitingDensity,
-      effects: sheetEffects(rec),
-    },
-    "*"
-  );
 }
 
 function onFrameMessage(event) {
@@ -1827,12 +1998,21 @@ function onFrameMessage(event) {
   }
   if (event.data.type !== "painted") return;
 
-  const rec = cards.get(waitingId);
+  const rec = waitingGeneration === paintGeneration ? cards.get(waitingId) : null;
+  if (event.data.requestId !== waitingRequestId || event.data.generation !== waitingGeneration) return;
+
   paintingNow = false;
-  waitingId = null;
   clearTimeout(paintWatch);
 
-  if (rec) {
+  const stale = rec && (
+    rec.generation !== waitingGeneration ||
+    (rec.paintRevision || 0) !== waitingRevision ||
+    dirtyIds.has(waitingId) ||
+    activeSubjectDragId === waitingId
+  );
+  if (stale) {
+    dirtyIds.add(waitingId);
+  } else if (rec) {
     const veil = rec.sheet.querySelector(".veil");
     if (event.data.error) {
       rec.sheet.classList.remove("is-adjusting");
@@ -1846,6 +2026,10 @@ function onFrameMessage(event) {
     }
   }
 
+  waitingId = null;
+  waitingRequestId = null;
+  waitingGeneration = null;
+  waitingRevision = null;
   drainQueue();
 }
 
@@ -1859,6 +2043,7 @@ function selectPainting(id) {
   rec.item.effects = sheetEffects(rec);
   applyEffectsToControls(rec.item.effects);
   syncSheetEditor(rec);
+  if (isPhone()) prefetchSplit(rec);
 }
 
 async function renderBuiltInSample(sampleId, prompt) {
