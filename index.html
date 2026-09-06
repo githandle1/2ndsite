@@ -34,7 +34,7 @@
             --stain-opacity: 0.47;
             --stain-right-opacity: 0.40;
             --stain-filter: none;
-            --photo-reveal-duration: 780ms;
+            --photo-reveal-duration: 180ms;
             --photo-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
             --photo-frame-margin: 36px;
             --photo-controls-band: 48px;
@@ -891,6 +891,10 @@
             transition: opacity var(--photo-reveal-duration) var(--photo-reveal-ease);
         }
 
+        .photo-overlay-image.is-upgrading {
+            filter: saturate(0.98);
+        }
+
         .photo-overlay-image.is-visible {
             opacity: 1;
         }
@@ -1112,24 +1116,45 @@
             }
 
             .photo-overlay-controls {
-                display: none;
+                width: 100%;
+                min-height: 48px;
+                justify-content: space-between;
+                gap: 10px;
             }
 
             .photo-overlay-stage {
-                padding: 12px;
+                padding:
+                    max(12px, env(safe-area-inset-top, 0px))
+                    max(12px, env(safe-area-inset-right, 0px))
+                    max(12px, env(safe-area-inset-bottom, 0px))
+                    max(12px, env(safe-area-inset-left, 0px));
                 touch-action: pan-y pinch-zoom;
             }
 
             .photo-overlay-frame {
                 width: 100%;
+                height: 100%;
                 max-width: 100%;
                 align-items: center;
+                justify-content: center;
             }
 
             .photo-overlay-image {
-                width: 100%;
+                width: auto;
+                height: auto;
                 max-width: 100%;
-                max-height: calc(100dvh - 24px);
+                max-height: calc(100% - 48px);
+                flex: 0 1 auto;
+            }
+
+            .photo-overlay-dots {
+                max-width: min(52vw, 220px);
+            }
+
+            .photo-overlay-btn {
+                width: 44px;
+                height: 44px;
+                padding: 10px;
             }
 
             .paper-stains {
@@ -1271,6 +1296,11 @@
                                 <path d="M9 6l6 6-6 6"></path>
                             </svg>
                         </button>
+                        <button type="button" class="photo-overlay-btn" data-action="close" aria-label="Close photo preview">
+                            <svg class="photo-overlay-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+                                <path d="M6 6l12 12M18 6 6 18"></path>
+                            </svg>
+                        </button>
             </div>
             </div>
             </div>
@@ -1286,7 +1316,8 @@
         const overlayButtons = [...overlay.querySelectorAll('.photo-overlay-btn')];
         let currentAlbumThumbs = [];
         let currentPhotoIndex = -1;
-        const photoRevealDurationMs = 780;
+        const photoRevealDurationMs = 180;
+        let photoLoadRevision = 0;
         let cabinetAudioContext = null;
         const toggleToneClasses = [
             'toggle-mark--tone-a',
@@ -1570,33 +1601,65 @@
             platen.stop(strikeAt + 0.032);
         }
 
-        function fullPhotoSrc(src) {
+        function photoVariantSrc(src, width) {
             if (!src) {
                 return src;
             }
 
-            return `${src}${src.includes('?') ? '&' : '?'}view=full`;
+            const path = src.split('?')[0];
+            const match = path.match(/^photos\/(.+)\.jpe?g$/i);
+            return match ? `photos/optimized/${match[1]}-${width}.jpeg` : src;
         }
 
-        function startRevealAnimation({ includeBackdrop = false } = {}) {
-            const reveal = () => {
-                requestAnimationFrame(() => {
-                    if (includeBackdrop) {
-                        overlay.classList.add('is-open');
-                    }
-                    overlayImage.classList.add('is-visible');
-                });
-            };
+        function revealPreview({ includeBackdrop = false } = {}) {
+            requestAnimationFrame(() => {
+                if (includeBackdrop) overlay.classList.add('is-open');
+                overlayImage.classList.add('is-visible');
+            });
+        }
 
-            if (overlayImage.complete && overlayImage.naturalWidth > 0) {
-                reveal();
-                return;
+        function preloadPhoto(thumb) {
+            const image = new Image();
+            image.decoding = 'async';
+            image.src = photoVariantSrc(thumb?.dataset.src, 1800);
+        }
+
+        async function upgradePreviewImage(thumb, revision) {
+            const image = new Image();
+            image.decoding = 'async';
+            image.src = photoVariantSrc(thumb.dataset.src, 1800);
+            try {
+                await image.decode();
+            } catch {
+                // Photos added without generated variants still open at full quality.
+                if (revision !== photoLoadRevision) return;
+                image.src = thumb.dataset.src;
+                try {
+                    await image.decode();
+                } catch {
+                    return;
+                }
             }
-
-            overlayImage.onload = () => {
-                overlayImage.onload = null;
-                reveal();
+            if (revision !== photoLoadRevision) return;
+            overlayImage.src = image.currentSrc || image.src;
+            overlayImage.classList.remove('is-upgrading');
+            const next = currentAlbumThumbs[(currentPhotoIndex + 1) % currentAlbumThumbs.length];
+            const previous = currentAlbumThumbs[(currentPhotoIndex - 1 + currentAlbumThumbs.length) % currentAlbumThumbs.length];
+            const warmNeighbors = () => {
+                if (next && next !== thumb) preloadPhoto(next);
+                if (previous && previous !== thumb && previous !== next) preloadPhoto(previous);
             };
+            if ('requestIdleCallback' in window) requestIdleCallback(warmNeighbors, { timeout: 1200 });
+            else window.setTimeout(warmNeighbors, 250);
+        }
+
+        function setPreviewImage(thumb) {
+            const revision = ++photoLoadRevision;
+            const thumbImage = thumb.querySelector('img');
+            overlayImage.alt = thumbImage?.alt || '';
+            overlayImage.src = thumbImage?.currentSrc || photoVariantSrc(thumb.dataset.src, 720);
+            overlayImage.classList.add('is-upgrading');
+            void upgradePreviewImage(thumb, revision);
         }
 
         function renderDots() {
@@ -1636,13 +1699,12 @@
                 overlayImage.classList.remove('is-visible');
             }
 
-            overlayImage.src = fullPhotoSrc(thumb.dataset.src);
-            overlayImage.alt = thumb.querySelector('img')?.alt || '';
+            setPreviewImage(thumb);
             renderDots();
             updateNavButtons();
 
             if (animate) {
-                startRevealAnimation();
+                revealPreview();
             }
         }
 
@@ -1657,15 +1719,14 @@
             overlayImage.classList.remove('is-visible');
 
             currentPhotoIndex = index;
-            overlayImage.src = fullPhotoSrc(thumb.dataset.src);
-            overlayImage.alt = thumb.querySelector('img')?.alt || '';
+            setPreviewImage(thumb);
             renderDots();
             updateNavButtons();
 
             overlay.hidden = false;
             overlay.setAttribute('aria-hidden', 'false');
             document.body.style.overflow = 'hidden';
-            startRevealAnimation({ includeBackdrop: true });
+            revealPreview({ includeBackdrop: true });
         }
 
         function getAlbumThumbs(thumb) {
@@ -1695,6 +1756,7 @@
             document.body.style.overflow = '';
             currentAlbumThumbs = [];
             currentPhotoIndex = -1;
+            photoLoadRevision += 1;
 
             window.setTimeout(() => {
                 if (!overlay.classList.contains('is-open')) {
@@ -1726,7 +1788,10 @@
 
                 if (action === 'next') {
                     navigatePhoto(1);
+                    return;
                 }
+
+                if (action === 'close') closePreview();
             });
         });
 
@@ -1740,6 +1805,25 @@
             }
 
             closePreview();
+        });
+
+        let overlaySwipeStart = null;
+        overlayStage.addEventListener('pointerdown', (event) => {
+            if (event.target.closest('.photo-overlay-controls')) return;
+            overlaySwipeStart = { x: event.clientX, y: event.clientY };
+        });
+        overlayStage.addEventListener('pointerup', (event) => {
+            if (!overlaySwipeStart) return;
+            const dx = event.clientX - overlaySwipeStart.x;
+            const dy = event.clientY - overlaySwipeStart.y;
+            overlaySwipeStart = null;
+            if (Math.abs(dx) > 52 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+                event.preventDefault();
+                navigatePhoto(dx < 0 ? 1 : -1);
+            }
+        });
+        overlayStage.addEventListener('pointercancel', () => {
+            overlaySwipeStart = null;
         });
 
         initCabinetToggles();
@@ -2048,8 +2132,13 @@
                 );
 
                 const image = document.createElement('img');
-                image.src = photo.src;
+                image.src = photoVariantSrc(photo.src, 720);
                 image.alt = photo.alt || '';
+                image.decoding = 'async';
+                image.loading = captionToggleIndex < PHOTO_PAGE_SIZE ? 'eager' : 'lazy';
+                image.addEventListener('error', () => {
+                    if (image.getAttribute('src') !== photo.src) image.src = photo.src;
+                }, { once: true });
                 if (photo.objectPosition) {
                     image.style.objectPosition = photo.objectPosition;
                 }

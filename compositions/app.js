@@ -1,7 +1,7 @@
 import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=15";
 import { parseColor, oklchToHex } from "./color.js";
 import { mountColorSquare } from "./color-dial.js?v=12";
-import { imageWork } from "./image-work.js?v=4";
+import { imageWork } from "./image-work.js?v=5";
 import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=4";
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
@@ -1403,9 +1403,12 @@ function scheduleEffectRender() {
 
 function scheduleSheetRender(id) {
   if (!id) return;
+  const rec = cards.get(id);
+  // Invalidate in-flight previews immediately, including during the debounce.
+  if (rec) rec.previewRevision = (rec.previewRevision || 0) + 1;
   dirtyIds.add(id);
   clearTimeout(effectTimer);
-  effectTimer = setTimeout(flushEffects, 280);
+  effectTimer = setTimeout(flushEffects, 90);
 }
 
 function flushEffects() {
@@ -1445,6 +1448,8 @@ function requestHighRes(id) {
 }
 
 function applyPaintedData(rec, dataUrl, density = 1) {
+  if (rec.previewUrl && rec.previewUrl !== dataUrl) URL.revokeObjectURL(rec.previewUrl);
+  rec.previewUrl = dataUrl.startsWith("blob:") ? dataUrl : null;
   rec.dataUrl = dataUrl;
   rec.item.dataUrl = dataUrl;
   rec.paintDensity = density;
@@ -1471,7 +1476,13 @@ function applyPaintedData(rec, dataUrl, density = 1) {
 }
 
 function queuePhotoPreview(id) {
-  if (!photoPreviewQueue.includes(id)) photoPreviewQueue.push(id);
+  const rec = cards.get(id);
+  if (!rec) return;
+  rec.previewRevision = (rec.previewRevision || 0) + 1;
+  const queued = photoPreviewQueue.indexOf(id);
+  if (queued !== -1) photoPreviewQueue.splice(queued, 1);
+  if (id === selectedId) photoPreviewQueue.unshift(id);
+  else photoPreviewQueue.push(id);
   drainPhotoPreviews();
 }
 
@@ -1485,14 +1496,17 @@ async function drainPhotoPreviews() {
     return;
   }
   photoPreviewNow = true;
+  const revision = rec.previewRevision || 0;
   try {
-    const { dataUrl } = await imageWork("renderWash", {
+    const { blob } = await imageWork("renderWash", {
       photo: rec.item.photo,
       seed: rec.item.seed,
       size: PAINT_SIZE,
       effects: sheetEffects(rec),
     });
-    if (dataUrl && cards.get(id) === rec) applyPaintedData(rec, dataUrl, 1);
+    if (blob && cards.get(id) === rec && revision === rec.previewRevision) {
+      applyPaintedData(rec, URL.createObjectURL(blob), 1);
+    }
   } catch (err) {
     rec.fastPreviewFailed = true;
     if (cards.get(id) === rec && !paintQueue.includes(id)) {
@@ -1619,6 +1633,9 @@ function clearWall() {
   photoPreviewQueue.length = 0;
   paintingNow = false;
   waitingId = null;
+  for (const rec of cards.values()) {
+    if (rec.previewUrl) URL.revokeObjectURL(rec.previewUrl);
+  }
   cards.clear();
   wallEl.innerHTML = "";
 }
@@ -1708,7 +1725,7 @@ function renderGrid(items) {
       downloadPainting(item.id);
     });
     grid.append(sheet);
-    cards.set(item.id, { item, sheet, dataUrl: null });
+    cards.set(item.id, { item, sheet, dataUrl: null, previewUrl: null, previewRevision: 0 });
     mountSheetEditor(sheet, item);
     mountSubjectDrag(sheet, item);
 

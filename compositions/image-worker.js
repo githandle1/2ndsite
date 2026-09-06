@@ -91,7 +91,7 @@ async function renderWash(payload) {
   ctx.globalCompositeOperation = "source-over";
 
   const blob = await canvas.convertToBlob({ type: "image/png" });
-  return { dataUrl: await blobToDataUrl(blob) };
+  return { blob };
 }
 
 async function encodePng(payload) {

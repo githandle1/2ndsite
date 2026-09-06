@@ -18,7 +18,10 @@ from pathlib import Path
 REPO = "mayasthinking/2ndsite"
 SNAPS_PATH = "snaps.json"
 PHOTOS_DIR = "photos"
+OPTIMIZED_PHOTOS_DIR = f"{PHOTOS_DIR}/optimized"
 LONG_EDGE = 3120
+THUMB_EDGE = 720
+PREVIEW_EDGE = 1800
 MONTHS = (
     "january",
     "february",
@@ -123,7 +126,12 @@ def resolve_caption(args: argparse.Namespace) -> str:
     return prompt_caption_gui().lower()
 
 
-def export_web_jpeg(source: Path, dest: Path, long_edge: int = LONG_EDGE) -> None:
+def export_web_jpeg(
+    source: Path,
+    dest: Path,
+    long_edge: int = LONG_EDGE,
+    quality: int = 80,
+) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     if not source.is_file() or source.stat().st_size == 0:
         raise RuntimeError("That photo file was empty or missing.")
@@ -136,7 +144,7 @@ def export_web_jpeg(source: Path, dest: Path, long_edge: int = LONG_EDGE) -> Non
             "jpeg",
             "-s",
             "formatOptions",
-            "80",
+            str(quality),
             "-Z",
             str(long_edge),
             str(source),
@@ -167,7 +175,7 @@ def export_web_jpeg(source: Path, dest: Path, long_edge: int = LONG_EDGE) -> Non
                 (max(1, round(width * scale)), max(1, round(height * scale))),
                 Image.Resampling.LANCZOS,
             )
-        image.save(dest, "JPEG", quality=80, optimize=True)
+        image.save(dest, "JPEG", quality=quality, optimize=True)
 
 
 def load_snaps() -> tuple[list[dict], str]:
@@ -257,12 +265,21 @@ def main() -> int:
     month_label = current_month_label()
     filename = new_photo_name()
     repo_path = f"{PHOTOS_DIR}/{filename}"
+    stem = Path(filename).stem
+    thumb_repo_path = f"{OPTIMIZED_PHOTOS_DIR}/{stem}-{THUMB_EDGE}.jpeg"
+    preview_repo_path = f"{OPTIMIZED_PHOTOS_DIR}/{stem}-{PREVIEW_EDGE}.jpeg"
 
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
             exported = Path(temp_dir) / filename
             export_web_jpeg(source, exported)
             jpeg_bytes = exported.read_bytes()
+            thumb = Path(temp_dir) / f"{stem}-{THUMB_EDGE}.jpeg"
+            preview = Path(temp_dir) / f"{stem}-{PREVIEW_EDGE}.jpeg"
+            export_web_jpeg(source, thumb, THUMB_EDGE, 82)
+            export_web_jpeg(source, preview, PREVIEW_EDGE, 88)
+            thumb_bytes = thumb.read_bytes()
+            preview_bytes = preview.read_bytes()
     except (RuntimeError, OSError, subprocess.CalledProcessError) as error:
         print(str(error), file=sys.stderr)
         return 1
@@ -272,6 +289,8 @@ def main() -> int:
 
     try:
         put_repo_file(repo_path, jpeg_bytes, message)
+        put_repo_file(thumb_repo_path, thumb_bytes, message)
+        put_repo_file(preview_repo_path, preview_bytes, message)
         albums, sha = load_snaps()
         albums = prepend_photo(albums, photo, month_label, city)
         put_repo_file(

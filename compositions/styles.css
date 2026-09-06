@@ -2024,17 +2024,20 @@ body.is-sheet-open {
   }
 
   .studio {
+    --mobile-gutter: 12px;
     display: flex;
     flex-direction: column-reverse;
     align-items: stretch;
-    gap: 8px;
+    gap: 12px;
     width: 100%;
     height: var(--app-h, 100dvh);
     min-height: var(--app-h, 100dvh);
     max-height: var(--app-h, 100dvh);
     overflow: hidden;
-    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
-      max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    padding: max(var(--mobile-gutter), env(safe-area-inset-top))
+      max(var(--mobile-gutter), env(safe-area-inset-right))
+      max(var(--mobile-gutter), env(safe-area-inset-bottom))
+      max(var(--mobile-gutter), env(safe-area-inset-left));
   }
 
   .desk-shell {
@@ -2605,8 +2608,8 @@ body.is-sheet-open {
   }
 
   .sheet-stage {
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
-      env(safe-area-inset-left);
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   }
 
   .sheet-stage .caption {
@@ -2677,7 +2680,7 @@ body.is-sheet-open {
     width: 100%;
     min-height: 0;
     max-height: none;
-    padding: 2px 2px 0;
+    padding: 0;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
@@ -2710,7 +2713,7 @@ body.is-sheet-open {
 
   .masthead {
     grid-row: 1;
-    padding: 2px 12px 0;
+    padding: 2px 0 0;
   }
 
   .mobile-sheet {

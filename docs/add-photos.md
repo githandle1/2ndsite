@@ -25,7 +25,7 @@ python3 scripts/add_photo.py
 python3 scripts/add_photo.py --path ~/Desktop/DSCF1234.JPG --caption "municipal building"
 ```
 
-Omit `--path` to get a file picker. The script resizes the image (~3120px on the long edge), writes a new JPEG, updates `snaps.json`, and uses `gh` to commit to GitHub.
+Omit `--path` to get a file picker. The script writes the full image plus 720px gallery and 1800px preview variants, updates `snaps.json`, and uses `gh` to commit them to GitHub.
 
 You can still add the file to `photos/` and edit `snaps.json` directly, then commit and push.
 
@@ -86,7 +86,8 @@ New months are created automatically as `august 2026` (lowercase month + year) w
 | File | Purpose |
 |------|---------|
 | `snaps.json` | Month albums and photo metadata |
-| `photos/` | JPEG files |
+| `photos/` | Full JPEG files |
+| `photos/optimized/` | 720px gallery and 1800px preview variants |
 | `scripts/add_photo.py` | Mac/terminal add script |
 | `scripts/build_photo_app.py` | Builds the Mac drop-target app |
 | `scripts/install_photo_shortcut.sh` | Installs the Mac app into `~/Applications` |
