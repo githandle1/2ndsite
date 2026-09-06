@@ -4,6 +4,11 @@ import {
   toDatasetRecord,
 } from "../lib/compositions/commons.mjs";
 import {
+  metObjectUrl,
+  metSearchUrl,
+  normalizeMetObjects,
+} from "../lib/compositions/met.mjs";
+import {
   cosineSimilarity,
   expandVisualQuery,
   rankSeedRecords,
@@ -26,10 +31,11 @@ const keptCountEl = document.querySelector("#keptCount");
 const exportButton = document.querySelector("#exportKept");
 
 let licenseFilter = "public-domain";
+let sourceFilter = "both";
 let exportFormat = "json";
-let continuation = null;
+let continuations = { commons: null, met: null };
 let currentQuery = "";
-let commonsResults = [];
+let remoteResults = [];
 let seedRecords = [];
 let semanticIndex = {};
 let semanticPipelinePromise = null;
@@ -155,7 +161,43 @@ async function fetchCommons(search, offset, signal) {
   }
 }
 
+async function fetchMet(search, offset = 0, signal) {
+  const params = new URLSearchParams({ q: search });
+  if (offset) params.set("continue", offset);
+
+  try {
+    const response = await fetch(`/api/met?${params}`, { signal });
+    const contentType = response.headers.get("content-type") || "";
+    if (!response.ok || !contentType.includes("application/json")) {
+      throw new Error("proxy unavailable");
+    }
+    return await response.json();
+  } catch (error) {
+    if (error.name === "AbortError") throw error;
+    const searchResponse = await fetch(metSearchUrl(search), { signal });
+    if (!searchResponse.ok) throw new Error(`met returned ${searchResponse.status}`);
+    const objectIds = (await searchResponse.json()).objectIDs || [];
+    const pageSize = 24;
+    const pageIds = objectIds.slice(offset, offset + pageSize);
+    const responses = await Promise.all(
+      pageIds.map((objectId) => fetch(metObjectUrl(objectId), { signal })),
+    );
+    const objects = await Promise.all(
+      responses.filter((response) => response.ok).map((response) => response.json()),
+    );
+    return {
+      items: normalizeMetObjects(objects),
+      continue: offset + pageSize < objectIds.length ? offset + pageSize : null,
+    };
+  }
+}
+
+function selectedSources() {
+  return sourceFilter === "both" ? ["commons", "met"] : [sourceFilter];
+}
+
 function rankedSeed(query, queryEmbedding = null) {
+  if (sourceFilter === "met") return [];
   return rankSeedRecords(
     query,
     seedRecords.filter((record) => licenseFilter !== "cc0" || record.license === "cc0"),
@@ -170,9 +212,9 @@ function rankedSeed(query, queryEmbedding = null) {
 function currentVisibleResults(query, queryEmbedding = null) {
   const seed = rankedSeed(query, queryEmbedding);
   const known = new Set(seed.map((item) => item.id));
-  return [...seed, ...commonsResults.filter((item) => !known.has(item.id))].filter(
-    (item) => !skipped.has(item.id),
-  );
+  return [...seed, ...remoteResults.filter((item) => !known.has(item.id))]
+    .filter((item) => licenseFilter !== "cc0" || item.license === "cc0")
+    .filter((item) => !skipped.has(item.id));
 }
 
 async function rerankWithModel(query, sequence) {
@@ -180,14 +222,14 @@ async function rerankWithModel(query, sequence) {
     const [queryEmbedding] = await embedTexts([query]);
     if (sequence !== searchSequence) return;
 
-    const missing = commonsResults.filter((item) => !candidateVectors.has(item.id));
+    const missing = remoteResults.filter((item) => !candidateVectors.has(item.id));
     if (missing.length) {
       const vectors = await embedTexts(missing.map((item) => semanticText(toDatasetRecord(item))));
       missing.forEach((item, index) => candidateVectors.set(item.id, vectors[index]));
     }
     if (sequence !== searchSequence) return;
 
-    commonsResults = commonsResults
+    remoteResults = remoteResults
       .map((item) => ({
         ...item,
         semanticScore: cosineSimilarity(queryEmbedding, candidateVectors.get(item.id)),
@@ -195,12 +237,12 @@ async function rerankWithModel(query, sequence) {
       .sort((left, right) => right.semanticScore - left.semanticScore);
     renderResults(query, queryEmbedding, true);
     setStatus(
-      `${rankedSeed(query, queryEmbedding).length} caption matches · ${commonsResults.length} expanded commons candidates.`,
+      `${rankedSeed(query, queryEmbedding).length} caption matches · ${remoteResults.length} open-access candidates.`,
     );
   } catch {
     if (sequence === searchSequence) {
       setStatus(
-        `${rankedSeed(query).length} local caption matches · commons is expanded lexically. embedding model unavailable.`,
+        `${rankedSeed(query).length} local caption matches · open-access results are ready. embedding model unavailable.`,
       );
     }
   }
@@ -216,35 +258,55 @@ async function searchLibrary({ append = false } = {}) {
 
   requestController?.abort();
   requestController = new AbortController();
-  const offset = append ? continuation : null;
   const sequence = append ? searchSequence : ++searchSequence;
   currentQuery = search;
   moreButton.disabled = true;
   if (!append) {
-    commonsResults = [];
+    remoteResults = [];
+    continuations = { commons: null, met: null };
     skipped.clear();
     gridEl.setAttribute("aria-busy", "true");
     renderResults(search);
   }
-  setStatus(append ? "opening another commons shelf…" : "ranking captions by meaning…", true);
+  setStatus(append ? "opening another image shelf…" : "ranking captions by meaning…", true);
 
   try {
     const expanded = expandVisualQuery(search);
-    const response = await fetchCommons(expanded, offset, requestController.signal);
+    const sources = selectedSources().filter(
+      (source) => !append || continuations[source] !== null,
+    );
+    const responses = await Promise.allSettled(
+      sources.map((source) =>
+        source === "commons"
+          ? fetchCommons(expanded, continuations.commons, requestController.signal)
+          : fetchMet(search, continuations.met, requestController.signal),
+      ),
+    );
+    if (responses.some((result) => result.reason?.name === "AbortError")) {
+      throw new DOMException("aborted", "AbortError");
+    }
     if (sequence !== searchSequence) return;
-    const known = new Set(commonsResults.map((item) => item.id));
-    commonsResults.push(...response.items.filter((item) => !known.has(item.id)));
-    continuation = response.continue;
+    const known = new Set(remoteResults.map((item) => item.id));
+    responses.forEach((result, index) => {
+      if (result.status !== "fulfilled") return;
+      const source = sources[index];
+      remoteResults.push(...result.value.items.filter((item) => !known.has(item.id)));
+      result.value.items.forEach((item) => known.add(item.id));
+      continuations[source] = result.value.continue;
+    });
+    if (responses.every((result) => result.status === "rejected")) {
+      throw new Error("all sources unavailable");
+    }
     renderResults(search);
     setStatus(
-      `${rankedSeed(search).length} caption matches · ${commonsResults.length} expanded commons candidates. refining…`,
+      `${rankedSeed(search).length} caption matches · ${remoteResults.length} open-access candidates. refining…`,
       true,
     );
     rerankWithModel(search, sequence);
   } catch (error) {
     if (error.name !== "AbortError") {
       renderResults(search);
-      setStatus(`${rankedSeed(search).length} local caption matches · commons is quiet right now.`);
+      setStatus(`${rankedSeed(search).length} local caption matches · image sources are quiet right now.`);
       rerankWithModel(search, sequence);
     }
   } finally {
@@ -261,7 +323,7 @@ function renderResults(query = currentQuery, queryEmbedding = null, modelRanked 
   resultCountEl.textContent = visible.length
     ? `${seedCount} meaning ${seedCount === 1 ? "match" : "matches"} · ${visible.length} showing`
     : "";
-  moreButton.hidden = continuation === null;
+  moreButton.hidden = !selectedSources().some((source) => continuations[source] !== null);
 }
 
 function createCandidateCard(item, modelRanked = false) {
@@ -289,8 +351,8 @@ function createCandidateCard(item, modelRanked = false) {
     item.isSeed
       ? `${modelRanked ? "semantic" : "caption"} match · ${Math.round(item.semanticScore * 100)}%`
       : item.semanticScore
-        ? `commons rerank · ${Math.round(item.semanticScore * 100)}%`
-        : "expanded commons",
+        ? `${item.source} rerank · ${Math.round(item.semanticScore * 100)}%`
+        : item.source,
   );
   const title = element("a", "library-card-title", item.title);
   title.href = item.sourceUrl;
@@ -412,6 +474,17 @@ for (const button of document.querySelectorAll("[data-license]")) {
   button.addEventListener("click", () => {
     licenseFilter = button.dataset.license;
     for (const peer of document.querySelectorAll("[data-license]")) {
+      peer.classList.toggle("active", peer === button);
+    }
+    queryInput.value = currentQuery || queryInput.value;
+    searchLibrary();
+  });
+}
+
+for (const button of document.querySelectorAll("[data-source]")) {
+  button.addEventListener("click", () => {
+    sourceFilter = button.dataset.source;
+    for (const peer of document.querySelectorAll("[data-source]")) {
       peer.classList.toggle("active", peer === button);
     }
     queryInput.value = currentQuery || queryInput.value;

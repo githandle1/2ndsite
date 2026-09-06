@@ -113,6 +113,7 @@ test("dataset export contains caption and complete provenance", () => {
   assert.equal(record.caption_short, "edited caption");
   assert.deepEqual(Object.keys(record), [
     "id",
+    "source",
     "source_url",
     "image_url",
     "thumbnail_url",
@@ -120,7 +121,9 @@ test("dataset export contains caption and complete provenance", () => {
     "credit",
     "license",
     "license_url",
+    "license_note",
     "retrieved_at",
+    "provenance",
     "ocr_text",
     "ocr_status",
     "caption_long",
@@ -129,5 +132,7 @@ test("dataset export contains caption and complete provenance", () => {
     "height",
     "category",
   ]);
+  assert.equal(record.source, "wikimedia commons");
+  assert.equal(record.provenance.pageId, 7);
   assert.equal(record.retrieved_at, retrievedAt);
 });

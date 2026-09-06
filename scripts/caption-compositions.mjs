@@ -135,6 +135,7 @@ export async function captionCandidate(candidate, options = {}) {
     : await runOcr(candidate, options.ocr);
   return {
     id: candidate.id,
+    source: candidate.source,
     source_url: candidate.source_url,
     image_url: candidate.image_url,
     thumbnail_url: candidate.thumbnail_url,
@@ -142,7 +143,9 @@ export async function captionCandidate(candidate, options = {}) {
     credit: candidate.credit,
     license: candidate.license,
     license_url: candidate.license_url,
+    license_note: candidate.license_note,
     retrieved_at: candidate.retrieved_at || new Date().toISOString(),
+    provenance: candidate.provenance,
     ocr_text: ocr.text,
     ocr_status: ocr.status,
     caption_long: captionLong,
