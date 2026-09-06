@@ -349,13 +349,13 @@ h1 {
 
   .stack > .field {
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     gap: 6px;
     padding: 7px;
     border: 1px solid rgba(36, 33, 31, 0.07);
     border-radius: 18px;
     background: var(--paper);
-    box-shadow: 0 7px 22px rgba(36, 33, 31, 0.035);
+    box-shadow: none;
   }
 
   .scene-row {
@@ -396,20 +396,20 @@ h1 {
     border: 0;
     background: var(--hover);
     color: var(--paper);
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--hover) 16%, transparent);
+    box-shadow: none;
   }
 
   .stack > .field .field-head {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 2;
     align-self: center;
     width: fit-content;
-    padding-left: 2px;
+    padding-left: 0;
   }
 
   .stack > .field .field-head .choice-trigger {
     min-height: 34px;
-    padding: 0 14px 0 0;
+    padding: 0;
   }
 
   .stack > .field .field-head .count-word {
@@ -419,12 +419,12 @@ h1 {
   .stack > .field .field-head .count-num {
     display: inline-grid;
     place-items: center;
-    min-width: 38px;
+    min-width: 28px;
     min-height: 28px;
-    padding: 0 9px;
+    padding: 0 4px;
     border-radius: 999px;
-    background: var(--wash);
-    color: var(--hover);
+    background: transparent;
+    color: var(--muted);
   }
 
   .stack > .field .field-head .choice-trigger::after {
@@ -3128,15 +3128,13 @@ body.is-sheet-open {
 
   .mobile-sheet .stack > .field {
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     gap: 6px;
     padding: 7px;
     border: 1px solid rgba(36, 33, 31, 0.07);
     border-radius: 21px;
     background: var(--paper);
-    box-shadow:
-      0 0 0 1px rgba(36, 33, 31, 0.025),
-      0 10px 28px rgba(36, 33, 31, 0.075);
+    box-shadow: none;
   }
 
   .mobile-sheet .scene-row {
@@ -3158,16 +3156,16 @@ body.is-sheet-open {
   }
 
   .mobile-sheet .field-head {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 2;
     align-self: center;
     width: fit-content;
-    padding-left: 6px;
+    padding-left: 0;
   }
 
   .mobile-sheet .field-head .choice-trigger {
     min-height: 38px;
-    padding: 0 16px 0 0;
+    padding: 0;
     border: 0;
     color: var(--muted);
   }
@@ -3179,12 +3177,12 @@ body.is-sheet-open {
   .mobile-sheet .field-head .count-num {
     display: inline-grid;
     place-items: center;
-    min-width: 42px;
+    min-width: 30px;
     min-height: 32px;
-    padding: 0 10px;
+    padding: 0 4px;
     border-radius: 999px;
-    background: var(--wash);
-    color: var(--hover);
+    background: transparent;
+    color: var(--muted);
   }
 
   .mobile-sheet .field-head .choice-trigger::after {
@@ -3215,7 +3213,7 @@ body.is-sheet-open {
     border: 0;
     background: var(--hover);
     color: var(--paper);
-    box-shadow: 0 5px 14px color-mix(in srgb, var(--hover) 18%, transparent);
+    box-shadow: none;
   }
 
   .mobile-sheet.has-paintings,
