@@ -1544,9 +1544,15 @@ function authHeaders() {
 }
 
 async function loadSamples() {
-  const res = await fetch("/api/samples");
-  const data = await res.json();
-  samples = data.samples || [];
+  try {
+    const res = await fetch("/api/samples");
+    if (!res.ok) throw new Error(`samples unavailable (${res.status})`);
+    const data = await res.json();
+    samples = data.samples || [];
+  } catch {
+    const { samples: builtInSamples } = await import("../lib/compositions/templates.js?v=6");
+    samples = builtInSamples || [];
+  }
   samplesEl.innerHTML = "";
   const lead = document.createElement("div");
   lead.className = "chips-row";
@@ -1822,6 +1828,27 @@ function selectPainting(id) {
   syncSheetEditor(rec);
 }
 
+async function renderBuiltInSample(sampleId, prompt) {
+  if (!sampleId) return false;
+  const { templates } = await import("../lib/compositions/templates.js?v=6");
+  const code = templates?.[sampleId];
+  if (!code) return false;
+  const n = Math.max(1, Math.min(6, Number(countEl.value) || 4));
+  const fx = readEffects();
+  paintings = Array.from({ length: n }, (_, i) => ({
+    id: `${sampleId}-local-${i + 1}`,
+    prompt,
+    seed: 11 + i * 97,
+    variant: "local preview",
+    code,
+    source: "sample",
+    effects: fx,
+  }));
+  setStatus("wetting the paper…");
+  renderGrid(paintings);
+  return true;
+}
+
 async function generate({ scene, sampleId } = {}) {
   const prompt = (scene ?? sceneEl.value).trim();
   paintEl.disabled = true;
@@ -1838,7 +1865,7 @@ async function generate({ scene, sampleId } = {}) {
         effects: readEffects(),
       }),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "generate failed");
     paintings = data.paintings || [];
     const failed = paintings.filter((item) => item.error).length;
@@ -1849,6 +1876,7 @@ async function generate({ scene, sampleId } = {}) {
     );
     renderGrid(paintings);
   } catch (err) {
+    if (await renderBuiltInSample(sampleId, prompt)) return;
     setStatus(err.message);
   } finally {
     paintEl.disabled = false;
