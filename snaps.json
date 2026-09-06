@@ -79,6 +79,17 @@
     "preview": 2,
     "groups": [
       {
+        "city": "sea ranch",
+        "photos": [
+          {
+            "src": "photos/sea-ranch-barn.jpeg",
+            "alt": "Weathered barn in a golden coastal meadow overlooking the ocean",
+            "caption": "sea ranch, august 2026",
+            "ariaLabel": "Open Sea Ranch barn photo"
+          }
+        ]
+      },
+      {
         "city": "san diego",
         "photos": [
           {
@@ -140,17 +151,6 @@
             "alt": "Manhattan Municipal Building tower at night",
             "caption": "municipal building, august 2026",
             "ariaLabel": "Open Municipal Building photo"
-          }
-        ]
-      },
-      {
-        "city": "sea ranch",
-        "photos": [
-          {
-            "src": "photos/sea-ranch-barn.jpeg",
-            "alt": "Weathered barn in a golden coastal meadow overlooking the ocean",
-            "caption": "sea ranch, august 2026",
-            "ariaLabel": "Open Sea Ranch barn photo"
           }
         ]
       }
