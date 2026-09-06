@@ -2,6 +2,7 @@ import {
   metObjectUrl,
   metSearchUrl,
   normalizeMetObjects,
+  rankMetItems,
 } from "../lib/compositions/met.mjs";
 
 const PAGE_SIZE = 60;
@@ -39,6 +40,8 @@ export default async function handler(req, res) {
   }
 
   const search = String(req.query?.q || "").trim();
+  const genre = String(req.query?.genre || "").trim();
+  const keyword = String(req.query?.keyword || "").trim();
   const offset = Math.max(Number.parseInt(req.query?.continue, 10) || 0, 0);
   if (!search) {
     res.status(400).json({ error: "add something to search for" });
@@ -55,7 +58,7 @@ export default async function handler(req, res) {
 
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=900");
     res.status(200).json({
-      items: normalizeMetObjects(objects),
+      items: rankMetItems(normalizeMetObjects(objects), genre, keyword),
       continue: offset + PAGE_SIZE < objectIds.length ? offset + PAGE_SIZE : null,
     });
   } catch (error) {

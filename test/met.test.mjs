@@ -8,6 +8,7 @@ import {
   metSearchUrl,
   normalizeMetObject,
   normalizeMetObjects,
+  rankMetItems,
 } from "../lib/compositions/met.mjs";
 
 const retrievedAt = "2026-09-06T08:30:00.000Z";
@@ -78,8 +79,11 @@ test("Met records use the shared item shape and preserve Open Access provenance"
     creditLine: "Gift of an Example Donor, 1912",
     tags: ["Interiors", "Evening"],
   });
-  assert.match(item.caption, /Paintings/);
-  assert.match(item.caption, /Interiors, Evening/);
+  assert.match(item.captionLong, /^create a scene of Evening Interior;/);
+  assert.match(item.captionLong, /include interiors, evening/);
+  assert.match(item.captionLong, /layered painterly texture/);
+  assert.equal(item.captionShort, "Evening Interior, Interiors, Evening.");
+  assert.doesNotMatch(item.captionLong, /12\.34|Gift of|1888|American Paintings/);
 
   const record = toDatasetRecord(item);
   assert.equal(record.source, "met open access");
@@ -87,4 +91,24 @@ test("Met records use the shared item shape and preserve Open Access provenance"
   assert.equal(record.provenance.accessionNumber, "12.34");
   assert.equal(record.source_url, item.sourceUrl);
   assert.equal(record.image_url, item.imageUrl);
+});
+
+test("Met genre ranking filters broad API matches using normalized object fields", () => {
+  const unrelated = normalizeMetObject(
+    metObject({
+      objectID: 200,
+      title: "Virgin and Child",
+      tags: [{ term: "Fruit" }, { term: "Figures" }],
+    }),
+  );
+  const stillLife = normalizeMetObject(
+    metObject({
+      objectID: 201,
+      title: "Still Life with Citrus",
+      classification: "Paintings",
+      tags: [{ term: "Still Life" }, { term: "Fruit" }],
+    }),
+  );
+  const ranked = rankMetItems([unrelated, stillLife], "still-life", "citrus");
+  assert.deepEqual(ranked.map((item) => item.id), ["met:201"]);
 });

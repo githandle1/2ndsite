@@ -17,8 +17,10 @@ Each JSONL line has:
 
 The seed accepts only Commons records classified as `cc0` or `public domain`. Every candidate
 was visually reviewed for subject diversity, obvious synthetic imagery, and near-duplicates.
-Captions deliberately describe composition, subject, medium/surface, light, color, mood, and
-readable text instead of optimizing for an aesthetic score.
+Captions are written as creative-intent prompts: subject, setting, composition, light, color,
+mood, material appearance, and relevant visible text in the language a person might use to ask
+for a scene. They must not lead with museum labels, dimensions, accession numbers, donor lines,
+or bibliography. Those facts belong in the separate provenance fields.
 
 `ocr_status` is explicit because OCR availability varies by machine. Tesseract was unavailable
 for this seed run. Text-bearing images therefore contain a manual transcription with
@@ -27,8 +29,10 @@ for this seed run. Text-bearing images therefore contain a manual transcription 
 
 ## Caption and OCR path
 
-Prepare candidate JSONL with Commons provenance plus either `caption_long` or at least four of
-`composition`, `subject`, `materials`, `light`, `color`, `mood`, and `readable_text`. Then run:
+Prepare candidate JSONL with source provenance plus either a human prompt-style `caption_long`
+or at least four of `subject`, `setting`, `composition`, `materials`, `light`, `color`, `mood`,
+and `readable_text`. The CLI turns those visual fields into an unlabeled, semicolon-paced
+creative prompt; detected OCR is folded in as visible text. Then run:
 
 ```bash
 npm run compositions:caption -- \

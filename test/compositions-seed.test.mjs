@@ -33,13 +33,20 @@ test("caption helpers produce detailed and short variants", async () => {
     caption_short: "a dim empty kitchen",
   };
   const long = buildLongCaption(candidate);
-  assert.match(long, /Composition:/);
+  assert.match(long, /^An empty kitchen;/);
   assert.match(long, /Dim blue evening light/);
+  assert.doesNotMatch(long, /\b(?:Composition|Subject|Materials|Light|Color|Mood):/);
   assert.equal(buildShortCaption(candidate, long), "a dim empty kitchen.");
 
   const record = await captionCandidate(candidate, { ocr: false });
   assert.equal(record.ocr_status, "not-run");
   assert.equal(record.caption_long, long);
+
+  const withOcr = await captionCandidate(
+    { ...candidate, ocr_text: "FRESH CITRUS", ocr_status: "detected" },
+    { ocr: false },
+  );
+  assert.match(withOcr.caption_long, /include visible text reading “FRESH CITRUS”/);
 });
 
 test("seed contains 30–50 diverse, unique CC0/public-domain records", () => {
@@ -69,6 +76,16 @@ test("every seed record has provenance, OCR status, and two useful caption lengt
     assert.ok(record.caption_long.length >= 260, `${record.id} long caption is too short`);
     assert.ok(record.caption_short.length >= 25 && record.caption_short.length <= 180);
     assert.ok(record.ocr_status);
+  }
+});
+
+test("seed captions use visual prompt language rather than catalog metadata", () => {
+  const catalogLanguage =
+    /\b(?:accession(?: number)?|gift of|catalog(?:ue)? no\.|dimensions?:|\d+\s*[×x]\s*\d+\s*(?:in|cm))\b/i;
+  const labeledFields = /\b(?:Composition|Subject|Materials and surface|Light|Color|Mood):/;
+  for (const record of records) {
+    assert.doesNotMatch(record.caption_long, catalogLanguage, record.id);
+    assert.doesNotMatch(record.caption_long, labeledFields, record.id);
   }
 });
 
@@ -102,7 +119,7 @@ test("genre searches preserve keywords and add source-appropriate vocabulary", (
   const met = genreSearchQuery("citrus", "still-life", "met");
   assert.match(commons, /^citrus still life /);
   assert.match(commons, /fruit|flowers|tabletop/);
-  assert.match(met, /^citrus still life /);
+  assert.equal(met, "citrus still life");
   assert.ok(met.split(" ").length < commons.split(" ").length);
 });
 

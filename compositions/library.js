@@ -7,6 +7,7 @@ import {
   metObjectUrl,
   metSearchUrl,
   normalizeMetObjects,
+  rankMetItems,
 } from "../lib/compositions/met.mjs";
 import {
   cosineSimilarity,
@@ -187,8 +188,8 @@ async function fetchCommons(search, offset, signal) {
   }
 }
 
-async function fetchMet(search, offset = 0, signal) {
-  const params = new URLSearchParams({ q: search });
+async function fetchMet(search, keyword, offset = 0, signal) {
+  const params = new URLSearchParams({ q: search, genre: genreFilter, keyword });
   if (offset) params.set("continue", offset);
 
   try {
@@ -220,7 +221,7 @@ async function fetchMet(search, offset = 0, signal) {
       );
     }
     return {
-      items: normalizeMetObjects(objects),
+      items: rankMetItems(normalizeMetObjects(objects), genreFilter, keyword),
       continue: offset + pageSize < objectIds.length ? offset + pageSize : null,
     };
   }
@@ -331,7 +332,7 @@ async function searchLibrary({ append = false } = {}) {
       sources.map((source) =>
         source === "commons"
           ? fetchCommons(expanded, continuations.commons, requestController.signal)
-          : fetchMet(metQuery, continuations.met, requestController.signal),
+          : fetchMet(metQuery, search, continuations.met, requestController.signal),
       ),
     );
     if (responses.some((result) => result.reason?.name === "AbortError")) {

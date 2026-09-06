@@ -44,24 +44,29 @@ function sentence(value = "") {
 export function buildLongCaption(candidate) {
   if (candidate.caption_long) return sentence(candidate.caption_long);
   const parts = [
-    candidate.composition && `Composition: ${sentence(candidate.composition)}`,
-    candidate.subject && `Subject: ${sentence(candidate.subject)}`,
-    candidate.materials && `Materials and surface: ${sentence(candidate.materials)}`,
-    candidate.light && `Light: ${sentence(candidate.light)}`,
-    candidate.color && `Color: ${sentence(candidate.color)}`,
-    candidate.mood && `Mood: ${sentence(candidate.mood)}`,
-    candidate.readable_text && `Readable text: ${sentence(candidate.readable_text)}`,
+    candidate.subject,
+    candidate.setting,
+    candidate.composition,
+    candidate.light,
+    candidate.color,
+    candidate.mood,
+    candidate.materials && `the scene has ${candidate.materials}`,
+    candidate.readable_text && `include visible text reading “${candidate.readable_text}”`,
   ].filter(Boolean);
   if (parts.length < 4) {
-    throw new Error(`${candidate.id || candidate.title}: add a caption_long or at least four visual fields`);
+    throw new Error(
+      `${candidate.id || candidate.title}: add a creative caption_long or at least four scene fields`,
+    );
   }
-  return parts.join(" ");
+  return sentence(parts.map((part) => String(part).replace(/[.!?]+$/, "").trim()).join("; "));
 }
 
 export function buildShortCaption(candidate, longCaption) {
   if (candidate.caption_short) return sentence(candidate.caption_short);
-  const subject = candidate.subject || longCaption.split(/[.!?]/, 1)[0];
-  return sentence(subject.split(/\s+/).slice(0, 24).join(" "));
+  const prompt = [candidate.subject, candidate.setting, candidate.light, candidate.mood]
+    .filter(Boolean)
+    .join(", ") || longCaption.split(/[.!?]/, 1)[0];
+  return sentence(prompt.split(/\s+/).slice(0, 28).join(" "));
 }
 
 async function commandExists(command) {
@@ -129,10 +134,13 @@ export async function runOcr(candidate, enabled = true) {
 }
 
 export async function captionCandidate(candidate, options = {}) {
-  const captionLong = buildLongCaption(candidate);
   const ocr = candidate.ocr_status
     ? { text: candidate.ocr_text ?? null, status: candidate.ocr_status }
     : await runOcr(candidate, options.ocr);
+  const captionLong = buildLongCaption({
+    ...candidate,
+    readable_text: candidate.readable_text || ocr.text,
+  });
   return {
     id: candidate.id,
     source: candidate.source,
