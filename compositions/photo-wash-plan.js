@@ -1,7 +1,7 @@
 import { clampEffects } from "./effect-model.js?v=15";
 
 export const PAPER = { r: 243, g: 238, b: 228 };
-export const CELLS = 72;
+export const CELLS = 96;
 
 function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
@@ -85,7 +85,7 @@ export function rasterContain(source, cells) {
   ctx.clearRect(0, 0, cells, cells);
   const width = source.width || source.naturalWidth;
   const height = source.height || source.naturalHeight;
-  const scale = Math.min(cells / width, cells / height);
+  const scale = Math.max(cells / width, cells / height);
   const w = width * scale;
   const h = height * scale;
   ctx.drawImage(source, (cells - w) / 2, (cells - h) / 2, w, h);
@@ -109,6 +109,8 @@ function regionStats(data, cells, x0, y0, x1, y1) {
   let rMax = 0;
   let gMax = 0;
   let bMax = 0;
+  let lumaMin = 1;
+  let lumaMax = 0;
   for (let y = y0; y < y1; y++) {
     for (let x = x0; x < x1; x++) {
       const c = at(data, cells, x, y);
@@ -123,20 +125,29 @@ function regionStats(data, cells, x0, y0, x1, y1) {
       if (c.r > rMax) rMax = c.r;
       if (c.g > gMax) gMax = c.g;
       if (c.b > bMax) bMax = c.b;
+      const luma = lumaOf(c);
+      if (luma < lumaMin) lumaMin = luma;
+      if (luma > lumaMax) lumaMax = luma;
     }
   }
-  if (!n) return { empty: true, color: { ...PAPER }, range: 0, luma: 1 };
+  if (!n) return { empty: true, color: { ...PAPER }, range: 0, lumaRange: 0, luma: 1 };
   const color = { r: r / n, g: g / n, b: b / n };
+  const local = at(data, cells, (x0 + x1) >> 1, (y0 + y1) >> 1) || color;
   return {
     empty: false,
     color,
+    local,
     range: Math.max(rMax - rMin, gMax - gMin, bMax - bMin),
+    lumaRange: lumaMax - lumaMin,
     luma: lumaOf(color),
   };
 }
 
-function collectDabs(data, cells, minCell) {
+function collectDabs(data, cells) {
   const dabs = [];
+  const minLeaf = 3;
+  const alwaysSplit = 8;
+  const washAt = 12;
   function visit(x0, y0, x1, y1) {
     const w = x1 - x0;
     const h = y1 - y0;
@@ -144,11 +155,25 @@ function collectDabs(data, cells, minCell) {
     const stats = regionStats(data, cells, x0, y0, x1, y1);
     if (stats.empty) return;
     const span = Math.max(w, h);
-    const busy = stats.range > 32;
-    if (span > minCell && (busy || span > 18)) {
+    const varied = stats.range > 12 || stats.lumaRange > 0.04;
+    const shouldSplit = span > minLeaf && (varied || span > alwaysSplit);
+    if (shouldSplit) {
       const mx = (x0 + x1) >> 1;
       const my = (y0 + y1) >> 1;
       if (mx > x0 && my > y0 && mx < x1 && my < y1) {
+        if (span >= washAt) {
+          dabs.push({
+            gx0: x0,
+            gy0: y0,
+            gx1: x1,
+            gy1: y1,
+            color: stats.color,
+            luma: stats.luma,
+            range: stats.range,
+            area: w * h,
+            wash: true,
+          });
+        }
         visit(x0, y0, mx, my);
         visit(mx, y0, x1, my);
         visit(x0, my, mx, y1);
@@ -161,10 +186,11 @@ function collectDabs(data, cells, minCell) {
       gy0: y0,
       gx1: x1,
       gy1: y1,
-      color: stats.color,
-      luma: stats.luma,
+      color: span <= alwaysSplit ? stats.local : stats.color,
+      luma: lumaOf(span <= alwaysSplit ? stats.local : stats.color),
       range: stats.range,
       area: w * h,
+      wash: false,
     });
   }
   visit(0, 0, cells, cells);
@@ -200,34 +226,41 @@ function cellPoly(dab, scale, rand, tight) {
   ];
 }
 
+function colorDelta(a, b) {
+  return Math.hypot(a.r - b.r, a.g - b.g, a.b - b.b) / 255;
+}
+
 function planMarks(data, cells, size, rand, wet, brushType) {
-  const dabs = collectDabs(data, cells, 3);
-  dabs.sort((a, b) => b.area - a.area || a.luma - b.luma);
+  const dabs = collectDabs(data, cells);
+  dabs.sort((a, b) => Number(b.wash) - Number(a.wash) || b.area - a.area || a.luma - b.luma);
 
   const scale = size / cells;
   const marks = [];
   for (const dab of dabs) {
     const pigment = pigmentize(dab.color, wet);
-    const tight = dab.range > 34 || dab.area < 16;
+    const wash = Boolean(dab.wash);
+    const tight = !wash && (dab.range > 22 || dab.area < 20);
     marks.push({
       kind: "poly",
       pts: cellPoly(dab, scale, rand, tight),
       hex: toHex(pigment),
-      opacity: clamp((tight ? 158 : 110) + (1 - dab.luma) * 58, 96, 216),
-      bleed: wet ? (tight ? 0.12 : 0.2) : 0.08,
-      texture: wet ? (tight ? 0.38 : 0.32) : 0.34,
-      border: wet ? (tight ? 0.34 : 0.24) : 0.26,
+      opacity: wash
+        ? clamp(72 + (1 - dab.luma) * 46, 58, 128)
+        : clamp((tight ? 150 : 124) + (1 - dab.luma) * 52, 108, 214),
+      bleed: wet ? (wash ? 0.3 : tight ? 0.12 : 0.2) : 0.08,
+      texture: wet ? (tight ? 0.38 : 0.3) : 0.34,
+      border: wet ? (tight ? 0.32 : 0.22) : 0.26,
     });
   }
 
-  const lineBudget = brushType === "2H" || brushType === "cpencil" ? 28 : 18;
+  const lineBudget = brushType === "2H" || brushType === "cpencil" ? 48 : 36;
   const edges = [];
   for (let y = 1; y < cells - 1; y++) {
     for (let x = 1; x < cells - 1; x++) {
       const here = at(data, cells, x, y);
       if (!here) continue;
       const luma = lumaOf(here);
-      if (luma > 0.9) continue;
+      if (luma > 0.97) continue;
       const right = at(data, cells, x + 1, y);
       const left = at(data, cells, x - 1, y);
       const down = at(data, cells, x, y + 1);
@@ -235,8 +268,10 @@ function planMarks(data, cells, size, rand, wet, brushType) {
       if (!right || !left || !down || !up) continue;
       const gx = lumaOf(right) - lumaOf(left);
       const gy = lumaOf(down) - lumaOf(up);
-      const mag = Math.hypot(gx, gy);
-      if (mag < 0.16) continue;
+      const lumaMag = Math.hypot(gx, gy);
+      const chromaMag = Math.hypot(colorDelta(right, left), colorDelta(down, up));
+      const mag = Math.max(lumaMag, chromaMag);
+      if (mag < 0.07) continue;
       edges.push({ x, y, gx, gy, mag, color: here });
     }
   }
@@ -292,6 +327,40 @@ export function averageHex(source) {
   if (!n) return "#8b2f32";
   const hex = (v) => Math.round(v / n).toString(16).padStart(2, "0");
   return `#${hex(r)}${hex(g)}${hex(b)}`;
+}
+
+export function splitSubjectFromImageData(image) {
+  const w = image.width;
+  const h = image.height;
+  const src = image.data;
+  const base = new Uint8ClampedArray(src.length);
+  const lift = new Uint8ClampedArray(src.length);
+  const hitsSize = 72;
+  const hits = new Uint8Array(hitsSize * hitsSize);
+  const pr = PAPER.r;
+  const pg = PAPER.g;
+  const pb = PAPER.b;
+  for (let i = 0, p = 0; i < src.length; i += 4, p += 1) {
+    const r = src[i];
+    const g = src[i + 1];
+    const b = src[i + 2];
+    const dist = Math.abs(r - pr) + Math.abs(g - pg) + Math.abs(b - pb);
+    const t = Math.max(0, Math.min(1, (dist - 14) / 32));
+    const a = Math.round(t * 255);
+    lift[i] = r;
+    lift[i + 1] = g;
+    lift[i + 2] = b;
+    lift[i + 3] = a;
+    base[i] = r + (pr - r) * t;
+    base[i + 1] = g + (pg - g) * t;
+    base[i + 2] = b + (pb - b) * t;
+    base[i + 3] = 255;
+    const hx = Math.min(hitsSize - 1, Math.floor(((p % w) / w) * hitsSize));
+    const hy = Math.min(hitsSize - 1, Math.floor((Math.floor(p / w) / h) * hitsSize));
+    const hi = hy * hitsSize + hx;
+    if (a > hits[hi]) hits[hi] = a;
+  }
+  return { width: w, height: h, base, lift, hits: Array.from(hits), hitsSize };
 }
 
 export async function blobToDataUrl(blob) {

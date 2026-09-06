@@ -1,7 +1,8 @@
 import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=15";
 import { parseColor, oklchToHex } from "./color.js";
 import { mountColorSquare } from "./color-dial.js?v=12";
-import { imageWork } from "./image-work.js?v=1";
+import { imageWork } from "./image-work.js?v=4";
+import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=4";
 const sceneEl = document.querySelector("#scene");
 const sceneRow = document.querySelector(".scene-row");
 const sceneCaption = document.querySelector("#sceneCaption");
@@ -15,6 +16,8 @@ const samplesEl = document.querySelector("#samples");
 const photoEl = document.querySelector("#photo");
 const photoChip = document.querySelector("#photoChip");
 const paintKit = document.querySelector("#paintKit");
+const mobileSheet = document.querySelector("#mobileSheet");
+const mobileSheetHandle = document.querySelector(".mobile-sheet-handle");
 const providerEl = document.querySelector("#provider");
 const apiKeyEl = document.querySelector("#apiKey");
 const renderer = document.querySelector("#renderer");
@@ -34,7 +37,9 @@ let paintings = [];
 let selectedId = null;
 const cards = new Map();
 const paintQueue = [];
+const photoPreviewQueue = [];
 let paintingNow = false;
+let photoPreviewNow = false;
 let rendererReady = false;
 let waitingId = null;
 let effects = clampEffects(stored.effects || {});
@@ -144,19 +149,22 @@ function mountChoice(select, options = {}) {
     const rect = trigger.getBoundingClientRect();
     const gap = 6;
     const compact = wrap.classList.contains("is-count");
-    menu.style.minWidth = compact ? "2.6rem" : `${Math.max(rect.width, 72)}px`;
-    menu.style.left = compact ? `${rect.right}px` : `${rect.left}px`;
-    menu.style.top = `${rect.bottom + gap}px`;
-    const box = menu.getBoundingClientRect();
     const view = viewSize();
+    menu.style.minWidth = compact ? "2.6rem" : `${Math.max(rect.width, 72)}px`;
     menu.style.maxHeight = `${Math.min(280, view.height - 16)}px`;
+    menu.style.bottom = "auto";
+    const spaceBelow = view.height - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    const openUp = spaceBelow < 160 && spaceAbove > spaceBelow;
+    menu.style.left = compact ? `${rect.right}px` : `${rect.left}px`;
+    menu.style.top = openUp ? `${Math.max(8, rect.top - gap)}px` : `${rect.bottom + gap}px`;
+    const box = menu.getBoundingClientRect();
+    if (openUp || (box.bottom > view.height - 8 && spaceAbove > box.height + gap)) {
+      menu.style.top = `${Math.max(8, rect.top - box.height - gap)}px`;
+    }
     if (compact) {
       menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
-    }
-    if (box.bottom > view.height - 8 && rect.top > box.height + gap + 8) {
-      menu.style.top = `${rect.top - box.height - gap}px`;
-    }
-    if (!compact && box.right > view.width - 8) {
+    } else if (box.right > view.width - 8) {
       menu.style.left = `${Math.max(8, rect.right - box.width)}px`;
     }
   }
@@ -265,6 +273,10 @@ function mountChoice(select, options = {}) {
 
 function isCompact() {
   return window.matchMedia("(max-width: 720px), (max-height: 540px) and (max-width: 960px)").matches;
+}
+
+function isPhone() {
+  return window.matchMedia("(max-width: 720px)").matches;
 }
 
 function viewSize() {
@@ -543,9 +555,85 @@ function fitPaintKit() {
       }
     }
     const desk = document.querySelector(".desk");
-    if (!paintKit.open && desk) desk.scrollTop = 0;
+    if (!paintKit.open && desk) {
+      desk.scrollTop = 0;
+      requestAnimationFrame(() => {
+        desk.scrollTop = 0;
+      });
+    }
+    if (isPhone()) syncMobileSheet(paintKit.open);
   });
   fitPaintKit.done = true;
+}
+
+function syncMobileSheet(expanded) {
+  if (!mobileSheet || !mobileSheetHandle) return;
+  mobileSheet.classList.toggle("is-expanded", expanded);
+  mobileSheetHandle.setAttribute("aria-expanded", expanded ? "true" : "false");
+  mobileSheetHandle.setAttribute("aria-label", expanded ? "close customize" : "open customize");
+  if (!expanded) mobileSheet.scrollTop = 0;
+}
+
+function setMobileSheet(expanded) {
+  if (!isPhone() || !paintKit) return;
+  const fromTop = mobileSheet?.getBoundingClientRect().top;
+  syncMobileSheet(expanded);
+  paintKit.open = expanded;
+  if (fromTop == null || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  requestAnimationFrame(() => {
+    const toTop = mobileSheet.getBoundingClientRect().top;
+    const distance = fromTop - toTop;
+    if (Math.abs(distance) < 1) return;
+    mobileSheet.getAnimations().forEach((animation) => animation.cancel());
+    mobileSheet.animate(
+      [{ transform: `translateY(${distance}px)` }, { transform: "translateY(0)" }],
+      { duration: 220, easing: "cubic-bezier(.22,.8,.32,1)" }
+    );
+  });
+}
+
+function mountMobileSheet() {
+  if (!mobileSheet || !mobileSheetHandle || !paintKit) return;
+  let startY = null;
+  let suppressClick = false;
+
+  mobileSheetHandle.addEventListener("pointerdown", (event) => {
+    if (!isPhone()) return;
+    startY = event.clientY;
+    mobileSheetHandle.setPointerCapture(event.pointerId);
+  });
+
+  mobileSheetHandle.addEventListener("pointerup", (event) => {
+    if (startY == null) return;
+    const delta = event.clientY - startY;
+    startY = null;
+    if (Math.abs(delta) < 24) return;
+    suppressClick = true;
+    setMobileSheet(delta < 0);
+    setTimeout(() => {
+      suppressClick = false;
+    }, 0);
+  });
+
+  mobileSheetHandle.addEventListener("pointercancel", () => {
+    startY = null;
+  });
+
+  mobileSheetHandle.addEventListener("click", (event) => {
+    if (!isPhone()) return;
+    if (suppressClick) {
+      suppressClick = false;
+      event.preventDefault();
+      return;
+    }
+    setMobileSheet(!mobileSheet.classList.contains("is-expanded"));
+  });
+
+  window.matchMedia("(max-width: 720px)").addEventListener("change", (event) => {
+    if (event.matches) setMobileSheet(false);
+    else syncMobileSheet(false);
+  });
+  syncMobileSheet(false);
 }
 
 function persistSettings() {
@@ -824,6 +912,67 @@ function mountSheetEditor(sheet, item) {
   grip.addEventListener("pointercancel", endDrag);
 }
 
+async function splitWashLocal(dataUrl) {
+  const picture = new Image();
+  picture.src = dataUrl;
+  await picture.decode();
+  const canvas = document.createElement("canvas");
+  canvas.width = picture.naturalWidth;
+  canvas.height = picture.naturalHeight;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(picture, 0, 0);
+  const split = splitSubjectFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
+  const toUrl = (pixels) => {
+    const next = document.createElement("canvas");
+    next.width = split.width;
+    next.height = split.height;
+    next.getContext("2d").putImageData(new ImageData(pixels, split.width, split.height), 0, 0);
+    return next.toDataURL("image/png");
+  };
+  return {
+    baseUrl: toUrl(split.base),
+    liftUrl: toUrl(split.lift),
+    hits: split.hits,
+    hitsSize: split.hitsSize,
+  };
+}
+
+async function splitWash(dataUrl) {
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    const bitmap = await createImageBitmap(blob);
+    return await imageWork("splitSubject", { bitmap }, [bitmap]);
+  } catch {
+    return splitWashLocal(dataUrl);
+  }
+}
+
+async function ensureSplit(rec) {
+  if (rec?.split?.src === rec.dataUrl && rec.split.baseUrl) return rec.split;
+  const src = rec?.dataUrl;
+  if (!src) return null;
+  const split = await splitWash(src);
+  if (!split || rec.dataUrl !== src) return rec.split || null;
+  rec.split = { ...split, src };
+  return rec.split;
+}
+
+function prefetchSplit(rec) {
+  const src = rec?.dataUrl;
+  if (!src || rec.split?.src === src) return;
+  ensureSplit(rec).catch(() => {});
+}
+
+function hitSubject(frame, rec, clientX, clientY) {
+  const hits = rec?.split?.hits;
+  const size = rec?.split?.hitsSize || 0;
+  if (!hits || !size) return true;
+  const box = frame.getBoundingClientRect();
+  const x = Math.min(size - 1, Math.max(0, Math.floor(((clientX - box.left) / box.width) * size)));
+  const y = Math.min(size - 1, Math.max(0, Math.floor(((clientY - box.top) / box.height) * size)));
+  return hits[y * size + x] > 36;
+}
+
 function mountSubjectDrag(sheet, item) {
   const frame = sheet.querySelector(".frame");
   if (!frame) return;
@@ -835,7 +984,9 @@ function mountSubjectDrag(sheet, item) {
   let startPlaceX = 0.5;
   let startPlaceY = 0.5;
 
-  const img = () => frame.querySelector("img");
+  const img = () => frame.querySelector("img:not(.wash-lift)");
+
+  const liftEl = () => frame.querySelector(".wash-lift");
 
   const placementFrom = (clientX, clientY) => {
     const box = frame.getBoundingClientRect();
@@ -846,10 +997,10 @@ function mountSubjectDrag(sheet, item) {
   };
 
   const preview = (placeX, placeY) => {
-    const picture = img();
-    if (!picture) return;
+    const lift = liftEl();
+    if (!lift) return;
     const box = frame.getBoundingClientRect();
-    picture.style.transform = `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
+    lift.style.transform = `translate(${(placeX - startPlaceX) * box.width}px, ${(startPlaceY - placeY) * box.height}px)`;
   };
 
   const write = (placeX, placeY) => {
@@ -866,8 +1017,30 @@ function mountSubjectDrag(sheet, item) {
     return next;
   };
 
-  const clearPreview = () => {
+  const showLift = (rec) => {
     const picture = img();
+    const split = rec.split;
+    if (!picture || !split?.baseUrl || !split?.liftUrl) return false;
+    picture.src = split.baseUrl;
+    picture.style.transform = "";
+    let lift = liftEl();
+    if (!lift) {
+      lift = document.createElement("img");
+      lift.className = "wash-lift";
+      lift.alt = "";
+      lift.draggable = false;
+      frame.append(lift);
+    }
+    lift.src = split.liftUrl;
+    lift.style.transform = "";
+    return true;
+  };
+
+  const clearPreview = (restore) => {
+    const rec = cards.get(item.id);
+    const picture = img();
+    if (restore && picture && rec?.dataUrl) picture.src = rec.dataUrl;
+    liftEl()?.remove();
     if (picture) picture.style.transform = "";
     frame.classList.remove("is-nudging", "is-carrying");
   };
@@ -878,7 +1051,7 @@ function mountSubjectDrag(sheet, item) {
     carrying = false;
     moved = true;
     unbindCarry();
-    clearPreview();
+    frame.classList.remove("is-nudging", "is-carrying");
     write(next.placeX, next.placeY);
     persistSettings();
     scheduleSheetRender(item.id);
@@ -889,7 +1062,7 @@ function mountSubjectDrag(sheet, item) {
     carrying = false;
     unbindCarry();
     write(startPlaceX, startPlaceY);
-    clearPreview();
+    clearPreview(true);
   };
 
   const onDocMove = (event) => {
@@ -899,7 +1072,7 @@ function mountSubjectDrag(sheet, item) {
 
   const onDocDown = (event) => {
     if (!carrying) return;
-    if (event.target.closest(".expand, .pick, .sheet-edit, .save")) {
+    if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .save")) {
       cancel();
       return;
     }
@@ -929,28 +1102,56 @@ function mountSubjectDrag(sheet, item) {
   }
 
   frame.addEventListener("pointerdown", (event) => {
+    void startPick(event);
+  });
+
+  async function startPick(event) {
+    if (isPhone()) return;
     if (carrying) return;
     if (event.button != null && event.button !== 0) return;
-    if (event.target.closest(".expand, .pick, .sheet-edit, .veil")) return;
+    if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .veil")) return;
     if (!img()) return;
     if (isCompact() && !sheet.classList.contains("active") && !sheet.classList.contains("is-expanded")) return;
     const rec = cards.get(item.id);
+    if (!rec?.dataUrl) return;
+    event.preventDefault();
+    selectPainting(item.id);
+    const waited = !rec.split?.baseUrl;
+    if (waited) frame.classList.add("is-nudging");
+    try {
+      await ensureSplit(rec);
+    } catch {
+      frame.classList.remove("is-nudging");
+      return;
+    }
+    if (!hitSubject(frame, rec, event.clientX, event.clientY)) {
+      frame.classList.remove("is-nudging");
+      return;
+    }
+    if (!showLift(rec)) {
+      frame.classList.remove("is-nudging");
+      return;
+    }
     const fx = sheetEffects(rec);
-    holding = true;
     moved = false;
     startX = event.clientX;
     startY = event.clientY;
     startPlaceX = fx.placeX ?? 0.5;
     startPlaceY = fx.placeY ?? 0.5;
-    event.preventDefault();
-    selectPainting(item.id);
+    if (waited) {
+      carrying = true;
+      frame.classList.add("is-carrying");
+      bindCarry();
+      return;
+    }
+    holding = true;
     frame.classList.add("is-nudging");
     try {
       frame.setPointerCapture(event.pointerId);
     } catch {
       /* ignore */
     }
-  });
+  }
   frame.addEventListener("pointermove", (event) => {
     if (!holding || carrying) return;
     follow(event.clientX, event.clientY);
@@ -1234,12 +1435,74 @@ function paintDensityFor(id) {
 function requestHighRes(id) {
   const rec = cards.get(id);
   if (!rec?.item || (!rec.item.code && !rec.item.photo)) return;
+  if (isPhone() && rec.item.photo) return;
   const density = paintDensityFor(id);
   if ((rec.paintDensity || 1) >= density) return;
   rec.wantDensity = density;
   if (waitingId === id) return;
   if (!paintQueue.includes(id)) paintQueue.push(id);
   drainQueue();
+}
+
+function applyPaintedData(rec, dataUrl, density = 1) {
+  rec.dataUrl = dataUrl;
+  rec.item.dataUrl = dataUrl;
+  rec.paintDensity = density;
+  rec.wantDensity = null;
+  const frame = rec.sheet.querySelector(".frame");
+  let img = frame.querySelector("img:not(.wash-lift)");
+  if (img) {
+    img.src = dataUrl;
+    img.style.transform = "";
+  } else {
+    img = document.createElement("img");
+    img.alt = rec.item.prompt || "watercolor";
+    img.src = dataUrl;
+    img.draggable = false;
+    frame.prepend(img);
+  }
+  img.draggable = false;
+  frame.querySelector(".wash-lift")?.remove();
+  rec.split = null;
+  if (!isPhone()) prefetchSplit(rec);
+  rec.sheet.classList.remove("is-adjusting");
+  rec.sheet.querySelector(".veil")?.remove();
+  rec.sheet.querySelector(".save")?.removeAttribute("disabled");
+}
+
+function queuePhotoPreview(id) {
+  if (!photoPreviewQueue.includes(id)) photoPreviewQueue.push(id);
+  drainPhotoPreviews();
+}
+
+async function drainPhotoPreviews() {
+  if (photoPreviewNow) return;
+  const id = photoPreviewQueue.shift();
+  if (!id) return;
+  const rec = cards.get(id);
+  if (!rec?.item.photo) {
+    drainPhotoPreviews();
+    return;
+  }
+  photoPreviewNow = true;
+  try {
+    const { dataUrl } = await imageWork("renderWash", {
+      photo: rec.item.photo,
+      seed: rec.item.seed,
+      size: PAINT_SIZE,
+      effects: sheetEffects(rec),
+    });
+    if (dataUrl && cards.get(id) === rec) applyPaintedData(rec, dataUrl, 1);
+  } catch (err) {
+    rec.fastPreviewFailed = true;
+    if (cards.get(id) === rec && !paintQueue.includes(id)) {
+      paintQueue.push(id);
+      drainQueue();
+    }
+  } finally {
+    photoPreviewNow = false;
+    drainPhotoPreviews();
+  }
 }
 
 function queuePaint(id, { replace = false } = {}) {
@@ -1260,6 +1523,10 @@ function queuePaint(id, { replace = false } = {}) {
     }
     veil.textContent = "pigment settling…";
   }
+  if (isPhone() && rec.item.photo && !rec.fastPreviewFailed) {
+    queuePhotoPreview(id);
+    return;
+  }
   if (!paintQueue.includes(id)) paintQueue.push(id);
   drainQueue();
 }
@@ -1277,17 +1544,19 @@ function authHeaders() {
 }
 
 async function loadSamples() {
-  const res = await fetch("/api/samples");
-  const data = await res.json();
-  samples = data.samples || [];
+  try {
+    const res = await fetch("/api/samples");
+    if (!res.ok) throw new Error(`samples unavailable (${res.status})`);
+    const data = await res.json();
+    samples = data.samples || [];
+  } catch {
+    const { samples: builtInSamples } = await import("../lib/compositions/templates.js?v=6");
+    samples = builtInSamples || [];
+  }
   samplesEl.innerHTML = "";
+  const lead = document.createElement("div");
+  lead.className = "chips-row";
   samples.forEach((sample, index) => {
-    if (index === 2) {
-      const br = document.createElement("span");
-      br.className = "chips-break";
-      br.setAttribute("aria-hidden", "true");
-      samplesEl.append(br);
-    }
     const button = document.createElement("button");
     button.type = "button";
     button.className = "chip";
@@ -1306,8 +1575,13 @@ async function loadSamples() {
       clearPhoto();
       generate({ sampleId: sample.id, scene: sample.prompt });
     });
-    samplesEl.append(button);
+    if (index < 2) lead.append(button);
+    else {
+      if (index === 2) samplesEl.append(lead);
+      samplesEl.append(button);
+    }
   });
+  if (lead.childNodes.length && !lead.parentNode) samplesEl.append(lead);
 }
 
 function openSheetStage(id) {
@@ -1348,6 +1622,7 @@ function clearWall() {
   closePopovers();
   document.querySelectorAll(".sheet-color-menu").forEach((menu) => menu.remove());
   paintQueue.length = 0;
+  photoPreviewQueue.length = 0;
   paintingNow = false;
   waitingId = null;
   cards.clear();
@@ -1356,6 +1631,9 @@ function clearWall() {
 
 function renderGrid(items) {
   clearWall();
+  const hasPaintings = items.length > 0;
+  mobileSheet?.classList.toggle("has-paintings", hasPaintings);
+  if (hasPaintings && isPhone()) setMobileSheet(false);
   const grid = document.createElement("div");
   grid.className = "grid";
   wallEl.append(grid);
@@ -1377,7 +1655,12 @@ function renderGrid(items) {
               <path d="M3 13l4.8-4.8" fill="none" stroke="currentColor" stroke-width="1.5" />
             </svg>
           </button>
-          <button type="button" class="pick" data-id="${item.id}" aria-label="export training json" title="export for tinker" aria-pressed="false"${item.code ? "" : " disabled"}></button>
+          <button type="button" class="sheet-close" aria-label="close" title="close">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M2.5 2.5l11 11" fill="none" stroke="currentColor" stroke-width="1.5" />
+              <path d="M13.5 2.5 2.5 13.5" fill="none" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+          </button>
         </div>
         <div class="veil">pigment settling…</div>
       </div>
@@ -1408,11 +1691,11 @@ function renderGrid(items) {
       </div>
     `;
     sheet.addEventListener("click", (event) => {
-      if (event.target.closest(".save, .expand, .pick, .sheet-edit")) return;
+      if (event.target.closest(".save, .expand, .pick, .sheet-close, .sheet-edit")) return;
       selectPainting(item.id);
     });
     sheet.addEventListener("keydown", (event) => {
-      if (event.target.closest(".save, .expand, .pick, .sheet-edit")) return;
+      if (event.target.closest(".save, .expand, .pick, .sheet-close, .sheet-edit")) return;
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         selectPainting(item.id);
@@ -1422,13 +1705,13 @@ function renderGrid(items) {
       event.stopPropagation();
       openSheetStage(item.id);
     });
+    sheet.querySelector(".sheet-close").addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeSheetStage();
+    });
     sheet.querySelector(".save").addEventListener("click", (event) => {
       event.stopPropagation();
       downloadPainting(item.id);
-    });
-    sheet.querySelector(".pick").addEventListener("click", (event) => {
-      event.stopPropagation();
-      exportTraining(item.id);
     });
     grid.append(sheet);
     cards.set(item.id, { item, sheet, dataUrl: null });
@@ -1441,11 +1724,13 @@ function renderGrid(items) {
       veil.textContent = item.error || "no sketch returned";
       return;
     }
-    paintQueue.push(item.id);
+    if (isPhone() && item.photo) photoPreviewQueue.push(item.id);
+    else paintQueue.push(item.id);
   });
 
   const first = items.find((item) => item.code || item.photo);
   if (first) selectPainting(first.id);
+  drainPhotoPreviews();
   drainQueue();
 }
 
@@ -1521,25 +1806,7 @@ function onFrameMessage(event) {
       veil?.classList.add("error");
       if (veil) veil.textContent = event.data.error;
     } else if (event.data.dataUrl) {
-      rec.dataUrl = event.data.dataUrl;
-      rec.item.dataUrl = event.data.dataUrl;
-      rec.paintDensity = waitingDensity;
-      rec.wantDensity = null;
-      const frame = rec.sheet.querySelector(".frame");
-      let img = frame.querySelector("img");
-      if (img) {
-        img.src = event.data.dataUrl;
-      } else {
-        img = document.createElement("img");
-        img.alt = rec.item.prompt || "watercolor";
-        img.src = event.data.dataUrl;
-        img.draggable = false;
-        frame.prepend(img);
-      }
-      img.draggable = false;
-      rec.sheet.classList.remove("is-adjusting");
-      veil?.remove();
-      rec.sheet.querySelector(".save")?.removeAttribute("disabled");
+      applyPaintedData(rec, event.data.dataUrl, waitingDensity);
     } else if (veil) {
       veil.classList.add("error");
       veil.textContent = "the wash dried invisibly. try re-rendering.";
@@ -1561,6 +1828,27 @@ function selectPainting(id) {
   syncSheetEditor(rec);
 }
 
+async function renderBuiltInSample(sampleId, prompt) {
+  if (!sampleId) return false;
+  const { templates } = await import("../lib/compositions/templates.js?v=6");
+  const code = templates?.[sampleId];
+  if (!code) return false;
+  const n = Math.max(1, Math.min(6, Number(countEl.value) || 4));
+  const fx = readEffects();
+  paintings = Array.from({ length: n }, (_, i) => ({
+    id: `${sampleId}-local-${i + 1}`,
+    prompt,
+    seed: 11 + i * 97,
+    variant: "local preview",
+    code,
+    source: "sample",
+    effects: fx,
+  }));
+  setStatus("wetting the paper…");
+  renderGrid(paintings);
+  return true;
+}
+
 async function generate({ scene, sampleId } = {}) {
   const prompt = (scene ?? sceneEl.value).trim();
   paintEl.disabled = true;
@@ -1577,7 +1865,7 @@ async function generate({ scene, sampleId } = {}) {
         effects: readEffects(),
       }),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "generate failed");
     paintings = data.paintings || [];
     const failed = paintings.filter((item) => item.error).length;
@@ -1588,6 +1876,7 @@ async function generate({ scene, sampleId } = {}) {
     );
     renderGrid(paintings);
   } catch (err) {
+    if (await renderBuiltInSample(sampleId, prompt)) return;
     setStatus(err.message);
   } finally {
     paintEl.disabled = false;
@@ -1770,10 +2059,6 @@ function mountDeskScroll() {
 sheetStageEl?.addEventListener("click", (event) => {
   if (event.target === sheetStageEl) closeSheetStage();
 });
-sheetStageEl?.querySelector(".sheet-stage-close")?.addEventListener("click", (event) => {
-  event.stopPropagation();
-  closeSheetStage();
-});
 
 {
   let startY = 0;
@@ -1796,5 +2081,6 @@ sheetStageEl?.querySelector(".sheet-stage-close")?.addEventListener("click", (ev
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
 fitPaintKit();
+mountMobileSheet();
 sizeScene();
 mountDeskScroll();

@@ -127,7 +127,7 @@
             --toggle-tone-b: color-mix(in srgb, var(--hover) 68%, var(--toggle-mix-target));
             --toggle-tone-c: color-mix(in srgb, var(--hover) 78%, var(--hover));
             --toggle-tone-d: color-mix(in srgb, var(--hover) 88%, var(--ink));
-            --toggle-mark-size: 0.9em;
+            --toggle-mark-size: 1.08em;
         }
 
         h1 {
@@ -175,6 +175,14 @@
             color: inherit;
             text-align: left;
             cursor: pointer;
+        }
+
+        /* Keep the controls visually quiet while making their hit areas forgiving. */
+        .intro-lead,
+        .snaps-preview-toggle,
+        .snaps-footsteps-toggle,
+        .bookmark-more-toggle {
+            min-height: 32px;
         }
 
         .intro-lead-text {
@@ -410,6 +418,23 @@
             display: none;
         }
 
+        .snaps-more {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.28rem;
+            padding: 0 0 8px;
+        }
+
+        .snaps-more .snaps-preview-toggle {
+            padding: 0;
+        }
+
+        .snaps-more .snaps-footsteps-toggle {
+            margin-left: 0.85em;
+            font-size: 0.83rem;
+        }
+
         .photo-grid.is-preview .photo-item.is-extra {
             display: none;
         }
@@ -542,12 +567,6 @@
 
         .snaps-footer {
             padding: 10px 0 2px;
-        }
-
-        .snaps-footsteps-row {
-            display: flex;
-            align-items: center;
-            gap: 0.9rem;
         }
 
         .snaps-footsteps-toggle {
@@ -744,9 +763,14 @@
         }
 
         .caption-toggle {
+            display: inline-grid;
+            place-items: center;
+            width: 32px;
+            height: 32px;
             border: none;
             background: none;
-            padding: 0 1px;
+            padding: 0;
+            margin: -8px;
             font-family: inherit;
             font-size: var(--toggle-mark-size);
             font-weight: 400;
@@ -1081,6 +1105,7 @@
                 width: min(calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)), 720px);
                 padding-top: max(40px, calc(24px + env(safe-area-inset-top, 0px)));
                 padding-bottom: max(72px, calc(48px + env(safe-area-inset-bottom, 0px)));
+                --toggle-mark-size: 1.33em;
             }
 
             h1 {
@@ -1097,9 +1122,38 @@
                 padding: 6px 0 18px;
             }
 
-            .snaps-footsteps-toggle,
             .bookmark-more-toggle {
                 font-size: var(--list-size);
+            }
+
+            .snaps-preview-toggle,
+            .snaps-footsteps-toggle {
+                font-size: 0.83rem;
+            }
+
+            .snaps-preview-toggle {
+                padding-bottom: 0;
+            }
+
+            .snaps-preview-mark {
+                font-size: var(--toggle-mark-size);
+            }
+
+            .snaps-footer {
+                padding-top: 2px;
+            }
+
+            .intro-lead,
+            .snaps-preview-toggle,
+            .snaps-footsteps-toggle,
+            .bookmark-more-toggle {
+                min-height: 44px;
+            }
+
+            .caption-toggle {
+                width: 44px;
+                height: 44px;
+                margin: -14px;
             }
 
             .places-map {
@@ -1199,19 +1253,6 @@
             <h4 id="photos" class="phrase">photos</h4>
             <div id="snaps-albums"></div>
             <div class="snaps-footer">
-                <div class="snaps-footsteps-row">
-                    <button
-                        type="button"
-                        class="snaps-footsteps-toggle"
-                        id="snaps-footsteps-toggle"
-                        aria-expanded="false"
-                        aria-controls="places-map"
-                        aria-label="Show footsteps map"
-                    >
-                        <span class="snaps-footsteps-label">footsteps</span>
-                        <span class="snaps-footsteps-mark toggle-mark--tone-d" aria-hidden="true">+</span>
-                    </button>
-                </div>
                 <div class="places-map" id="places-map" role="img" aria-label="Map of favorite places and walking traces" hidden>
                     <svg id="places-svg" viewBox="0 0 960 384" preserveAspectRatio="xMidYMid meet" overflow="visible" aria-hidden="true">
                         <g class="places-traces" id="places-traces"></g>
@@ -2090,8 +2131,30 @@
             mark.textContent = '+';
             toggle.append(label, mark);
 
+            const more = document.createElement('div');
+            more.className = 'snaps-more';
+
+            const footsteps = document.createElement('button');
+            footsteps.type = 'button';
+            footsteps.className = 'snaps-footsteps-toggle';
+            footsteps.id = 'snaps-footsteps-toggle';
+            footsteps.setAttribute('aria-expanded', 'false');
+            footsteps.setAttribute('aria-controls', 'places-map');
+            footsteps.setAttribute('aria-label', 'Show footsteps map');
+
+            const footstepsLabel = document.createElement('span');
+            footstepsLabel.className = 'snaps-footsteps-label';
+            footstepsLabel.textContent = 'footsteps';
+
+            const footstepsMark = document.createElement('span');
+            footstepsMark.className = 'snaps-footsteps-mark toggle-mark--tone-d';
+            footstepsMark.setAttribute('aria-hidden', 'true');
+            footstepsMark.textContent = '+';
+            footsteps.append(footstepsLabel, footstepsMark);
+
+            more.append(toggle, footsteps);
             albumGroups.append(grid);
-            entry.append(albumGroups, toggle);
+            entry.append(albumGroups, more);
             root.append(entry);
 
             photoVisibleCount = PHOTO_PAGE_SIZE;

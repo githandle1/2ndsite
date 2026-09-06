@@ -1,0 +1,358 @@
+<div id="mobile-composer-study" aria-label="Mobile composition interaction concepts">
+  <style>
+    #mobile-composer-study {
+      --mc-bg: light-dark(#f3f1ec, #151515);
+      --mc-surface: light-dark(#ffffff, #222222);
+      --mc-text: light-dark(#171717, #f5f5f5);
+      --mc-muted: light-dark(#74716b, #aaa59d);
+      --mc-line: light-dark(#ddd9d1, #3a3835);
+      --mc-accent: light-dark(#24211d, #f0ece4);
+      --mc-accent-text: light-dark(#ffffff, #181716);
+      --mc-image-a: light-dark(#d9c6b3, #5d4634);
+      --mc-image-b: light-dark(#a9b7a2, #3f5342);
+      --mc-image-c: light-dark(#b9b6cc, #45425b);
+      color: var(--mc-text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      width: 100%;
+    }
+    #mobile-composer-study * { box-sizing: border-box; }
+    #mobile-composer-study .mc-patterns {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    #mobile-composer-study button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+    #mobile-composer-study .mc-pattern {
+      min-height: 44px;
+      border: 1px solid var(--mc-line);
+      border-radius: 999px;
+      padding: 0 16px;
+      background: transparent;
+    }
+    #mobile-composer-study .mc-pattern[aria-pressed="true"] {
+      background: var(--mc-accent);
+      color: var(--mc-accent-text);
+      border-color: var(--mc-accent);
+    }
+    #mobile-composer-study .mc-phone {
+      position: relative;
+      width: min(100%, 390px);
+      height: 665px;
+      overflow: hidden;
+      border-radius: 32px;
+      border: 1px solid var(--mc-line);
+      background: var(--mc-bg);
+      box-shadow: 0 18px 50px light-dark(rgba(37, 29, 20, .14), rgba(0, 0, 0, .34));
+    }
+    #mobile-composer-study .mc-topbar {
+      height: 58px;
+      padding: 16px 18px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #mobile-composer-study .mc-title { font-weight: 500; }
+    #mobile-composer-study .mc-icon {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      background: transparent;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+    }
+    #mobile-composer-study .mc-gallery {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 8px 12px 220px;
+      transition: padding-bottom 240ms ease;
+    }
+    #mobile-composer-study .mc-tile {
+      position: relative;
+      aspect-ratio: 4 / 5;
+      overflow: hidden;
+      border-radius: 18px;
+      background: var(--mc-image-a);
+    }
+    #mobile-composer-study .mc-tile:nth-child(2) { background: var(--mc-image-b); }
+    #mobile-composer-study .mc-tile:nth-child(3) { background: var(--mc-image-c); }
+    #mobile-composer-study .mc-tile:nth-child(4) { background: linear-gradient(150deg, var(--mc-image-a), var(--mc-image-c)); }
+    #mobile-composer-study .mc-object {
+      position: absolute;
+      inset: 22% 22% 17%;
+      border-radius: 44% 44% 18% 18%;
+      background: light-dark(rgba(255,255,255,.76), rgba(255,255,255,.22));
+      box-shadow: 0 18px 38px rgba(0,0,0,.12);
+      transform: rotate(-4deg);
+    }
+    #mobile-composer-study .mc-tile:nth-child(even) .mc-object { transform: rotate(5deg) scale(.9); }
+    #mobile-composer-study .mc-empty {
+      display: none;
+      padding: 88px 42px 220px;
+      text-align: center;
+      color: var(--mc-muted);
+    }
+    #mobile-composer-study .mc-empty-icon {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 18px;
+      border-radius: 24px;
+      background: color-mix(in srgb, var(--mc-surface) 82%, transparent);
+      display: grid;
+      place-items: center;
+    }
+    #mobile-composer-study .mc-composer {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      z-index: 3;
+      padding: 10px;
+      border: 1px solid var(--mc-line);
+      border-radius: 24px;
+      background: color-mix(in srgb, var(--mc-surface) 94%, transparent);
+      box-shadow: 0 14px 36px rgba(0,0,0,.14);
+      backdrop-filter: blur(18px);
+      transition: border-radius 220ms ease, transform 220ms ease;
+    }
+    #mobile-composer-study .mc-prompt-row {
+      min-height: 48px;
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      gap: 6px;
+      align-items: center;
+    }
+    #mobile-composer-study .mc-upload,
+    #mobile-composer-study .mc-send,
+    #mobile-composer-study .mc-adjust {
+      height: 44px;
+      border: 0;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+    }
+    #mobile-composer-study .mc-upload { background: var(--mc-bg); }
+    #mobile-composer-study .mc-send { background: var(--mc-accent); color: var(--mc-accent-text); }
+    #mobile-composer-study .mc-input {
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--mc-text);
+      font: inherit;
+      font-size: 16px;
+    }
+    #mobile-composer-study .mc-input::placeholder { color: var(--mc-muted); }
+    #mobile-composer-study .mc-presets {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding: 8px 2px 2px;
+      scrollbar-width: none;
+    }
+    #mobile-composer-study .mc-preset {
+      flex: 0 0 auto;
+      height: 38px;
+      border: 1px solid var(--mc-line);
+      border-radius: 13px;
+      background: transparent;
+      padding: 0 12px;
+    }
+    #mobile-composer-study .mc-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+    }
+    #mobile-composer-study .mc-adjust {
+      grid-auto-flow: column;
+      gap: 6px;
+      padding: 0 10px;
+      background: transparent;
+      color: var(--mc-muted);
+    }
+    #mobile-composer-study .mc-count { color: var(--mc-muted); padding-right: 8px; }
+    #mobile-composer-study .mc-advanced {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 240ms ease;
+    }
+    #mobile-composer-study .mc-advanced-inner { overflow: hidden; }
+    #mobile-composer-study .mc-advanced-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px 2px 2px;
+      border-top: 1px solid var(--mc-line);
+    }
+    #mobile-composer-study .mc-field {
+      min-height: 44px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--mc-bg);
+      color: var(--mc-text);
+      padding: 0 12px;
+      font: inherit;
+    }
+    #mobile-composer-study .mc-composer.is-open .mc-advanced { grid-template-rows: 1fr; }
+    #mobile-composer-study .mc-composer.is-open { border-radius: 28px; }
+    #mobile-composer-study .mc-caption {
+      color: var(--mc-muted);
+      text-align: center;
+      max-width: 390px;
+    }
+    #mobile-composer-study[data-pattern="canvas"] .mc-composer {
+      left: 18px;
+      right: 18px;
+      bottom: 190px;
+      box-shadow: 0 18px 44px rgba(0,0,0,.18);
+    }
+    #mobile-composer-study[data-pattern="canvas"] .mc-gallery { padding-bottom: 330px; }
+    #mobile-composer-study[data-pattern="canvas"] .mc-footer { display: none; }
+    #mobile-composer-study[data-pattern="canvas"] .mc-empty { display: block; }
+    #mobile-composer-study[data-pattern="canvas"] .mc-gallery { display: none; }
+    #mobile-composer-study[data-pattern="sheet"] .mc-composer {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-left: 0;
+      border-right: 0;
+      border-bottom: 0;
+      border-radius: 28px 28px 0 0;
+      padding: 16px 16px 20px;
+    }
+    #mobile-composer-study[data-pattern="sheet"] .mc-gallery { padding-bottom: 245px; }
+    #mobile-composer-study[data-pattern="sheet"] .mc-handle {
+      display: block;
+      width: 38px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--mc-line);
+      margin: -7px auto 10px;
+    }
+    #mobile-composer-study:not([data-pattern="sheet"]) .mc-handle { display: none; }
+    @media (prefers-reduced-motion: reduce) {
+      #mobile-composer-study * { transition: none !important; }
+    }
+  </style>
+
+  <div class="mc-patterns" aria-label="Interaction pattern">
+    <button class="mc-pattern" type="button" data-pattern="dock" aria-pressed="true">Composer dock</button>
+    <button class="mc-pattern" type="button" data-pattern="canvas" aria-pressed="false">Create canvas</button>
+    <button class="mc-pattern" type="button" data-pattern="sheet" aria-pressed="false">Bottom sheet</button>
+  </div>
+
+  <section class="mc-phone" aria-label="Interactive mobile composition mockup">
+    <header class="mc-topbar">
+      <span class="mc-title">Compositions</span>
+      <button class="mc-icon" type="button" aria-label="More options"><i data-lucide="ellipsis" aria-hidden="true"></i></button>
+    </header>
+
+    <div class="mc-gallery" aria-label="Generated images">
+      <div class="mc-tile"><div class="mc-object"></div></div>
+      <div class="mc-tile"><div class="mc-object"></div></div>
+      <div class="mc-tile"><div class="mc-object"></div></div>
+      <div class="mc-tile"><div class="mc-object"></div></div>
+    </div>
+
+    <div class="mc-empty">
+      <div class="mc-empty-icon"><i data-lucide="image-plus" aria-hidden="true"></i></div>
+      <div>Create your first scene</div>
+    </div>
+
+    <div class="mc-composer" aria-label="Create controls">
+      <span class="mc-handle" aria-hidden="true"></span>
+      <div class="mc-prompt-row">
+        <button class="mc-upload" type="button" aria-label="Upload image"><i data-lucide="plus" aria-hidden="true"></i></button>
+        <input class="mc-input" aria-label="Describe a scene" placeholder="Describe a scene…">
+        <button class="mc-send" type="button" aria-label="Create"><i data-lucide="arrow-up" aria-hidden="true"></i></button>
+      </div>
+      <div class="mc-presets" aria-label="Scene presets">
+        <button class="mc-preset" type="button">Editorial</button>
+        <button class="mc-preset" type="button">Studio</button>
+        <button class="mc-preset" type="button">On location</button>
+        <button class="mc-preset" type="button">Surreal</button>
+      </div>
+      <div class="mc-footer">
+        <button class="mc-adjust" type="button" aria-expanded="false">
+          <i data-lucide="sliders-horizontal" aria-hidden="true"></i><span>Adjust</span>
+        </button>
+        <span class="mc-count">4 images</span>
+      </div>
+      <div class="mc-advanced">
+        <div class="mc-advanced-inner">
+          <div class="mc-advanced-fields">
+            <select class="mc-field" aria-label="Aspect ratio"><option>4:5 portrait</option><option>1:1 square</option><option>16:9 wide</option></select>
+            <select class="mc-field" aria-label="Number of images"><option>4 images</option><option>2 images</option><option>1 image</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="mc-caption" aria-live="polite">Persistent dock: results stay primary; creation remains one tap away.</div>
+
+  <script>
+    (() => {
+      const root = document.getElementById('mobile-composer-study');
+      const composer = root.querySelector('.mc-composer');
+      const adjust = root.querySelector('.mc-adjust');
+      const caption = root.querySelector('.mc-caption');
+      const labels = {
+        dock: 'Persistent dock: results stay primary; creation remains one tap away.',
+        canvas: 'Create canvas: the first-run state focuses entirely on prompting, uploading, or choosing a preset.',
+        sheet: 'Bottom sheet: familiar, but it makes the controls feel heavier and obscures more of the results.'
+      };
+
+      root.querySelectorAll('.mc-pattern').forEach((button) => {
+        button.addEventListener('click', () => {
+          const pattern = button.dataset.pattern;
+          root.dataset.pattern = pattern;
+          root.querySelectorAll('.mc-pattern').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+          caption.textContent = labels[pattern];
+          composer.classList.remove('is-open');
+          adjust.setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      adjust.addEventListener('click', () => {
+        const open = composer.classList.toggle('is-open');
+        adjust.setAttribute('aria-expanded', String(open));
+        adjust.querySelector('span').textContent = open ? 'Less' : 'Adjust';
+      });
+
+      root.querySelectorAll('.mc-preset').forEach((button) => {
+        button.addEventListener('click', () => {
+          root.querySelector('.mc-input').value = button.textContent + ' scene';
+          root.querySelector('.mc-input').focus();
+        });
+      });
+
+      const state = { pattern: 'dock' };
+      function render() {
+        const target = root.querySelector(`.mc-pattern[data-pattern="${state.pattern}"]`);
+        if (target) target.click();
+      }
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({ container: root, onChange: render });
+        tweak.addSelect(state, 'pattern', {
+          label: 'Interaction pattern',
+          options: [
+            { label: 'Composer dock', value: 'dock' },
+            { label: 'Create canvas', value: 'canvas' },
+            { label: 'Bottom sheet', value: 'sheet' }
+          ],
+          reference: 'composer.pattern'
+        });
+      }
+    })();
+  </script>
+</div>
