@@ -37,10 +37,12 @@ function metObject(overrides = {}) {
 }
 
 test("Met search requests only public-domain records with images", () => {
-  const url = new URL(metSearchUrl("flowers & dusk"));
+  const rawUrl = metSearchUrl("flowers & dusk");
+  const url = new URL(rawUrl);
   assert.equal(url.searchParams.get("q"), "flowers & dusk");
   assert.equal(url.searchParams.get("hasImages"), "true");
   assert.equal(url.searchParams.get("isPublicDomain"), "true");
+  assert.match(rawUrl, /&q=flowers%20%26%20dusk$/);
   assert.equal(metObjectUrl(123), `${url.origin}/public/collection/v1/objects/123`);
 });
 
