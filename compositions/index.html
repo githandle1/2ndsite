@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=166" />
+    <link rel="stylesheet" href="styles.css?v=168" />
   </head>
   <body>
     <main class="studio">
@@ -37,16 +37,6 @@
           </div>
         </div>
         <div class="mobile-sheet" id="mobileSheet">
-          <button
-            class="mobile-sheet-handle"
-            type="button"
-            aria-label="open customize"
-            aria-expanded="false"
-            aria-controls="paintKit"
-          >
-            <span class="mobile-sheet-grip" aria-hidden="true"></span>
-            <span class="mobile-sheet-label">customize more</span>
-          </button>
         <div class="stack">
           <div class="field">
             <div class="field-head">
@@ -58,7 +48,7 @@
               </select>
             </div>
             <div class="scene-row">
-              <textarea id="scene" rows="1" placeholder="fingerprints" aria-label="create"></textarea>
+              <textarea id="scene" rows="1" aria-label="Describe a scene"></textarea>
               <div class="scene-caption" id="sceneCaption" hidden>
                 <img id="sceneCaptionImg" alt="" />
                 <span id="sceneCaptionText"></span>
@@ -112,10 +102,13 @@
           </div>
           <details class="sample-kit" id="sampleKit" open>
             <summary>samples</summary>
-            <div class="chips" id="samples"></div>
+            <div class="chips" id="samples" aria-label="Scene presets"></div>
           </details>
         </div>
 
+        <button class="mobile-sheet-handle" type="button" aria-label="customize more" aria-expanded="false" aria-controls="paintKit">
+          <span class="mobile-sheet-label">customize more</span>
+        </button>
         <details class="paint-kit" id="paintKit">
           <summary>
             customize
@@ -196,11 +189,11 @@
       </div>
       </div>
 
-      <section class="wall" id="wall" aria-live="polite"></section>
+      <section class="wall" id="wall" aria-label="Generated compositions" aria-live="polite"></section>
     </main>
     <div id="sheetStage" class="sheet-stage" hidden></div>
 
     <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=58"></iframe>
-    <script type="module" src="app.js?v=122"></script>
+    <script type="module" src="app.js?v=124"></script>
   </body>
 </html>

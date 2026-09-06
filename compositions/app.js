@@ -535,6 +535,7 @@ function bindReset(id, fn) {
 }
 
 function openPaintSections() {
+  if (isPhone()) return;
   for (const id of ["brush", "placement", "effects"]) {
     const pane = document.querySelector(`#${id}`);
     if (pane) pane.open = true;
@@ -550,7 +551,7 @@ function fitPaintKit() {
   paintKit.addEventListener("toggle", () => {
     if (paintKit.open) {
       openPaintSections();
-      if (isCompact()) {
+      if (isCompact() && !isPhone()) {
         requestAnimationFrame(() => paintKit.querySelector("summary")?.scrollIntoView({ block: "nearest" }));
       }
     }
@@ -570,7 +571,7 @@ function syncMobileSheet(expanded) {
   if (!mobileSheet || !mobileSheetHandle) return;
   mobileSheet.classList.toggle("is-expanded", expanded);
   mobileSheetHandle.setAttribute("aria-expanded", expanded ? "true" : "false");
-  mobileSheetHandle.setAttribute("aria-label", expanded ? "close customize" : "open customize");
+  mobileSheetHandle.setAttribute("aria-label", "customize more");
   if (!expanded) mobileSheet.scrollTop = 0;
 }
 
@@ -594,39 +595,15 @@ function setMobileSheet(expanded) {
 
 function mountMobileSheet() {
   if (!mobileSheet || !mobileSheetHandle || !paintKit) return;
-  let startY = null;
-  let suppressClick = false;
-
-  mobileSheetHandle.addEventListener("pointerdown", (event) => {
+  mobileSheetHandle.addEventListener("click", () => {
     if (!isPhone()) return;
-    startY = event.clientY;
-    mobileSheetHandle.setPointerCapture(event.pointerId);
-  });
-
-  mobileSheetHandle.addEventListener("pointerup", (event) => {
-    if (startY == null) return;
-    const delta = event.clientY - startY;
-    startY = null;
-    if (Math.abs(delta) < 24) return;
-    suppressClick = true;
-    setMobileSheet(delta < 0);
-    setTimeout(() => {
-      suppressClick = false;
-    }, 0);
-  });
-
-  mobileSheetHandle.addEventListener("pointercancel", () => {
-    startY = null;
-  });
-
-  mobileSheetHandle.addEventListener("click", (event) => {
-    if (!isPhone()) return;
-    if (suppressClick) {
-      suppressClick = false;
-      event.preventDefault();
-      return;
-    }
+    closePopovers();
     setMobileSheet(!mobileSheet.classList.contains("is-expanded"));
+  });
+  mobileSheet.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !isPhone() || !paintKit.open) return;
+    setMobileSheet(false);
+    mobileSheetHandle.focus();
   });
 
   window.matchMedia("(max-width: 720px)").addEventListener("change", (event) => {
@@ -1626,7 +1603,6 @@ function clearWall() {
 function renderGrid(items) {
   clearWall();
   const hasPaintings = items.length > 0;
-  mobileSheet?.classList.toggle("has-paintings", hasPaintings);
   if (hasPaintings && isPhone()) setMobileSheet(false);
   const grid = document.createElement("div");
   grid.className = "grid";
