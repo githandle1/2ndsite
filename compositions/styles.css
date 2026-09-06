@@ -2932,10 +2932,14 @@ body.is-sheet-open {
     text-align: center;
   }
 
-  .sheet.active .frame:has(img),
-  .sheet.is-expanded .frame:has(img) {
+  .sheet.active .frame:has(img) {
     cursor: pointer;
     touch-action: pan-y;
+  }
+
+  .sheet.is-expanded .frame:has(img) {
+    cursor: grab;
+    touch-action: none;
   }
 }
 

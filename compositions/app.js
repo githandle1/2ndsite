@@ -1139,7 +1139,9 @@ function mountSubjectDrag(sheet, item) {
   });
 
   async function startPick(event) {
-    if (isPhone()) return;
+    // On phones, keep gallery cards scrollable and enable free placement in
+    // the expanded canvas, where the gesture cannot fight page scrolling.
+    if (isPhone() && !sheet.classList.contains("is-expanded")) return;
     if (carrying) return;
     if (event.button != null && event.button !== 0) return;
     if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .veil")) return;
@@ -1632,6 +1634,7 @@ function openSheetStage(id) {
   rec.sheet.querySelector(".sheet-edit")?._onStage?.();
   sheetStageEl.hidden = false;
   document.body.classList.add("is-sheet-open");
+  if (isPhone()) prefetchSplit(rec);
   requestHighRes(id);
 }
 
