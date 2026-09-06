@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=187" />
+    <link rel="stylesheet" href="styles.css?v=188" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true">
@@ -19,6 +19,10 @@
         <path d="m11 10 3 3" />
         <path d="M6.5 21A3.5 3.5 0 1 0 3 17.5a2.62 2.62 0 0 1-.708 1.792A1 1 0 0 0 3 21z" />
         <path d="M9.969 17.031 21.378 5.624a1 1 0 0 0-3.002-3.002L6.967 14.031" />
+      </symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24">
+        <path d="M5 12h14" />
+        <path d="M12 5v14" />
       </symbol>
     </svg>
     <main class="studio">
@@ -80,27 +84,8 @@
               <div class="scene-actions">
                 <label class="upload" id="photoChip" aria-label="upload photo" title="upload photo">
                   <input id="photo" type="file" accept="image/*" />
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path
-                      d="M12 16V5"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                    />
-                    <path
-                      d="M8 8.5 12 4.5 16 8.5"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M5 16.5v1.2c0 1 .8 1.8 1.8 1.8h10.4c1 0 1.8-.8 1.8-1.8v-1.2"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
+                  <svg class="lucide-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <use href="#icon-plus"></use>
                   </svg>
                 </label>
                 <button id="paint" class="paint" type="button" aria-label="generate images" title="generate images">

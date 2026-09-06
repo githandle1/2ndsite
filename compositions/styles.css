@@ -348,11 +348,87 @@ h1 {
   }
 
   .stack > .field {
-    gap: 12px;
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    gap: 6px;
+    padding: 7px;
+    border: 1px solid rgba(36, 33, 31, 0.07);
+    border-radius: 18px;
+    background: var(--paper);
+    box-shadow: 0 7px 22px rgba(36, 33, 31, 0.035);
   }
 
   .scene-row {
-    gap: 8px;
+    display: contents;
+  }
+
+  .scene-row #scene,
+  .scene-caption {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    min-height: 42px;
+    border: 0;
+    background: transparent;
+  }
+
+  .scene-actions {
+    display: contents;
+  }
+
+  .scene-actions .upload,
+  .scene-actions .paint {
+    grid-row: 2;
+    align-self: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+  }
+
+  .scene-actions .upload {
+    grid-column: 1;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+
+  .scene-actions .paint {
+    grid-column: 4;
+    border: 0;
+    background: var(--hover);
+    color: var(--paper);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--hover) 16%, transparent);
+  }
+
+  .stack > .field .field-head {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+    width: fit-content;
+    padding-left: 2px;
+  }
+
+  .stack > .field .field-head .choice-trigger {
+    min-height: 34px;
+    padding: 0 14px 0 0;
+  }
+
+  .stack > .field .field-head .count-word {
+    display: none;
+  }
+
+  .stack > .field .field-head .count-num {
+    display: inline-grid;
+    place-items: center;
+    min-width: 38px;
+    min-height: 28px;
+    padding: 0 9px;
+    border-radius: 999px;
+    background: var(--wash);
+    color: var(--hover);
+  }
+
+  .stack > .field .field-head .choice-trigger::after {
+    display: none;
   }
 
   .chips {
@@ -3032,6 +3108,13 @@ body.is-sheet-open {
     overflow: visible;
   }
 
+  .mobile-sheet:not(.has-paintings) {
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
   .mobile-sheet-handle,
   .mobile-sheet .mode-switch,
   .mobile-sheet .sample-kit,
@@ -3051,6 +3134,9 @@ body.is-sheet-open {
     border: 1px solid rgba(36, 33, 31, 0.07);
     border-radius: 21px;
     background: var(--paper);
+    box-shadow:
+      0 0 0 1px rgba(36, 33, 31, 0.025),
+      0 10px 28px rgba(36, 33, 31, 0.075);
   }
 
   .mobile-sheet .scene-row {
