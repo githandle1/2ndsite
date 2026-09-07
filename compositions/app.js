@@ -357,7 +357,7 @@ mountChoice(countEl, {
     word.textContent = "variations";
     const num = document.createElement("span");
     num.className = "count-num";
-    num.textContent = label;
+    num.textContent = `x${label}`;
     trigger.replaceChildren(word, num);
   },
 });
