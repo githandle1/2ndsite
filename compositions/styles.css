@@ -21,7 +21,7 @@
   --control-sm: 3.2rem;
   --pad: 28px;
   --ui: "DM Sans", sans-serif;
-  --serif: "DM Sans", sans-serif;
+  --serif: "Fenix", serif;
   --dm-opsz: 10;
 }
 
@@ -133,8 +133,8 @@ h1 {
   z-index: 2;
   margin: 0;
   font-family: var(--serif);
-  font-size: 1.7rem;
-  font-weight: 500;
+  font-size: 1.75rem;
+  font-weight: 400;
   line-height: 1.15;
   letter-spacing: 0;
   color: var(--hover);
