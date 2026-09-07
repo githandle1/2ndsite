@@ -1832,7 +1832,10 @@ function renderGrid(items) {
   clearWall();
   const hasPaintings = items.length > 0;
   mobileSheet?.classList.toggle("has-paintings", hasPaintings);
-  if (hasPaintings && isPhone()) setMobileSheet(false);
+  if (isPhone()) {
+    setMobileSheet(false);
+    if (hasPaintings) setMobileTool(null);
+  }
   const grid = document.createElement("div");
   grid.className = "grid";
   wallEl.append(grid);

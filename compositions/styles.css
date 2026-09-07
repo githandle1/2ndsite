@@ -3066,7 +3066,7 @@ body.is-sheet-open {
   .studio {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
     height: var(--app-h, 100dvh);
     max-height: var(--app-h, 100dvh);
     padding: max(28px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom));
@@ -3093,7 +3093,7 @@ body.is-sheet-open {
   }
 
   .mobile-sheet {
-    grid-row: 2;
+    grid-row: 3;
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -3192,7 +3192,7 @@ body.is-sheet-open {
   }
 
   .wall {
-    grid-row: 3;
+    grid-row: 2;
     align-self: stretch;
     min-height: 0;
   }
@@ -3271,22 +3271,16 @@ body.is-sheet-open {
   .mobile-sheet:not(.has-paintings) {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 12px 16px 16px;
-    border: 1px solid rgba(36, 33, 31, 0.1);
-    border-radius: 22px;
-    background: color-mix(in srgb, var(--paper) 94%, #fff);
-    box-shadow: 0 4px 11px rgba(36, 33, 31, 0.04);
-  }
-
-  .mobile-sheet .mode-switch {
-    display: flex;
-    position: static;
-    margin: 0;
+    gap: 0;
     padding: 0;
+    border: 0;
+    border-radius: 0;
     background: transparent;
+    box-shadow: none;
   }
 
+  .mobile-sheet .mode-switch,
+  .mobile-sheet .sample-kit,
   .mobile-sheet-handle,
   .mobile-sheet .paint-kit {
     display: none !important;
@@ -3458,13 +3452,18 @@ body.is-sheet-open {
   }
 
   .mobile-tool-panel {
-    display: grid;
+    display: none;
     place-items: center;
-    min-height: 82px;
+    min-height: 0;
     max-height: 190px;
     overflow-x: auto;
     overflow-y: auto;
     scrollbar-width: none;
+  }
+
+  .mobile-tool-panel:has([data-tool-panel].is-active) {
+    display: grid;
+    min-height: 82px;
   }
 
   .mobile-tool-panel::-webkit-scrollbar {
