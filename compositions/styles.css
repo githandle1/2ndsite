@@ -20,9 +20,8 @@
   --control: 6.5rem;
   --control-sm: 3.2rem;
   --pad: 28px;
-  --ui: "DM Sans", sans-serif;
+  --ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", system-ui, sans-serif;
   --serif: "Fenix", serif;
-  --dm-opsz: 10;
 }
 
 * {
@@ -61,11 +60,10 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--ui);
-  font-optical-sizing: none;
-  font-variation-settings: "opsz" var(--dm-opsz);
-  font-size: 14px;
-  line-height: 1.55;
-  letter-spacing: -0.03em;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -94,7 +92,7 @@ body {
 .lucide-icon {
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -510,18 +508,18 @@ h1 {
     height: 30px;
     padding: 0;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--hover) 42%, var(--paper));
+    background: color-mix(in srgb, var(--ink) 8%, var(--paper));
     font-size: 13px;
     font-weight: 500;
     line-height: 1;
-    color: var(--paper);
+    color: var(--ink);
   }
 
   .stack > .field .field-head .choice-trigger:hover .count-num,
   .stack > .field .field-head .choice-trigger:focus-visible .count-num,
   .stack > .field .field-head .choice.is-open .count-num {
-    background: color-mix(in srgb, var(--hover) 55%, var(--paper));
-    color: var(--paper);
+    background: color-mix(in srgb, var(--ink) 12%, var(--paper));
+    color: var(--ink);
   }
 
   .stack > .field .field-head .choice-trigger::after {
@@ -3374,18 +3372,18 @@ body.is-sheet-open {
     height: 32px;
     padding: 0;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--hover) 42%, var(--paper));
-    font-size: 14px;
+    background: color-mix(in srgb, var(--ink) 8%, var(--paper));
+    font-size: 15px;
     font-weight: 500;
     line-height: 1;
-    color: var(--paper);
+    color: var(--ink);
   }
 
   .mobile-sheet .field-head .choice-trigger:hover .count-num,
   .mobile-sheet .field-head .choice-trigger:focus-visible .count-num,
   .mobile-sheet .field-head .choice.is-open .count-num {
-    background: color-mix(in srgb, var(--hover) 55%, var(--paper));
-    color: var(--paper);
+    background: color-mix(in srgb, var(--ink) 12%, var(--paper));
+    color: var(--ink);
   }
 
   .mobile-sheet .field-head .choice-trigger::after {
@@ -3500,11 +3498,11 @@ body.is-sheet-open {
   .mobile-brush-mark {
     display: grid;
     place-items: center;
-    width: 50px;
-    height: 50px;
-    border: 1px solid var(--line);
+    width: 48px;
+    height: 48px;
+    border: 0;
     border-radius: 50%;
-    background: var(--paper-2);
+    background: color-mix(in srgb, var(--ink) 6%, var(--paper));
   }
 
   .mobile-brush-mark::before {
@@ -3521,9 +3519,9 @@ body.is-sheet-open {
   }
 
   .mobile-brush-option.is-active .mobile-brush-mark {
-    border-color: color-mix(in srgb, var(--hover) 30%, transparent);
-    background: var(--wash);
-    box-shadow: 0 4px 14px rgba(139, 47, 50, 0.08);
+    border: 0;
+    background: color-mix(in srgb, var(--ink) 11%, var(--paper));
+    box-shadow: none;
   }
 
   .mobile-color-panel {
@@ -3689,35 +3687,37 @@ body.is-sheet-open {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     min-width: 0;
     padding: 0;
     border: 0;
     background: transparent;
     color: var(--muted);
-    font-size: 9px;
-    line-height: 1.2;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.15;
     cursor: pointer;
   }
 
   .mobile-tool-circle {
     display: grid;
     place-items: center;
-    width: 46px;
-    height: 46px;
+    width: 48px;
+    height: 48px;
     max-width: 100%;
-    border: 1px solid var(--line);
+    border: 0;
     border-radius: 50%;
-    background: var(--paper-2);
-    transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+    background: color-mix(in srgb, var(--ink) 6%, var(--paper));
+    transition: color 160ms ease, background 160ms ease;
   }
 
   .mobile-tool-circle svg {
-    width: 21px;
-    height: 21px;
+    width: 22px;
+    height: 22px;
     fill: none;
     stroke: currentColor;
-    stroke-width: 1.75;
+    stroke-width: 1.5;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
@@ -3735,9 +3735,9 @@ body.is-sheet-open {
   }
 
   .mobile-tool.is-active .mobile-tool-circle {
-    border-color: color-mix(in srgb, var(--hover) 28%, transparent);
-    background: var(--wash);
-    box-shadow: 0 5px 15px rgba(139, 47, 50, 0.08);
+    border: 0;
+    background: color-mix(in srgb, var(--ink) 11%, var(--paper));
+    box-shadow: none;
   }
 
   .grid {
