@@ -3479,7 +3479,10 @@ body.is-sheet-open {
   }
 
   .mobile-brush-options {
+    display: flex;
+    flex-direction: row;
     align-items: flex-start;
+    justify-content: flex-start;
     gap: 10px;
     width: 100%;
     padding: 4px 5px;
@@ -3552,6 +3555,7 @@ body.is-sheet-open {
   .mobile-brush-panel,
   .mobile-color-panel {
     position: relative;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8px;
