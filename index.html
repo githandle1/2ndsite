@@ -912,6 +912,7 @@
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
+            overscroll-behavior: none;
             transition:
                 opacity var(--photo-reveal-duration) var(--photo-reveal-ease),
                 visibility var(--photo-reveal-duration);
@@ -1869,6 +1870,8 @@
             document.body.style.overflow = '';
             currentAlbumThumbs = [];
             currentPhotoIndex = -1;
+            resetWheelGesture();
+            wheelNavLockedUntil = 0;
 
             window.setTimeout(() => {
                 if (!overlay.classList.contains('is-open')) {
@@ -2105,6 +2108,67 @@
 
             navigatePhoto(deltaX < 0 ? 1 : -1);
         }, { passive: true });
+
+        let wheelNavLockedUntil = 0;
+        let wheelDeltaX = 0;
+        let wheelDeltaY = 0;
+        let wheelIdleTimer = 0;
+        const wheelThreshold = 48;
+        const wheelCooldownMs = 520;
+        const wheelIdleResetMs = 180;
+
+        function resetWheelGesture() {
+            wheelDeltaX = 0;
+            wheelDeltaY = 0;
+        }
+
+        function wheelDeltaPixels(event) {
+            if (event.deltaMode === 1) {
+                return 16;
+            }
+
+            if (event.deltaMode === 2) {
+                return overlayStage.clientWidth || 800;
+            }
+
+            return 1;
+        }
+
+        overlay.addEventListener('wheel', (event) => {
+            if (!overlay.classList.contains('is-open') || currentAlbumThumbs.length <= 1) {
+                return;
+            }
+
+            if (event.target.closest('.photo-overlay-slider')) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const now = performance.now();
+            if (now < wheelNavLockedUntil) {
+                return;
+            }
+
+            const scale = wheelDeltaPixels(event);
+            wheelDeltaX += event.deltaX * scale;
+            wheelDeltaY += event.deltaY * scale;
+
+            window.clearTimeout(wheelIdleTimer);
+            wheelIdleTimer = window.setTimeout(resetWheelGesture, wheelIdleResetMs);
+
+            const absX = Math.abs(wheelDeltaX);
+            const absY = Math.abs(wheelDeltaY);
+
+            if (absX < wheelThreshold && absY < wheelThreshold) {
+                return;
+            }
+
+            const delta = absX >= absY ? wheelDeltaX : wheelDeltaY;
+            resetWheelGesture();
+            wheelNavLockedUntil = now + wheelCooldownMs;
+            navigatePhoto(delta > 0 ? 1 : -1);
+        }, { passive: false });
 
         document.addEventListener('keydown', (event) => {
             if (!overlay.classList.contains('is-open')) {
