@@ -3189,8 +3189,10 @@ body.is-sheet-open {
     min-height: 0;
   }
 
+  .sheet.active .frame,
   .sheet.active .frame:has(img),
   .sheet.is-expanded .frame:has(img) {
+    outline: none;
     cursor: grab;
     touch-action: none;
   }
