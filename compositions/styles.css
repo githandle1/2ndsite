@@ -365,7 +365,7 @@ h1 {
     border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: color-mix(in srgb, var(--paper) 88%, #fff);
-    box-shadow: none;
+    box-shadow: 0 8px 22px rgba(36, 33, 31, 0.08);
   }
 
   .mobile-sheet-handle {
@@ -3212,7 +3212,7 @@ body.is-sheet-open {
     border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: color-mix(in srgb, var(--paper) 94%, #fff);
-    box-shadow: none;
+    box-shadow: 0 8px 22px rgba(36, 33, 31, 0.08);
   }
 
   .mobile-sheet .mode-switch {
