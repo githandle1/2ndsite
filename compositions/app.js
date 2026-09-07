@@ -1,6 +1,6 @@
-import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects, defaultEffects } from "./effect-model.js?v=15";
+import { EFFECT_GROUPS, BRUSH_TYPES, BRUSH_SLIDERS, PLACEMENT_SLIDERS, DEFAULT_COLOR, clampEffects } from "./effect-model.js?v=15";
 import { parseColor, oklchToHex } from "./color.js";
-import { mountColorSquare } from "./color-dial.js?v=12";
+import { mountColorSquare } from "./color-dial.js?v=14";
 import { imageWork } from "./image-work.js?v=4";
 import { splitSubjectFromImageData } from "./photo-wash-plan.js?v=4";
 const sceneEl = document.querySelector("#scene");
@@ -357,7 +357,7 @@ mountChoice(countEl, {
     word.textContent = "variations";
     const num = document.createElement("span");
     num.className = "count-num";
-    num.textContent = label;
+    num.textContent = `x${label}`;
     trigger.replaceChildren(word, num);
   },
 });
@@ -536,64 +536,6 @@ function paintPhoto() {
 }
 
 photoEl.addEventListener("change", onPhotoChosen);
-
-const RESET_ICON =
-  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8A4.8 4.8 0 1 0 8 3.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
-
-function bindReset(id, fn) {
-  const button = document.querySelector(id);
-  if (!button) return;
-  button.addEventListener("pointerdown", (event) => event.stopPropagation());
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    fn();
-  });
-}
-
-function makeResetButton(label, onReset) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "reset tool-reset";
-  button.setAttribute("aria-label", `reset ${label}`);
-  button.title = "reset";
-  button.innerHTML = RESET_ICON;
-  button.addEventListener("pointerdown", (event) => event.stopPropagation());
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    onReset();
-  });
-  return button;
-}
-
-function applyEffectPatch(patch) {
-  const rec = selectedId ? cards.get(selectedId) : null;
-  if (rec?.item) {
-    rec.item.effects = clampEffects({ ...sheetEffects(rec), ...patch });
-    applyEffectsToControls(rec.item.effects);
-    syncSheetEditor(rec);
-    syncMobileEditor(rec);
-    persistSettings();
-    scheduleSheetRender(selectedId);
-    return;
-  }
-  applyEffectsToControls(clampEffects({ ...readEffects(), ...patch }));
-  persistSettings();
-}
-
-function resetKeys(keys, extra = {}) {
-  const baseline = defaultEffects();
-  const patch = { ...extra };
-  for (const key of keys) patch[key] = baseline[key];
-  applyEffectPatch(patch);
-}
-
-function decorateToolSummary(details, label, onReset) {
-  const summary = details?.querySelector(":scope > summary");
-  if (!summary || summary.querySelector(".tool-reset")) return;
-  summary.append(makeResetButton(label, onReset));
-}
 
 function openPaintSections() {
   for (const id of ["brush", "placement", "effects"]) {
@@ -1198,7 +1140,6 @@ function mountSubjectDrag(sheet, item) {
   });
 
   async function startPick(event) {
-    if (isPhone()) return;
     if (carrying) return;
     if (event.button != null && event.button !== 0) return;
     if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .veil")) return;
@@ -1350,6 +1291,7 @@ function mountMobileEditor() {
     host: document.querySelector("#mobilePigments"),
     value: effects.color || DEFAULT_COLOR,
     onChange: (color) => applyMobilePatch({ color }),
+    swatches: true,
   });
   for (const button of mobileToolButtons) {
     button.addEventListener("click", () => {
@@ -1360,28 +1302,6 @@ function mountMobileEditor() {
     input.addEventListener("input", () => {
       input.closest(".mobile-tick-scale")?.style.setProperty("--value", input.value);
       applyMobilePatch({ [input.dataset.mobileEffect]: Number(input.value) / 100 });
-    });
-  }
-  for (const button of mobileEditor.querySelectorAll("[data-reset-tool]")) {
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const tool = button.dataset.resetTool;
-      const baseline = defaultEffects();
-      if (tool === "brush") {
-        applyMobilePatch({
-          brushType: baseline.brushType,
-          ...Object.fromEntries(BRUSH_SLIDERS.map((key) => [key.id, baseline[key.id]])),
-        });
-      } else if (tool === "color") {
-        applyMobilePatch({ color: baseline.color });
-      } else if (tool === "saturation") {
-        applyMobilePatch({ pigment: baseline.pigment });
-      } else if (tool === "density") {
-        applyMobilePatch({ density: baseline.density });
-      } else if (tool === "texture") {
-        applyMobilePatch({ granulation: baseline.granulation });
-      }
     });
   }
   setMobileTool(null);
@@ -1537,9 +1457,6 @@ function mountEffects() {
       details.append(makeSlider(key.id, key.label, effects[key.id]));
     }
     effectGroupsEl.append(details);
-    decorateToolSummary(details, group.label, () => {
-      resetKeys(group.keys.map((key) => key.id));
-    });
   });
   if (colorGroup && effectGroupsEl.firstElementChild !== colorGroup) {
     effectGroupsEl.prepend(colorGroup);
@@ -1553,23 +1470,6 @@ function mountEffects() {
     onChange: onEffectInput,
   });
 
-  bindReset("#resetAll", resetAll);
-  decorateToolSummary(brushEl, "brush", () => {
-    const baseline = defaultEffects();
-    resetKeys(BRUSH_SLIDERS.map((key) => key.id), { brushType: baseline.brushType });
-  });
-  decorateToolSummary(placementEl, "placement", () => {
-    resetKeys(PLACEMENT_SLIDERS.map((key) => key.id));
-  });
-  decorateToolSummary(document.querySelector("#effects"), "affect", () => {
-    const baseline = defaultEffects();
-    const keys = EFFECT_GROUPS.flatMap((group) => group.keys.map((key) => key.id));
-    resetKeys(keys, { color: baseline.color });
-  });
-  decorateToolSummary(document.querySelector(".color-group"), "color", () => {
-    applyEffectPatch({ color: defaultEffects().color });
-  });
-
   const root = document.querySelector("#effects");
   root.addEventListener("input", onEffectInput);
   root.addEventListener("change", onEffectInput);
@@ -1577,18 +1477,6 @@ function mountEffects() {
   brushEl.addEventListener("change", onEffectInput);
   placementEl.addEventListener("input", onEffectInput);
   placementEl.addEventListener("change", onEffectInput);
-  persistSettings();
-}
-
-function resetAll() {
-  applyEffectsToControls(defaultEffects());
-  const rec = selectedId ? cards.get(selectedId) : null;
-  if (rec?.item) {
-    rec.item.effects = defaultEffects();
-    syncSheetEditor(rec);
-    syncMobileEditor(rec);
-    scheduleSheetRender(selectedId);
-  }
   persistSettings();
 }
 
@@ -1663,7 +1551,7 @@ function applyPaintedData(rec, dataUrl, density = 1) {
   img.draggable = false;
   frame.querySelector(".wash-lift")?.remove();
   rec.split = null;
-  if (!isPhone()) prefetchSplit(rec);
+  prefetchSplit(rec);
   rec.sheet.classList.remove("is-adjusting");
   rec.sheet.querySelector(".veil")?.remove();
   rec.sheet.querySelector(".save")?.removeAttribute("disabled");
@@ -1832,7 +1720,10 @@ function renderGrid(items) {
   clearWall();
   const hasPaintings = items.length > 0;
   mobileSheet?.classList.toggle("has-paintings", hasPaintings);
-  if (hasPaintings && isPhone()) setMobileSheet(false);
+  if (isPhone()) {
+    setMobileSheet(false);
+    if (hasPaintings) setMobileTool(null);
+  }
   const grid = document.createElement("div");
   grid.className = "grid";
   wallEl.append(grid);
