@@ -3067,7 +3067,9 @@ body.is-sheet-open {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto minmax(0, 1fr);
-    padding-top: max(28px, env(safe-area-inset-top));
+    height: var(--app-h, 100dvh);
+    max-height: var(--app-h, 100dvh);
+    padding: max(28px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom));
   }
 
   .desk-shell,
@@ -3214,21 +3216,22 @@ body.is-sheet-open {
   }
 
   .wall {
-    display: flex;
-    flex-direction: column;
-    padding: 8px 16px max(12px, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+    padding: 8px 0 0;
   }
 
   .wall:empty {
-    display: flex;
-    padding: 8px 16px max(12px, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    padding: 8px 0 0;
   }
 
   .wall:empty::before {
     content: "";
-    flex: 1 1 auto;
     width: 100%;
-    height: auto;
+    height: 100%;
     min-height: 0;
     aspect-ratio: auto;
     border-radius: 18px;
@@ -3241,7 +3244,6 @@ body.is-sheet-open {
   }
 
   .wall .grid {
-    flex: 1 1 auto;
     min-height: 0;
     height: 100%;
     grid-template-columns: 1fr;
