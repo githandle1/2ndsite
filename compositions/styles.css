@@ -383,7 +383,7 @@ h1 {
     border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: var(--paper);
-    box-shadow: none;
+    box-shadow: 0 6px 18px rgba(36, 33, 31, 0.07);
   }
 
   .stack > .field .scene-row {
@@ -3219,7 +3219,7 @@ body.is-sheet-open {
     border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: var(--paper);
-    box-shadow: none;
+    box-shadow: 0 6px 18px rgba(36, 33, 31, 0.07);
   }
 
   .mobile-sheet .scene-row {
