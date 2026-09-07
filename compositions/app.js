@@ -29,6 +29,11 @@ const brushEl = document.querySelector("#brush");
 const brushControlsEl = document.querySelector("#brushControls");
 const placementEl = document.querySelector("#placement");
 const placementControlsEl = document.querySelector("#placementControls");
+const mobileEditor = document.querySelector("#mobileEditor");
+const mobileBrushOptions = document.querySelector(".mobile-brush-options");
+const mobileToolButtons = [...document.querySelectorAll("[data-mobile-tool]")];
+const mobileToolPanels = [...document.querySelectorAll("[data-tool-panel]")];
+const mobileEffectInputs = [...document.querySelectorAll("[data-mobile-effect]")];
 
 const stored = JSON.parse(localStorage.getItem("wash.settings") || "{}");
 if (stored.provider) providerEl.value = stored.provider;
@@ -360,14 +365,21 @@ mountChoice(providerEl);
 
 function sizeScene() {
   const compact = isCompact();
-  const max = compact ? 128 : 220;
+  const max = compact ? 96 : 160;
   sceneEl.style.height = "auto";
-  const next = Math.min(sceneEl.scrollHeight, max);
+  const next = Math.min(Math.max(sceneEl.scrollHeight, 28), max);
   sceneEl.style.height = `${next}px`;
   sceneEl.style.overflowY = sceneEl.scrollHeight > max ? "auto" : "hidden";
 }
 
 sceneEl.addEventListener("input", sizeScene);
+document.fonts?.ready?.then(() => sizeScene());
+sizeScene();
+sceneEl.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+  event.preventDefault();
+  paintEl.click();
+});
 sceneEl.addEventListener("focus", () => {
   requestAnimationFrame(() => sceneEl.scrollIntoView({ block: "nearest", behavior: "smooth" }));
 });
@@ -525,6 +537,9 @@ function paintPhoto() {
 
 photoEl.addEventListener("change", onPhotoChosen);
 
+const RESET_ICON =
+  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8A4.8 4.8 0 1 0 8 3.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+
 function bindReset(id, fn) {
   const button = document.querySelector(id);
   if (!button) return;
@@ -534,6 +549,50 @@ function bindReset(id, fn) {
     event.stopPropagation();
     fn();
   });
+}
+
+function makeResetButton(label, onReset) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "reset tool-reset";
+  button.setAttribute("aria-label", `reset ${label}`);
+  button.title = "reset";
+  button.innerHTML = RESET_ICON;
+  button.addEventListener("pointerdown", (event) => event.stopPropagation());
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onReset();
+  });
+  return button;
+}
+
+function applyEffectPatch(patch) {
+  const rec = selectedId ? cards.get(selectedId) : null;
+  if (rec?.item) {
+    rec.item.effects = clampEffects({ ...sheetEffects(rec), ...patch });
+    applyEffectsToControls(rec.item.effects);
+    syncSheetEditor(rec);
+    syncMobileEditor(rec);
+    persistSettings();
+    scheduleSheetRender(selectedId);
+    return;
+  }
+  applyEffectsToControls(clampEffects({ ...readEffects(), ...patch }));
+  persistSettings();
+}
+
+function resetKeys(keys, extra = {}) {
+  const baseline = defaultEffects();
+  const patch = { ...extra };
+  for (const key of keys) patch[key] = baseline[key];
+  applyEffectPatch(patch);
+}
+
+function decorateToolSummary(details, label, onReset) {
+  const summary = details?.querySelector(":scope > summary");
+  if (!summary || summary.querySelector(".tool-reset")) return;
+  summary.append(makeResetButton(label, onReset));
 }
 
 function openPaintSections() {
@@ -756,7 +815,7 @@ function mountSheetEditor(sheet, item) {
   }
   mountChoice(brush, {
     renderTrigger(trigger, _value, label) {
-      const icon = document.querySelector("#paint svg")?.cloneNode(true) || document.createElement("span");
+      const icon = document.querySelector('[data-mobile-tool="brush"] svg')?.cloneNode(true) || document.createElement("span");
       icon.setAttribute("aria-hidden", "true");
       const word = document.createElement("span");
       word.textContent = label;
@@ -1233,6 +1292,100 @@ function readEffects() {
 }
 
 let colorPicker = null;
+let mobileColorPicker = null;
+
+function applyMobilePatch(patch) {
+  const rec = selectedId ? cards.get(selectedId) : null;
+  if (!rec?.item) return;
+  rec.item.effects = clampEffects({ ...sheetEffects(rec), ...patch });
+  applyEffectsToControls(rec.item.effects);
+  syncSheetEditor(rec);
+  syncMobileEditor(rec);
+  persistSettings();
+  scheduleSheetRender(selectedId);
+}
+
+function syncMobileEditor(rec = selectedId ? cards.get(selectedId) : null) {
+  if (!mobileEditor || !rec?.item) return;
+  const fx = sheetEffects(rec);
+  mobileEditor.dataset.selected = rec.item.id;
+  for (const input of mobileEffectInputs) {
+    input.value = String(Math.round((fx[input.dataset.mobileEffect] ?? 0.5) * 100));
+    input.closest(".mobile-tick-scale")?.style.setProperty("--value", input.value);
+  }
+  for (const button of mobileBrushOptions?.querySelectorAll("[data-brush-type]") || []) {
+    const on = button.dataset.brushType === fx.brushType;
+    button.classList.toggle("is-active", on);
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  const hex = oklchToHex(fx.color || DEFAULT_COLOR);
+  document.querySelector(".mobile-color-icon")?.style.setProperty("--tool-color", hex);
+  mobileColorPicker?.setValue(fx.color || DEFAULT_COLOR);
+}
+
+function setMobileTool(name) {
+  for (const button of mobileToolButtons) {
+    const on = button.dataset.mobileTool === name;
+    button.classList.toggle("is-active", on);
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  for (const panel of mobileToolPanels) {
+    panel.classList.toggle("is-active", panel.dataset.toolPanel === name);
+  }
+}
+
+function mountMobileEditor() {
+  if (!mobileEditor || !mobileBrushOptions) return;
+  for (const name of BRUSH_TYPES) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "mobile-brush-option";
+    button.dataset.brushType = name;
+    button.setAttribute("aria-pressed", "false");
+    button.innerHTML = `<span class="mobile-brush-mark" aria-hidden="true"></span><span>${name.toLowerCase()}</span>`;
+    button.addEventListener("click", () => applyMobilePatch({ brushType: name }));
+    mobileBrushOptions.append(button);
+  }
+  mobileColorPicker = mountColorSquare({
+    host: document.querySelector("#mobilePigments"),
+    value: effects.color || DEFAULT_COLOR,
+    onChange: (color) => applyMobilePatch({ color }),
+  });
+  for (const button of mobileToolButtons) {
+    button.addEventListener("click", () => {
+      setMobileTool(button.classList.contains("is-active") ? null : button.dataset.mobileTool);
+    });
+  }
+  for (const input of mobileEffectInputs) {
+    input.addEventListener("input", () => {
+      input.closest(".mobile-tick-scale")?.style.setProperty("--value", input.value);
+      applyMobilePatch({ [input.dataset.mobileEffect]: Number(input.value) / 100 });
+    });
+  }
+  for (const button of mobileEditor.querySelectorAll("[data-reset-tool]")) {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const tool = button.dataset.resetTool;
+      const baseline = defaultEffects();
+      if (tool === "brush") {
+        applyMobilePatch({
+          brushType: baseline.brushType,
+          ...Object.fromEntries(BRUSH_SLIDERS.map((key) => [key.id, baseline[key.id]])),
+        });
+      } else if (tool === "color") {
+        applyMobilePatch({ color: baseline.color });
+      } else if (tool === "saturation") {
+        applyMobilePatch({ pigment: baseline.pigment });
+      } else if (tool === "density") {
+        applyMobilePatch({ density: baseline.density });
+      } else if (tool === "texture") {
+        applyMobilePatch({ granulation: baseline.granulation });
+      }
+    });
+  }
+  setMobileTool(null);
+}
 
 function makeSlider(id, label, value) {
   const row = document.createElement("label");
@@ -1384,6 +1537,9 @@ function mountEffects() {
       details.append(makeSlider(key.id, key.label, effects[key.id]));
     }
     effectGroupsEl.append(details);
+    decorateToolSummary(details, group.label, () => {
+      resetKeys(group.keys.map((key) => key.id));
+    });
   });
   if (colorGroup && effectGroupsEl.firstElementChild !== colorGroup) {
     effectGroupsEl.prepend(colorGroup);
@@ -1398,6 +1554,21 @@ function mountEffects() {
   });
 
   bindReset("#resetAll", resetAll);
+  decorateToolSummary(brushEl, "brush", () => {
+    const baseline = defaultEffects();
+    resetKeys(BRUSH_SLIDERS.map((key) => key.id), { brushType: baseline.brushType });
+  });
+  decorateToolSummary(placementEl, "placement", () => {
+    resetKeys(PLACEMENT_SLIDERS.map((key) => key.id));
+  });
+  decorateToolSummary(document.querySelector("#effects"), "affect", () => {
+    const baseline = defaultEffects();
+    const keys = EFFECT_GROUPS.flatMap((group) => group.keys.map((key) => key.id));
+    resetKeys(keys, { color: baseline.color });
+  });
+  decorateToolSummary(document.querySelector(".color-group"), "color", () => {
+    applyEffectPatch({ color: defaultEffects().color });
+  });
 
   const root = document.querySelector("#effects");
   root.addEventListener("input", onEffectInput);
@@ -1410,20 +1581,15 @@ function mountEffects() {
 }
 
 function resetAll() {
-  const baseline = defaultEffects();
-  const typeEl = document.querySelector("#brushType");
-  if (typeEl) typeEl.value = baseline.brushType;
-  for (const input of [
-    ...brushControlsEl.querySelectorAll("input[type=range]"),
-    ...placementControlsEl.querySelectorAll("input[type=range]"),
-    ...effectGroupsEl.querySelectorAll("input[type=range]"),
-  ]) {
-    input.value = "50";
+  applyEffectsToControls(defaultEffects());
+  const rec = selectedId ? cards.get(selectedId) : null;
+  if (rec?.item) {
+    rec.item.effects = defaultEffects();
+    syncSheetEditor(rec);
+    syncMobileEditor(rec);
+    scheduleSheetRender(selectedId);
   }
-  document.querySelector("#placeStick")?.syncThumb?.();
-  colorPicker?.setValue(baseline.color);
   persistSettings();
-  scheduleEffectRender();
 }
 
 function onEffectInput() {
@@ -1698,7 +1864,7 @@ function renderGrid(items) {
         <div class="veil">pigment settling…</div>
       </div>
       <div class="caption">
-        <span class="caption-name">sample ${index + 1}</span>
+        <span class="caption-name">variation ${index + 1}</span>
         <div class="sheet-edit is-row" role="toolbar" aria-label="edit wash">
           <button type="button" class="sheet-edit-grip" aria-label="move editor" title="drag to the side"></button>
           <button type="button" class="sheet-edit-color" title="color" aria-label="color" aria-haspopup="listbox" aria-expanded="false">
@@ -1859,6 +2025,7 @@ function selectPainting(id) {
   rec.item.effects = sheetEffects(rec);
   applyEffectsToControls(rec.item.effects);
   syncSheetEditor(rec);
+  syncMobileEditor(rec);
 }
 
 async function renderBuiltInSample(sampleId, prompt) {
@@ -2017,6 +2184,70 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") setAboutOpen(false);
 });
 
+function mountDeskResize() {
+  const studio = document.querySelector(".studio");
+  const shell = document.querySelector(".desk-shell");
+  const handle = document.querySelector(".desk-resize");
+  if (!studio || !shell || !handle) return;
+
+  const minW = 320;
+  const maxW = () => Math.max(minW, Math.min(720, Math.round(window.innerWidth * 0.56)));
+  const apply = (width) => {
+    const next = Math.round(Math.max(minW, Math.min(maxW(), width)));
+    studio.style.setProperty("--desk-w", `${next}px`);
+    handle.setAttribute("aria-valuenow", String(next));
+    handle.setAttribute("aria-valuemin", String(minW));
+    handle.setAttribute("aria-valuemax", String(maxW()));
+    try {
+      localStorage.setItem("wash.deskWidth", String(next));
+    } catch {
+      /* ignore */
+    }
+    return next;
+  };
+
+  const stored = Number(localStorage.getItem("wash.deskWidth"));
+  apply(Number.isFinite(stored) ? stored : 400);
+
+  let dragging = false;
+  let startX = 0;
+  let startW = 400;
+
+  handle.addEventListener("pointerdown", (event) => {
+    if (window.matchMedia("(max-width: 720px)").matches) return;
+    if (event.button != null && event.button !== 0) return;
+    event.preventDefault();
+    dragging = true;
+    startX = event.clientX;
+    startW = shell.getBoundingClientRect().width;
+    handle.classList.add("is-dragging");
+    document.body.classList.add("is-desk-resizing");
+    try {
+      handle.setPointerCapture(event.pointerId);
+    } catch {
+      /* ignore */
+    }
+  });
+
+  handle.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+    event.preventDefault();
+    apply(startW + (event.clientX - startX));
+  });
+
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove("is-dragging");
+    document.body.classList.remove("is-desk-resizing");
+  };
+  handle.addEventListener("pointerup", endDrag);
+  handle.addEventListener("pointercancel", endDrag);
+  window.addEventListener("resize", () => {
+    apply(shell.getBoundingClientRect().width);
+  });
+}
+
 function mountDeskScroll() {
   const desk = document.querySelector(".desk");
   const rail = document.querySelector(".desk-rail");
@@ -2113,8 +2344,10 @@ sheetStageEl?.addEventListener("click", (event) => {
 
 loadSamples().catch((err) => setStatus(err.message));
 mountEffects();
+mountMobileEditor();
 mountModeSwitch();
 fitPaintKit();
 mountMobileSheet();
 sizeScene();
 mountDeskScroll();
+mountDeskResize();
