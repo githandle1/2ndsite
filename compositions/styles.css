@@ -22,6 +22,7 @@
   --pad: 28px;
   --ui: "DM Sans", sans-serif;
   --serif: "DM Sans", sans-serif;
+  --dm-opsz: 10;
 }
 
 * {
@@ -60,9 +61,11 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--ui);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" var(--dm-opsz);
   font-size: 14px;
-  line-height: 1.5;
-  letter-spacing: 0;
+  line-height: 1.55;
+  letter-spacing: -0.03em;
   -webkit-font-smoothing: antialiased;
 }
 
