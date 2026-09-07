@@ -175,14 +175,7 @@ h1 {
 }
 
 .mode-switch .reset {
-  margin-left: auto;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.desk[data-mode="customize"] .mode-switch .reset {
-  opacity: 1;
-  pointer-events: auto;
+  display: none;
 }
 
 .desk[data-mode="create"] .paint-kit {
@@ -3614,10 +3607,6 @@ body.is-sheet-open {
     color: var(--muted);
   }
 
-  .mobile-color-panel .tool-reset {
-    display: none;
-  }
-
   .mobile-brush-panel,
   .mobile-color-panel {
     position: relative;
@@ -3626,13 +3615,6 @@ body.is-sheet-open {
     justify-content: center;
     gap: 8px;
     width: 100%;
-  }
-
-  .mobile-brush-panel .tool-reset,
-  .mobile-color-panel .tool-reset {
-    position: absolute;
-    top: 2px;
-    right: 2px;
   }
 
   .mobile-tick-control {
@@ -3648,13 +3630,7 @@ body.is-sheet-open {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
     width: 100%;
-  }
-
-  .mobile-tick-head .tool-reset {
-    width: 24px;
-    height: 24px;
   }
 
   .mobile-tick-scale {

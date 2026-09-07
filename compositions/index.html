@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fenix&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=222" />
+    <link rel="stylesheet" href="styles.css?v=223" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true">
@@ -64,17 +64,6 @@
           <div class="mode-switch" role="tablist" aria-label="studio mode">
             <button type="button" class="mode-btn is-active" data-mode="create" role="tab" aria-selected="true" aria-controls="createPane" id="modeCreate">create</button>
             <button type="button" class="mode-btn" data-mode="customize" role="tab" aria-selected="false" aria-controls="paintKit" id="modeCustomize">customize</button>
-            <button id="resetAll" class="reset" type="button" aria-label="reset" title="reset">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path
-                  d="M3.2 8A4.8 4.8 0 1 0 8 3.2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            </button>
           </div>
         <div class="stack" id="createPane" role="tabpanel" aria-labelledby="modeCreate">
           <div class="field">
@@ -168,60 +157,24 @@
           <div class="mobile-tool-panel" id="mobileToolPanel">
             <div class="mobile-brush-panel" data-tool-panel="brush">
               <div class="mobile-brush-options" aria-label="brush types"></div>
-              <button type="button" class="reset tool-reset" data-reset-tool="brush" aria-label="reset brush" title="reset">
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M3.2 8A4.8 4.8 0 1 0 8 3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
-                  <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-                </svg>
-              </button>
             </div>
             <div class="mobile-color-panel" data-tool-panel="color">
               <div id="mobilePigments" aria-label="color"></div>
-              <button type="button" class="reset tool-reset" data-reset-tool="color" aria-label="reset color" title="reset">
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M3.2 8A4.8 4.8 0 1 0 8 3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
-                  <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-                </svg>
-              </button>
             </div>
             <label class="mobile-tick-control" data-tool-panel="saturation">
-              <span class="mobile-tick-head">
-                <span>saturation</span>
-                <button type="button" class="reset tool-reset" data-reset-tool="saturation" aria-label="reset saturation" title="reset">
-                  <svg viewBox="0 0 16 16" aria-hidden="true">
-                    <path d="M3.2 8A4.8 4.8 0 1 0 8 3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
-                    <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-                  </svg>
-                </button>
-              </span>
+              <span class="mobile-tick-head">saturation</span>
               <span class="mobile-tick-scale">
                 <input type="range" min="0" max="100" step="1" data-mobile-effect="pigment" aria-label="saturation" />
               </span>
             </label>
             <label class="mobile-tick-control" data-tool-panel="density">
-              <span class="mobile-tick-head">
-                <span>density</span>
-                <button type="button" class="reset tool-reset" data-reset-tool="density" aria-label="reset density" title="reset">
-                  <svg viewBox="0 0 16 16" aria-hidden="true">
-                    <path d="M3.2 8A4.8 4.8 0 1 0 8 3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
-                    <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-                  </svg>
-                </button>
-              </span>
+              <span class="mobile-tick-head">density</span>
               <span class="mobile-tick-scale">
                 <input type="range" min="0" max="100" step="1" data-mobile-effect="density" aria-label="density" />
               </span>
             </label>
             <label class="mobile-tick-control" data-tool-panel="texture">
-              <span class="mobile-tick-head">
-                <span>texture</span>
-                <button type="button" class="reset tool-reset" data-reset-tool="texture" aria-label="reset texture" title="reset">
-                  <svg viewBox="0 0 16 16" aria-hidden="true">
-                    <path d="M3.2 8A4.8 4.8 0 1 0 8 3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
-                    <path d="M3.2 3.2v3.2H6.4" fill="none" stroke="currentColor" stroke-width="1.5" />
-                  </svg>
-                </button>
-              </span>
+              <span class="mobile-tick-head">texture</span>
               <span class="mobile-tick-scale">
                 <input type="range" min="0" max="100" step="1" data-mobile-effect="granulation" aria-label="texture" />
               </span>
@@ -304,6 +257,6 @@
     <div id="sheetStage" class="sheet-stage" hidden></div>
 
     <iframe id="renderer" class="renderer" title="watercolor renderer" src="renderer.html?v=58"></iframe>
-    <script type="module" src="app.js?v=137"></script>
+    <script type="module" src="app.js?v=138"></script>
   </body>
 </html>
