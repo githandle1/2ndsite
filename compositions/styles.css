@@ -3421,8 +3421,10 @@ body.is-sheet-open {
   .mobile-sheet.has-paintings:not(.is-expanded) {
     height: auto;
     max-height: min(43dvh, 350px);
-    padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+    padding: 6px 10px max(10px, env(safe-area-inset-bottom));
     overflow: hidden;
+    background: transparent;
+    box-shadow: none;
   }
 
   .mobile-sheet.has-paintings > .stack,
@@ -3439,7 +3441,7 @@ body.is-sheet-open {
   .mobile-sheet.has-paintings .mobile-editor {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 12px;
   }
 
   .mobile-tool-panel {
@@ -3498,11 +3500,11 @@ body.is-sheet-open {
   .mobile-brush-mark {
     display: grid;
     place-items: center;
-    width: 48px;
-    height: 48px;
-    border: 0;
+    width: 44px;
+    height: 44px;
+    border: 1.25px solid color-mix(in srgb, var(--ink) 16%, transparent);
     border-radius: 50%;
-    background: color-mix(in srgb, var(--ink) 6%, var(--paper));
+    background: transparent;
   }
 
   .mobile-brush-mark::before {
@@ -3519,8 +3521,8 @@ body.is-sheet-open {
   }
 
   .mobile-brush-option.is-active .mobile-brush-mark {
-    border: 0;
-    background: color-mix(in srgb, var(--ink) 11%, var(--paper));
+    border-color: var(--hover);
+    background: transparent;
     box-shadow: none;
   }
 
@@ -3678,46 +3680,68 @@ body.is-sheet-open {
   .mobile-tool-dock {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 2px;
-    padding: 4px 2px 1px;
-    border-top: 1px solid var(--line);
+    gap: 0;
+    margin: 0;
+    padding: 12px 6px 9px;
+    border: 0;
+    border-radius: 28px;
+    background: color-mix(in srgb, var(--paper) 82%, #fff);
+    box-shadow:
+      0 0 0 1px rgba(36, 33, 31, 0.05),
+      0 10px 28px rgba(36, 33, 31, 0.05);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
 
   .mobile-tool {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 5px;
     min-width: 0;
-    padding: 0;
+    padding: 2px 0 0;
     border: 0;
     background: transparent;
-    color: var(--muted);
+    color: color-mix(in srgb, var(--ink) 38%, transparent);
     font-size: 10px;
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     line-height: 1.15;
     cursor: pointer;
   }
 
+  .mobile-tool.is-active::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-left: 3.5px solid transparent;
+    border-right: 3.5px solid transparent;
+    border-top: 4px solid var(--hover);
+    transform: translateX(-50%);
+  }
+
   .mobile-tool-circle {
     display: grid;
     place-items: center;
-    width: 48px;
-    height: 48px;
+    width: 28px;
+    height: 28px;
     max-width: 100%;
     border: 0;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--ink) 6%, var(--paper));
-    transition: color 160ms ease, background 160ms ease;
+    border-radius: 0;
+    background: transparent;
+    transition: color 160ms ease;
   }
 
   .mobile-tool-circle svg {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     fill: none;
     stroke: currentColor;
-    stroke-width: 1.5;
+    stroke-width: 1.4;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
@@ -3727,16 +3751,19 @@ body.is-sheet-open {
   }
 
   .mobile-color-icon svg {
-    color: var(--tool-color);
+    color: inherit;
   }
 
   .mobile-tool.is-active {
     color: var(--hover);
   }
 
+  .mobile-tool.is-active .mobile-color-icon svg {
+    color: var(--tool-color);
+  }
+
   .mobile-tool.is-active .mobile-tool-circle {
-    border: 0;
-    background: color-mix(in srgb, var(--ink) 11%, var(--paper));
+    background: transparent;
     box-shadow: none;
   }
 
