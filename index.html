@@ -962,13 +962,11 @@
 
         .photo-overlay-stack {
             position: relative;
-            flex: 0 1 auto;
+            flex: 0 0 auto;
             width: var(--stack-width, 0px);
             height: var(--stack-height, 0px);
             max-width: calc(100vw - (2 * var(--photo-frame-margin)));
             max-height: calc(100dvh - (2 * var(--photo-frame-margin)) - var(--photo-controls-band));
-            min-width: 0;
-            min-height: 0;
         }
 
         .photo-overlay-stack.is-ready {
@@ -1827,6 +1825,8 @@
 
             overlayStack.style.setProperty('--stack-width', `${size.width}px`);
             overlayStack.style.setProperty('--stack-height', `${size.height}px`);
+            overlayStack.style.width = `${size.width}px`;
+            overlayStack.style.height = `${size.height}px`;
 
             if (animate) {
                 overlayStack.classList.add('is-ready');
@@ -1861,6 +1861,8 @@
             overlayStack.classList.remove('is-ready');
             overlayStack.style.removeProperty('--stack-width');
             overlayStack.style.removeProperty('--stack-height');
+            overlayStack.style.removeProperty('width');
+            overlayStack.style.removeProperty('height');
             frontLayer = overlayLayers[0];
             backLayer = overlayLayers[1];
         }
