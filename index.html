@@ -954,7 +954,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            width: max-content;
+            width: var(--stack-width, max-content);
             max-width: 100%;
             max-height: 100%;
             min-height: 0;
@@ -963,12 +963,14 @@
         .photo-overlay-stack {
             position: relative;
             flex: 0 0 auto;
+            align-self: flex-end;
             width: var(--stack-width, 0px);
             height: var(--stack-height, 0px);
-            max-width: calc(100vw - (2 * var(--photo-frame-margin)));
+            max-width: 100%;
             max-height: calc(100dvh - (2 * var(--photo-frame-margin)) - var(--photo-controls-band));
         }
 
+        .photo-overlay-frame.is-ready,
         .photo-overlay-stack.is-ready {
             transition:
                 width var(--photo-turn-duration) var(--photo-turn-ease),
@@ -1469,6 +1471,7 @@
     <script>
         const overlay = document.getElementById('photo-overlay');
         const overlayStage = document.getElementById('photo-overlay-stage');
+        const overlayFrame = overlay.querySelector('.photo-overlay-frame');
         const overlayStack = document.getElementById('photo-overlay-stack');
         const overlayLayers = [...overlay.querySelectorAll('.photo-overlay-image')];
         const overlayScrub = document.getElementById('photo-overlay-scrub');
@@ -1785,13 +1788,19 @@
         }
 
         function photoStageLimits() {
-            const styles = getComputedStyle(overlayStack);
-            const maxWidth = Number.parseFloat(styles.maxWidth);
-            const maxHeight = Number.parseFloat(styles.maxHeight);
+            const stageStyles = getComputedStyle(overlayStage);
+            const paddingX = Number.parseFloat(stageStyles.paddingLeft) + Number.parseFloat(stageStyles.paddingRight);
+            const paddingY = Number.parseFloat(stageStyles.paddingTop) + Number.parseFloat(stageStyles.paddingBottom);
+            const band = Number.parseFloat(
+                getComputedStyle(document.documentElement).getPropertyValue('--photo-controls-band')
+            ) || 48;
 
             return {
-                maxWidth: Number.isFinite(maxWidth) && maxWidth > 0 ? maxWidth : window.innerWidth,
-                maxHeight: Number.isFinite(maxHeight) && maxHeight > 0 ? maxHeight : window.innerHeight
+                maxWidth: Math.max(1, overlayStage.clientWidth - (Number.isFinite(paddingX) ? paddingX : 0)),
+                maxHeight: Math.max(
+                    1,
+                    overlayStage.clientHeight - (Number.isFinite(paddingY) ? paddingY : 0) - band
+                )
             };
         }
 
@@ -1820,20 +1829,25 @@
             }
 
             if (!animate) {
+                overlayFrame.classList.remove('is-ready');
                 overlayStack.classList.remove('is-ready');
             }
 
+            overlayFrame.style.setProperty('--stack-width', `${size.width}px`);
             overlayStack.style.setProperty('--stack-width', `${size.width}px`);
             overlayStack.style.setProperty('--stack-height', `${size.height}px`);
+            overlayFrame.style.width = `${size.width}px`;
             overlayStack.style.width = `${size.width}px`;
             overlayStack.style.height = `${size.height}px`;
 
             if (animate) {
+                overlayFrame.classList.add('is-ready');
                 overlayStack.classList.add('is-ready');
                 return;
             }
 
             requestAnimationFrame(() => {
+                overlayFrame.classList.add('is-ready');
                 overlayStack.classList.add('is-ready');
             });
         }
@@ -1858,9 +1872,12 @@
                 layer.onload = null;
                 layer.onerror = null;
             });
+            overlayFrame.classList.remove('is-ready');
             overlayStack.classList.remove('is-ready');
+            overlayFrame.style.removeProperty('--stack-width');
             overlayStack.style.removeProperty('--stack-width');
             overlayStack.style.removeProperty('--stack-height');
+            overlayFrame.style.removeProperty('width');
             overlayStack.style.removeProperty('width');
             overlayStack.style.removeProperty('height');
             frontLayer = overlayLayers[0];
