@@ -1008,8 +1008,8 @@
 
         .photo-overlay-scrub {
             --slider-progress: 0%;
-            --slider-track: color-mix(in srgb, var(--overlay-ink) 28%, transparent);
-            --slider-fill: color-mix(in srgb, var(--overlay-ink) 82%, transparent);
+            --slider-track: color-mix(in srgb, var(--overlay-ink) 22%, transparent);
+            --slider-fill: var(--hover);
             display: flex;
             align-items: center;
             width: 156px;
@@ -1027,7 +1027,7 @@
             height: 28px;
             margin: 0;
             background: transparent;
-            accent-color: var(--overlay-ink);
+            accent-color: var(--hover);
             cursor: pointer;
             touch-action: none;
         }
@@ -1037,7 +1037,7 @@
         }
 
         .photo-overlay-slider::-webkit-slider-runnable-track {
-            height: 1.5px;
+            height: 1px;
             border: none;
             border-radius: 999px;
             background: linear-gradient(
@@ -1050,24 +1050,22 @@
         .photo-overlay-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 11px;
-            height: 11px;
-            margin-top: -4.75px;
+            width: 7px;
+            height: 7px;
+            margin-top: -3px;
             border: none;
             border-radius: 50%;
-            background: var(--overlay-ink);
-            box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent);
-            transition: transform 160ms ease, background-color 160ms ease;
+            background: var(--hover);
+            transition: transform 160ms ease;
         }
 
         .photo-overlay-slider:hover::-webkit-slider-thumb,
         .photo-overlay-slider:focus-visible::-webkit-slider-thumb {
-            background: var(--hover);
-            transform: scale(1.14);
+            transform: scale(1.12);
         }
 
         .photo-overlay-slider::-moz-range-track {
-            height: 1.5px;
+            height: 1px;
             border: none;
             border-radius: 999px;
             background: linear-gradient(
@@ -1078,23 +1076,17 @@
         }
 
         .photo-overlay-slider::-moz-range-progress {
-            height: 1.5px;
+            height: 1px;
             background: var(--slider-fill);
             border: none;
             border-radius: 999px;
         }
 
         .photo-overlay-slider::-moz-range-thumb {
-            width: 11px;
-            height: 11px;
+            width: 7px;
+            height: 7px;
             border: none;
             border-radius: 50%;
-            background: var(--overlay-ink);
-            box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent);
-        }
-
-        .photo-overlay-slider:hover::-moz-range-thumb,
-        .photo-overlay-slider:focus-visible::-moz-range-thumb {
             background: var(--hover);
         }
 
