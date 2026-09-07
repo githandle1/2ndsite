@@ -1087,6 +1087,8 @@ select.choice-native {
 
 .paint-kit > summary::-webkit-details-marker,
 .pane > summary::-webkit-details-marker,
+.color-group > summary::-webkit-details-marker,
+.effect-groups > details > summary::-webkit-details-marker,
 .keys summary::-webkit-details-marker {
   display: none;
 }
@@ -1102,6 +1104,8 @@ select.choice-native {
 
 .paint-kit > summary::after,
 .pane > summary::after,
+.color-group > summary::after,
+.effect-groups > details > summary::after,
 .keys > summary::after {
   content: "";
   display: block;
@@ -1118,6 +1122,8 @@ select.choice-native {
 
 .paint-kit[open] > summary::after,
 .pane[open] > summary::after,
+.color-group[open] > summary::after,
+.effect-groups > details[open] > summary::after,
 .keys[open] > summary::after {
   margin-top: 3px;
   transform: rotate(-135deg);
@@ -1140,12 +1146,26 @@ select.choice-native {
   border-top: 1px solid var(--line);
 }
 
-.pane > summary {
+.pane > summary,
+.color-group > summary,
+.effect-groups > details > summary {
   display: flex;
   align-items: center;
   gap: var(--label-gap);
   min-height: 36px;
   color: var(--muted);
+}
+
+.pane > summary .tool-reset,
+.color-group > summary .tool-reset,
+.effect-groups > details > summary .tool-reset {
+  margin-left: auto;
+}
+
+.pane > summary::after,
+.color-group > summary::after,
+.effect-groups > details > summary::after {
+  margin-left: 6px;
 }
 
 .paint-kit > summary .reset {
@@ -3452,6 +3472,22 @@ body.is-sheet-open {
     font-size: 13px;
   }
 
+  .mobile-brush-panel,
+  .mobile-color-panel {
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .mobile-brush-panel .tool-reset,
+  .mobile-color-panel .tool-reset {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+  }
+
   .mobile-tick-control {
     flex-direction: column;
     align-items: center;
@@ -3459,6 +3495,19 @@ body.is-sheet-open {
     width: 100%;
     color: var(--muted);
     font-size: 11px;
+  }
+
+  .mobile-tick-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .mobile-tick-head .tool-reset {
+    width: 24px;
+    height: 24px;
   }
 
   .mobile-tick-scale {
