@@ -125,6 +125,10 @@ body {
 .masthead {
   position: relative;
   z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
   width: 100%;
 }
 
@@ -133,9 +137,9 @@ h1 {
   z-index: 2;
   margin: 0;
   font-family: var(--serif);
-  font-size: 1.75rem;
+  font-size: 2.75rem;
   font-weight: 400;
-  line-height: 1.15;
+  line-height: 1;
   letter-spacing: 0;
   color: var(--hover);
   cursor: default;
@@ -333,17 +337,40 @@ h1 {
 
 @media (min-width: 721px) {
   .desk {
-    gap: 14px;
-    padding: 20px;
+    gap: 20px;
+    padding: 28px 8px 8px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .masthead {
+    gap: 12px;
+    padding: 0 12px 4px;
   }
 
   .about-label {
-    margin-top: 7px;
+    margin-top: 2px;
   }
 
   .mode-switch {
     gap: 12px;
-    margin-top: 0;
+    margin-top: 8px;
+  }
+
+  .mobile-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--paper) 88%, #fff);
+    box-shadow:
+      0 0 0 1px rgba(36, 33, 31, 0.045),
+      0 18px 48px rgba(36, 33, 31, 0.07);
+  }
+
+  .mobile-sheet-handle {
+    display: none;
   }
 
   .stack {
@@ -2972,8 +2999,8 @@ body.is-sheet-open {
   .studio {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    padding-top: max(18px, env(safe-area-inset-top));
+    grid-template-rows: auto auto minmax(0, 1fr);
+    padding-top: max(28px, env(safe-area-inset-top));
   }
 
   .desk-shell,
@@ -2984,11 +3011,20 @@ body.is-sheet-open {
 
   .masthead {
     grid-row: 1;
-    padding: 2px 12px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 4px 16px 14px;
+  }
+
+  .masthead h1 {
+    font-size: 2.15rem;
+    font-weight: 400;
   }
 
   .mobile-sheet {
-    grid-row: 3;
+    grid-row: 2;
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -3089,7 +3125,7 @@ body.is-sheet-open {
   }
 
   .wall {
-    grid-row: 2;
+    grid-row: 3;
   }
 
   .wall:empty {
@@ -3115,9 +3151,10 @@ body.is-sheet-open {
 
   .masthead {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 34px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    min-height: 0;
   }
 
   .masthead .about {
@@ -3153,15 +3190,26 @@ body.is-sheet-open {
   }
 
   .mobile-sheet:not(.has-paintings) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 12px 12px;
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--paper) 94%, #fff);
+    box-shadow:
+      0 0 0 1px rgba(36, 33, 31, 0.055),
+      0 12px 36px rgba(36, 33, 31, 0.09);
+  }
+
+  .mobile-sheet .mode-switch {
+    display: flex;
+    position: static;
+    margin: 0;
     padding: 0;
-    border-radius: 0;
     background: transparent;
-    box-shadow: none;
   }
 
   .mobile-sheet-handle,
-  .mobile-sheet .mode-switch,
-  .mobile-sheet .sample-kit,
   .mobile-sheet .paint-kit {
     display: none !important;
   }
