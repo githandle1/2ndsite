@@ -3199,8 +3199,8 @@ body.is-sheet-open {
 
   .sheet.active .frame:has(img),
   .sheet.is-expanded .frame:has(img) {
-    cursor: pointer;
-    touch-action: pan-y;
+    cursor: grab;
+    touch-action: none;
   }
 
   .masthead {

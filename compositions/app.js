@@ -1198,7 +1198,6 @@ function mountSubjectDrag(sheet, item) {
   });
 
   async function startPick(event) {
-    if (isPhone()) return;
     if (carrying) return;
     if (event.button != null && event.button !== 0) return;
     if (event.target.closest(".expand, .pick, .sheet-close, .sheet-edit, .veil")) return;
@@ -1663,7 +1662,7 @@ function applyPaintedData(rec, dataUrl, density = 1) {
   img.draggable = false;
   frame.querySelector(".wash-lift")?.remove();
   rec.split = null;
-  if (!isPhone()) prefetchSplit(rec);
+  prefetchSplit(rec);
   rec.sheet.classList.remove("is-adjusting");
   rec.sheet.querySelector(".veil")?.remove();
   rec.sheet.querySelector(".save")?.removeAttribute("disabled");
