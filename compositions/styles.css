@@ -3620,19 +3620,23 @@ body.is-sheet-open {
   }
 
   .mobile-tick-control {
+    position: relative;
     flex-direction: column;
     align-items: center;
-    gap: 7px;
+    gap: 0;
     width: 100%;
     color: var(--muted);
     font-size: 11px;
   }
 
   .mobile-tick-head {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    pointer-events: none;
   }
 
   .mobile-tick-scale {
@@ -3700,7 +3704,7 @@ body.is-sheet-open {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 0;
     min-width: 0;
     padding: 0;
     border: 0;
@@ -3711,6 +3715,15 @@ body.is-sheet-open {
     letter-spacing: 0.01em;
     line-height: 1.15;
     cursor: pointer;
+  }
+
+  .mobile-tool > span:not(.mobile-tool-circle) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
 
   .mobile-tool-circle {

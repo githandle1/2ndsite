@@ -120,7 +120,6 @@ export function mountColorSquare({ host, input, value, onChange, swatches = fals
       button.className = "color-swatch";
       button.style.background = pigment.hex;
       button.dataset.hex = pigment.hex;
-      button.title = pigment.name;
       button.setAttribute("aria-label", pigment.name);
       button.setAttribute("role", "option");
       button.addEventListener("click", () => {
