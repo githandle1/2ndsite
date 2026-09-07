@@ -66,7 +66,7 @@ function hueHex(h) {
   return rgbToHex(hsvToRgb(h, 1, 1));
 }
 
-export function mountColorSquare({ host, input, value, onChange }) {
+export function mountColorSquare({ host, input, value, onChange, swatches = false }) {
   if (!host) return null;
 
   const oklch = { ...(parseColor(value) || parseColor("#8b2f32")) };
@@ -74,6 +74,7 @@ export function mountColorSquare({ host, input, value, onChange }) {
   const hsv = rgbToHsv(startRgb.r, startRgb.g, startRgb.b);
 
   host.classList.add("color-square");
+  if (swatches) host.classList.add("has-swatches");
   host.replaceChildren();
 
   const map = document.createElement("div");
@@ -106,6 +107,32 @@ export function mountColorSquare({ host, input, value, onChange }) {
   } else {
     hexField.classList.add("color-square-hex");
   }
+
+  let swatchRow = null;
+  if (swatches) {
+    swatchRow = document.createElement("div");
+    swatchRow.className = "color-swatches";
+    swatchRow.setAttribute("role", "listbox");
+    swatchRow.setAttribute("aria-label", "pigments");
+    for (const pigment of PIGMENTS) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "color-swatch";
+      button.style.background = pigment.hex;
+      button.dataset.hex = pigment.hex;
+      button.title = pigment.name;
+      button.setAttribute("aria-label", pigment.name);
+      button.setAttribute("role", "option");
+      button.addEventListener("click", () => {
+        const next = parseColor(pigment.hex);
+        if (!next) return;
+        applyHsvFromColor(next);
+        commit(true);
+      });
+      swatchRow.append(button);
+    }
+    host.append(swatchRow);
+  }
   host.append(map, hue);
   if (!input) host.append(hexField);
 
@@ -137,6 +164,11 @@ export function mountColorSquare({ host, input, value, onChange }) {
     thumb.style.left = `${hsv.s * 100}%`;
     thumb.style.top = `${(1 - hsv.v) * 100}%`;
     hue.value = String(Math.round(hsv.h));
+    swatchRow?.querySelectorAll(".color-swatch").forEach((button) => {
+      const on = button.dataset.hex.toLowerCase() === shown.toLowerCase();
+      button.classList.toggle("is-active", on);
+      button.setAttribute("aria-selected", on ? "true" : "false");
+    });
     if (emit) onChange?.({ ...oklch });
   }
 

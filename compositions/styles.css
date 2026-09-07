@@ -3536,20 +3536,86 @@ body.is-sheet-open {
   .mobile-color-panel {
     justify-content: center;
     width: 100%;
-    padding: 4px;
+    padding: 2px 4px 0;
   }
 
   #mobilePigments.color-square {
-    width: 132px;
+    width: min(88vw, 360px);
+    gap: 9px;
+  }
+
+  #mobilePigments .color-swatches {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+    padding: 1px 2px;
+    overflow: visible;
+  }
+
+  #mobilePigments .color-swatch {
+    flex: 0 0 22px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid rgba(36, 33, 31, 0.08);
+    border-radius: 50%;
+    background: #8b2f32;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+    cursor: pointer;
+  }
+
+  #mobilePigments .color-swatch.is-active {
+    box-shadow:
+      0 0 0 2px var(--paper),
+      0 0 0 3px color-mix(in srgb, var(--hover) 70%, #24211f);
   }
 
   #mobilePigments .color-square-map {
     min-height: 0;
+    height: 72px;
+    aspect-ratio: auto;
+    border-radius: 14px;
+  }
+
+  #mobilePigments .color-square-thumb {
+    width: 12px;
+    height: 12px;
+    border-width: 2px;
+    box-shadow: 0 1px 4px rgba(36, 33, 31, 0.18);
+  }
+
+  #mobilePigments .color-square-hue {
+    height: 8px;
+  }
+
+  #mobilePigments .color-square-hue::-webkit-slider-runnable-track,
+  #mobilePigments .color-square-hue::-moz-range-track {
+    height: 8px;
+  }
+
+  #mobilePigments .color-square-hue::-webkit-slider-thumb,
+  #mobilePigments .color-square-hue::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid #fff;
+    box-shadow: 0 1px 3px rgba(36, 33, 31, 0.2);
   }
 
   #mobilePigments .color-square-hex {
-    height: 30px;
-    font-size: 13px;
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+
+  .mobile-color-panel .tool-reset {
+    display: none;
   }
 
   .mobile-brush-panel,
