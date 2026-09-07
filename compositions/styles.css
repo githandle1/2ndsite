@@ -125,6 +125,10 @@ body {
 .masthead {
   position: relative;
   z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
   width: 100%;
 }
 
@@ -198,92 +202,47 @@ h1 {
 }
 
 .about {
-  position: relative;
-  width: fit-content;
-  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 36rem;
 }
 
 .about-label {
   display: block;
-  margin: 12px 0 0;
+  margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
-  cursor: pointer;
+  cursor: default;
   text-align: left;
 }
 
-.about-label:hover,
-.about-label:focus-visible,
-.about.is-open .about-label {
-  color: var(--hover);
-}
-
-.about-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 1;
+.about-copy {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: min(22rem, calc(100vw - 48px));
-  padding: 10px 12px 12px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--paper) 92%, #fff);
-  box-shadow:
-    0 0 0 1px rgba(36, 33, 31, 0.045),
-    0 10px 24px rgba(36, 33, 31, 0.06);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateY(-4px);
-  transition: opacity 160ms ease, transform 160ms ease;
 }
 
-.about-menu::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 100%;
-  height: 8px;
-}
-
-.about.is-open .about-menu {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .about:hover .about-menu {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: none;
-  }
-}
-
-.about-menu p {
+.about-copy p {
   margin: 0;
   color: var(--muted);
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
-.about-menu a {
+.about-copy a {
   color: inherit;
   overflow-wrap: anywhere;
   text-underline-offset: 2px;
 }
 
-.about-menu a:hover,
-.about-menu a:focus-visible {
+.about-copy a:hover,
+.about-copy a:focus-visible {
   color: var(--hover);
 }
 
@@ -333,17 +292,18 @@ h1 {
 
 @media (min-width: 721px) {
   .desk {
-    gap: 14px;
-    padding: 20px;
+    gap: 22px;
+    padding: 32px 24px 24px;
   }
 
-  .about-label {
-    margin-top: 7px;
+  .masthead {
+    gap: 14px;
+    padding-bottom: 6px;
   }
 
   .mode-switch {
     gap: 12px;
-    margin-top: 0;
+    margin-top: 4px;
   }
 
   .stack {
@@ -2346,30 +2306,14 @@ body.is-sheet-open {
   }
 
   .about-label {
-    margin: 4px 0 0;
-    padding: 4px 0;
-    min-height: 28px;
-    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    min-height: 0;
+    font-size: 13px;
   }
 
-  .about-menu {
-    display: none;
-    position: static;
-    width: 100%;
-    max-width: 100%;
-    padding: 4px 0 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    transform: none;
-  }
-
-  .about.is-open .about-menu {
-    display: flex;
-  }
-
-  .about-menu::before {
-    display: none;
+  .about-copy {
+    max-width: 34rem;
   }
 
   .stack {
@@ -2973,7 +2917,7 @@ body.is-sheet-open {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
-    padding-top: max(18px, env(safe-area-inset-top));
+    padding-top: max(28px, env(safe-area-inset-top));
   }
 
   .desk-shell,
@@ -2984,7 +2928,11 @@ body.is-sheet-open {
 
   .masthead {
     grid-row: 1;
-    padding: 2px 12px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 16px 18px;
   }
 
   .mobile-sheet {
@@ -3115,13 +3063,14 @@ body.is-sheet-open {
 
   .masthead {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 34px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    min-height: 0;
   }
 
   .masthead .about {
-    display: none;
+    display: flex;
   }
 
   .wall {
@@ -3614,8 +3563,8 @@ body.is-sheet-open {
   }
 
   .about-label {
-    margin: 4px 0 0;
-    padding: 4px 0;
+    margin: 0;
+    padding: 0;
     min-height: 0;
   }
 }
@@ -3707,6 +3656,6 @@ body.is-sheet-open {
 
   .masthead h1 {
     font-family: var(--serif);
-    font-weight: 500;
+    font-weight: 400;
   }
 }

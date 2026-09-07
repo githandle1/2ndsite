@@ -2078,30 +2078,6 @@ if (renderer.contentDocument?.readyState === "complete") {
   rendererReady = true;
 }
 
-const about = document.querySelector(".about");
-const aboutLabel = about?.querySelector(".about-label");
-
-function setAboutOpen(open) {
-  about?.classList.toggle("is-open", open);
-  aboutLabel?.setAttribute("aria-expanded", open ? "true" : "false");
-}
-
-about?.addEventListener("click", (event) => {
-  if (event.target.closest("a")) return;
-  if (event.target.closest(".about-menu")) return;
-  setAboutOpen(!about.classList.contains("is-open"));
-});
-about?.addEventListener("mouseleave", () => {
-  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setAboutOpen(false);
-});
-document.addEventListener("pointerdown", (event) => {
-  if (!about || !(event.target instanceof Element) || event.target.closest(".about")) return;
-  setAboutOpen(false);
-});
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") setAboutOpen(false);
-});
-
 function mountDeskScroll() {
   const desk = document.querySelector(".desk");
   const rail = document.querySelector(".desk-rail");
