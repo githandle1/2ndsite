@@ -3682,7 +3682,7 @@ body.is-sheet-open {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0;
     margin: 0;
-    padding: 12px 6px 9px;
+    padding: 10px 6px 9px;
     border: 0;
     border-radius: 28px;
     background: color-mix(in srgb, var(--paper) 82%, #fff);
@@ -3700,7 +3700,7 @@ body.is-sheet-open {
     align-items: center;
     gap: 5px;
     min-width: 0;
-    padding: 2px 0 0;
+    padding: 0;
     border: 0;
     background: transparent;
     color: color-mix(in srgb, var(--ink) 38%, transparent);
@@ -3709,19 +3709,6 @@ body.is-sheet-open {
     letter-spacing: 0.01em;
     line-height: 1.15;
     cursor: pointer;
-  }
-
-  .mobile-tool.is-active::before {
-    content: "";
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-left: 3.5px solid transparent;
-    border-right: 3.5px solid transparent;
-    border-top: 4px solid var(--hover);
-    transform: translateX(-50%);
   }
 
   .mobile-tool-circle {
