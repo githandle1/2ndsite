@@ -103,7 +103,7 @@ body {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(360px, 400px) 1fr;
+  grid-template-columns: var(--desk-w, 400px) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
   min-height: 100vh;
@@ -336,6 +336,44 @@ h1 {
 }
 
 @media (min-width: 721px) {
+  .desk-resize {
+    display: block;
+    position: absolute;
+    top: 28px;
+    right: -10px;
+    bottom: 28px;
+    z-index: 6;
+    width: 18px;
+    cursor: ew-resize;
+    touch-action: none;
+  }
+
+  .desk-resize::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 3px;
+    height: 52px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--hover) 32%, transparent);
+    transform: translate(-50%, -50%);
+  }
+
+  .desk-resize:hover::after,
+  .desk-resize.is-dragging::after {
+    background: color-mix(in srgb, var(--hover) 70%, transparent);
+  }
+
+  body.is-desk-resizing {
+    cursor: ew-resize;
+    user-select: none;
+  }
+
+  body.is-desk-resizing * {
+    cursor: ew-resize !important;
+  }
+
   .desk {
     gap: 20px;
     padding: 28px 8px 8px;
@@ -528,6 +566,10 @@ h1 {
 .desk-rail:hover .desk-scroll,
 .desk-rail.is-dragging .desk-scroll {
   background: color-mix(in srgb, var(--hover) 65%, transparent);
+}
+
+.desk-resize {
+  display: none;
 }
 
 .stack {
@@ -3207,8 +3249,8 @@ body.is-sheet-open {
   .mobile-sheet:not(.has-paintings) {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 12px;
+    gap: 16px;
+    padding: 16px;
     border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: color-mix(in srgb, var(--paper) 94%, #fff);
@@ -3229,7 +3271,21 @@ body.is-sheet-open {
   }
 
   .mobile-sheet > .stack {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .mobile-sheet .sample-kit {
+    margin: 0;
+    padding: 0;
+  }
+
+  .mobile-sheet .chips {
+    padding: 0;
+    gap: 8px;
   }
 
   .mobile-sheet .stack > .field {

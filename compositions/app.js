@@ -2184,6 +2184,70 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") setAboutOpen(false);
 });
 
+function mountDeskResize() {
+  const studio = document.querySelector(".studio");
+  const shell = document.querySelector(".desk-shell");
+  const handle = document.querySelector(".desk-resize");
+  if (!studio || !shell || !handle) return;
+
+  const minW = 320;
+  const maxW = () => Math.max(minW, Math.min(720, Math.round(window.innerWidth * 0.56)));
+  const apply = (width) => {
+    const next = Math.round(Math.max(minW, Math.min(maxW(), width)));
+    studio.style.setProperty("--desk-w", `${next}px`);
+    handle.setAttribute("aria-valuenow", String(next));
+    handle.setAttribute("aria-valuemin", String(minW));
+    handle.setAttribute("aria-valuemax", String(maxW()));
+    try {
+      localStorage.setItem("wash.deskWidth", String(next));
+    } catch {
+      /* ignore */
+    }
+    return next;
+  };
+
+  const stored = Number(localStorage.getItem("wash.deskWidth"));
+  apply(Number.isFinite(stored) ? stored : 400);
+
+  let dragging = false;
+  let startX = 0;
+  let startW = 400;
+
+  handle.addEventListener("pointerdown", (event) => {
+    if (window.matchMedia("(max-width: 720px)").matches) return;
+    if (event.button != null && event.button !== 0) return;
+    event.preventDefault();
+    dragging = true;
+    startX = event.clientX;
+    startW = shell.getBoundingClientRect().width;
+    handle.classList.add("is-dragging");
+    document.body.classList.add("is-desk-resizing");
+    try {
+      handle.setPointerCapture(event.pointerId);
+    } catch {
+      /* ignore */
+    }
+  });
+
+  handle.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+    event.preventDefault();
+    apply(startW + (event.clientX - startX));
+  });
+
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove("is-dragging");
+    document.body.classList.remove("is-desk-resizing");
+  };
+  handle.addEventListener("pointerup", endDrag);
+  handle.addEventListener("pointercancel", endDrag);
+  window.addEventListener("resize", () => {
+    apply(shell.getBoundingClientRect().width);
+  });
+}
+
 function mountDeskScroll() {
   const desk = document.querySelector(".desk");
   const rail = document.querySelector(".desk-rail");
@@ -2286,3 +2350,4 @@ fitPaintKit();
 mountMobileSheet();
 sizeScene();
 mountDeskScroll();
+mountDeskResize();
