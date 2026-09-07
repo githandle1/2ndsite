@@ -20,8 +20,8 @@
   --control: 6.5rem;
   --control-sm: 3.2rem;
   --pad: 28px;
-  --ui: "Neue Haas Grotesk Text", "Neue Haas Grotesk Display", "Neue Haas Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --serif: "Neue Haas Grotesk Display", "Neue Haas Grotesk Text", "Neue Haas Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ui: "DM Sans", sans-serif;
+  --serif: "DM Sans", sans-serif;
 }
 
 * {
