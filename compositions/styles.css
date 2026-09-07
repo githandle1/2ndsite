@@ -365,7 +365,7 @@ h1 {
     border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: color-mix(in srgb, var(--paper) 88%, #fff);
-    box-shadow: 0 8px 22px rgba(36, 33, 31, 0.08);
+    box-shadow: 0 4px 11px rgba(36, 33, 31, 0.04);
   }
 
   .mobile-sheet-handle {
@@ -383,7 +383,7 @@ h1 {
     border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: var(--paper);
-    box-shadow: 0 6px 18px rgba(36, 33, 31, 0.07);
+    box-shadow: 0 3px 9px rgba(36, 33, 31, 0.035);
   }
 
   .stack > .field .scene-row {
@@ -3212,7 +3212,7 @@ body.is-sheet-open {
     border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: color-mix(in srgb, var(--paper) 94%, #fff);
-    box-shadow: 0 8px 22px rgba(36, 33, 31, 0.08);
+    box-shadow: 0 4px 11px rgba(36, 33, 31, 0.04);
   }
 
   .mobile-sheet .mode-switch {
@@ -3239,7 +3239,7 @@ body.is-sheet-open {
     border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: var(--paper);
-    box-shadow: 0 6px 18px rgba(36, 33, 31, 0.07);
+    box-shadow: 0 3px 9px rgba(36, 33, 31, 0.035);
   }
 
   .mobile-sheet .scene-row {
