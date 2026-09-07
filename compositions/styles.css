@@ -354,19 +354,18 @@ h1 {
 
   .mode-switch {
     gap: 12px;
-    margin-top: 8px;
+    margin-top: 0;
   }
 
   .mobile-sheet {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding: 16px;
+    gap: 12px;
+    padding: 12px 16px 16px;
+    border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: color-mix(in srgb, var(--paper) 88%, #fff);
-    box-shadow:
-      0 0 0 1px rgba(36, 33, 31, 0.045),
-      0 18px 48px rgba(36, 33, 31, 0.07);
+    box-shadow: none;
   }
 
   .mobile-sheet-handle {
@@ -3034,9 +3033,7 @@ body.is-sheet-open {
     padding: 5px 14px 12px;
     border-radius: 16px;
     background: color-mix(in srgb, var(--paper) 88%, #fff);
-    box-shadow:
-      0 0 0 1px rgba(36, 33, 31, 0.045),
-      0 10px 32px rgba(36, 33, 31, 0.06);
+    box-shadow: none;
     overflow-x: hidden;
     overflow-y: auto;
     scrollbar-width: none;
@@ -3183,9 +3180,7 @@ body.is-sheet-open {
     padding: 8px;
     border-radius: 26px;
     background: color-mix(in srgb, var(--paper) 92%, #fff);
-    box-shadow:
-      0 0 0 1px rgba(36, 33, 31, 0.055),
-      0 12px 36px rgba(36, 33, 31, 0.09);
+    box-shadow: none;
     overflow: visible;
   }
 
@@ -3193,12 +3188,11 @@ body.is-sheet-open {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 14px 12px 12px;
+    padding: 12px;
+    border: 1px solid rgba(36, 33, 31, 0.1);
     border-radius: 22px;
     background: color-mix(in srgb, var(--paper) 94%, #fff);
-    box-shadow:
-      0 0 0 1px rgba(36, 33, 31, 0.055),
-      0 12px 36px rgba(36, 33, 31, 0.09);
+    box-shadow: none;
   }
 
   .mobile-sheet .mode-switch {
