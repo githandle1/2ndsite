@@ -294,14 +294,18 @@ h1 {
 .desk-shell {
   position: sticky;
   top: 18px;
+  width: 100%;
   max-height: calc(100vh - 36px);
   min-width: 0;
+  overflow: visible;
 }
 
 .desk-frame {
   position: relative;
+  width: 100%;
   max-height: inherit;
   min-width: 0;
+  overflow: visible;
 }
 
 .mobile-sheet {
@@ -339,11 +343,11 @@ h1 {
   .desk-resize {
     display: block;
     position: absolute;
-    top: 28px;
-    right: -10px;
-    bottom: 28px;
-    z-index: 6;
-    width: 18px;
+    top: 0;
+    right: -8px;
+    bottom: 0;
+    z-index: 9;
+    width: 20px;
     cursor: ew-resize;
     touch-action: none;
   }
@@ -351,18 +355,19 @@ h1 {
   .desk-resize::after {
     content: "";
     position: absolute;
-    top: 50%;
+    top: 18%;
+    bottom: 18%;
     left: 50%;
     width: 3px;
-    height: 52px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--hover) 32%, transparent);
-    transform: translate(-50%, -50%);
+    background: color-mix(in srgb, var(--hover) 45%, transparent);
+    transform: translateX(-50%);
   }
 
   .desk-resize:hover::after,
   .desk-resize.is-dragging::after {
-    background: color-mix(in srgb, var(--hover) 70%, transparent);
+    width: 4px;
+    background: var(--hover);
   }
 
   body.is-desk-resizing {
@@ -2425,7 +2430,8 @@ body.is-sheet-open {
     height: 100%;
   }
 
-  .desk-rail {
+  .desk-rail,
+  .desk-resize {
     display: none !important;
   }
 
