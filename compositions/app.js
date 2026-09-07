@@ -365,14 +365,16 @@ mountChoice(providerEl);
 
 function sizeScene() {
   const compact = isCompact();
-  const max = compact ? 128 : 220;
+  const max = compact ? 96 : 160;
   sceneEl.style.height = "auto";
-  const next = Math.min(sceneEl.scrollHeight, max);
+  const next = Math.min(Math.max(sceneEl.scrollHeight, 28), max);
   sceneEl.style.height = `${next}px`;
   sceneEl.style.overflowY = sceneEl.scrollHeight > max ? "auto" : "hidden";
 }
 
 sceneEl.addEventListener("input", sizeScene);
+document.fonts?.ready?.then(() => sizeScene());
+sizeScene();
 sceneEl.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
   event.preventDefault();

@@ -3622,3 +3622,88 @@ body.is-sheet-open {
   outline: none;
   box-shadow: none;
 }
+
+/* Lock the composer on every breakpoint so 44px mobile touch-target
+   rules cannot pull the + / 3 / brush off one row. */
+.stack > .field {
+  font-family: var(--ui);
+}
+
+.stack > .field #scene,
+.stack > .field .scene-caption {
+  min-height: 0;
+  max-height: 8em;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--ui);
+}
+
+.scene-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 6px;
+  width: 100%;
+}
+
+.scene-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+}
+
+.scene-controls .upload,
+.scene-controls .paint,
+.scene-controls .choice,
+.scene-controls .choice-trigger,
+.scene-controls .count-num {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  padding: 0;
+  line-height: 1;
+}
+
+.scene-controls .field-head {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0;
+}
+
+.scene-controls .choice-trigger::after {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .mobile-sheet .stack > .field {
+    padding: 12px 12px 10px;
+  }
+
+  .mobile-sheet .scene-row {
+    gap: 8px;
+  }
+
+  .mobile-sheet #scene {
+    padding: 2px 4px 0;
+    font-size: 16px;
+    line-height: 22px;
+  }
+
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+  }
+}
